@@ -233,7 +233,6 @@ local function place_stops(ts_map)
         print(string.format('=> id: %s @ %d:%d', ts.id, ts.startpos[1], ts.startpos[2]))
         add_stop(ts)
     end
-    -- show_stops()
 end
 
 function M.expand_snip(word, snip)
@@ -283,22 +282,22 @@ function M.init()
     M.hlnamespace = api.nvim_create_namespace('snipshl')
 
     -- TODO: use <cmd>?
-    api.nvim_set_keymap("i", "<c-]>", "<Esc>:lua return snip.expand_or_next()<CR>", {
+    api.nvim_set_keymap("i", "<c-]>", "<Esc>:lua return snippy.expand_or_next()<CR>", {
         noremap = true;
         silent = true;
     })
 
-    api.nvim_set_keymap("i", "<c-b>", "<Esc>:lua return snip.previous_stop()<CR>", {
+    api.nvim_set_keymap("i", "<c-b>", "<Esc>:lua return snippy.previous_stop()<CR>", {
         noremap = true;
         silent = true;
     })
 
-    api.nvim_set_keymap("s", "<c-]>", "<Esc>:<C-u>lua return snip.next_stop()<CR>", {
+    api.nvim_set_keymap("s", "<c-]>", "<Esc>:<C-u>lua return snippy.next_stop()<CR>", {
         noremap = true;
         silent = true;
     })
 
-    api.nvim_set_keymap("s", "<c-b>", "<Esc>:<C-u>lua return snip.previous_stop()<CR>", {
+    api.nvim_set_keymap("s", "<c-b>", "<Esc>:<C-u>lua return snippy.previous_stop()<CR>", {
         noremap = true;
         silent = true;
     })

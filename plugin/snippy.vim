@@ -1,1 +1,1 @@
-lua snip = require("snippy")
+lua snippy = require("snippy")
