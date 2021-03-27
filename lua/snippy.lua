@@ -1,0 +1,314 @@
+---
+---
+
+local parser = require 'snippy.parser'
+local api = vim.api
+local cmd = vim.cmd
+local fn = vim.fn
+
+local M = {}
+
+-- Util
+
+local function print_error(...)
+  api.nvim_err_writeln(table.concat(vim.tbl_flatten{...}, ' '))
+  cmd 'redraw'
+end
+
+local function t(input)
+  return api.nvim_replace_termcodes(input, true, false, true)
+end
+
+-- Loading
+
+local function read_snippets_file(snippets_file)
+  local ftype = fn.fnamemodify(snippets_file, ':t:r')
+  local snips = {}
+  local current = nil
+  for line in io.lines(snippets_file) do
+    if line:sub(1, 7) == 'snippet' then
+      local prefix = line:match(' +(%w+) *')
+      current = prefix
+      local description = line:match(' *"(.+)" *$')
+      snips[prefix] = {prefix=prefix, description = description, body = {}}
+    else
+      local value = line:gsub('^\t', '')
+      if current then
+        table.insert(snips[current].body, value)
+      end
+    end
+  end
+  M.snips[ftype] = snips
+end
+
+local function read_snips()
+  for _,file in ipairs(vim.split(fn.glob('snips/*.snippets'), '\n', true)) do
+    read_snippets_file(file)
+  end
+end
+
+-- Stop management
+
+local function add_stop(lnum, startcol, endcol)
+  print(string.format('=> Placing stop @ %d:%d-%d', lnum, startcol, endcol))
+  print(api.nvim_get_current_line())
+  local stops = vim.b.stops or {}
+  local smark = api.nvim_buf_set_extmark(0, M.namespace, lnum, startcol, {})
+  local emark = api.nvim_buf_set_extmark(0, M.namespace, lnum, endcol, {})
+  table.insert(stops, {smark, emark})
+  vim.b.stops = stops
+end
+
+local function show_stops()
+  for _, stop in pairs(vim.b.stops) do
+    print(vim.inspect(stop))
+    local smarkid, emarkid = unpack(stop)
+    local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, smarkid, {})
+    local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, emarkid, {})
+    api.nvim_buf_add_highlight(0, M.hlnamespace, 'Cursor', smark[1], smark[2], emark[2])
+  end
+end
+
+local function clear_stops()
+  for _, stop in pairs(vim.b.stops) do
+    print('Clearing marks', vim.inspect(stop))
+    local smarkid, emarkid = unpack(stop)
+    api.nvim_buf_del_extmark(0, M.namespace, smarkid)
+    api.nvim_buf_del_extmark(0, M.namespace, emarkid)
+  end
+  vim.b.stops = {}
+end
+
+function M.previous_stop()
+  local stop = (vim.b.current_stop or 0) - 1
+  M.jump(stop)
+end
+
+function M.next_stop()
+  local stop = (vim.b.current_stop or 0) + 1
+  M.jump(stop)
+end
+
+local function select_stop(from, to)
+  fn.setpos("'<", {0, from[1] + 1, from[2] + 1})
+  fn.setpos("'>", {0, to[1] + 1, to[2]})
+  print('> mode =', fn.mode())
+  if fn.mode() ~= 's' then
+    print('selecting stop')
+    -- api.nvim_input("gv<C-g>")
+    -- cmd [[normal! gv\<C-g>]]
+    api.nvim_feedkeys(t'gv<C-g>', 'ntx', true)
+  end
+end
+
+local function start_insert(pos)
+  pos[1] = pos[1] + 1
+  pos[2] = pos[2] + 1
+  fn.setpos(".", {0, pos[1], pos[2]})
+  local line = api.nvim_get_current_line()
+  if pos[2] > #line then
+    api.nvim_input("a")
+  else
+    api.nvim_input("i")
+  end
+end
+
+function M.jump(stop)
+  local stops = vim.b.stops
+  if not stops or not #stops then
+    return
+  end
+  print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
+  if #stops >= stop then
+    print('> Jumping to stop', stop)
+    local smarkid, emarkid = unpack(stops[stop])
+    local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, smarkid, {})
+    local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, emarkid, {})
+    -- api.nvim_feedkeys(t'<Esc>', 'i', true)
+    print('> smark =', vim.inspect(smark))
+    print('> emark =', vim.inspect(emark))
+    if smark[1] == emark[1] and smark[2] >= emark[2] then
+      start_insert(smark)
+    else
+      select_stop(smark, emark)
+    end
+    vim.b.current_stop = stop
+  else
+    vim.b.current_stop = 0
+    clear_stops()
+  end
+end
+
+-- Snippet expanding
+
+local function indent_snip(snip, indent)
+  local lines = {}
+  for i, line in ipairs(snip.body) do
+    if vim.bo.expandtab then
+      line = line:gsub('\t', string.rep(' ', vim.bo.shiftwidth))
+    end
+    if i > 1 and indent then
+      line = indent .. line
+    end
+    table.insert(lines, line)
+  end
+  return lines
+end
+
+-- { "for (", {
+--     id = 1,
+--     type = "tabstop"
+--   }, " = 0; ", {
+--     id = 1,
+--     type = "tabstop"
+--   }, " < 10; ", {
+--     id = 1,
+--     type = "tabstop"
+--   }, "++) {\n        ", {
+--     id = 2,
+--     type = "tabstop"
+--   }, "\n    }" }
+local function process_snip(structure)
+  local stops = {}
+  local result = {}
+  local cur_line = ''
+  local row = 0
+  local col = 0
+  print(vim.inspect(structure))
+  for _, value in ipairs(structure) do
+    if type(value) == 'table' then
+      if value.type == 'tabstop' then
+        local stopname = '' -- 'stop' .. value.id
+        cur_line = cur_line .. stopname
+        table.insert(stops, {id=value.id, row=row, col=col, placeholder=stopname})
+        col = col + #stopname
+      elseif value.type == 'placeholder' then
+        local stopname = value.value[1] or ''
+        cur_line = cur_line .. stopname
+        table.insert(stops, {id=value.id, row=row, col=col, placeholder=stopname})
+        col = col + #stopname
+      elseif value.type == 'eval' then
+        local evaluated = fn.eval(value.value) or ''
+        cur_line = cur_line .. evaluated
+        col = col + #evaluated
+      else
+        print_error(string.format('Unsupported element "%s" at %d:%d', value.type, row, col))
+      end
+    else
+      local lines = vim.split(value, '\n')
+      if #lines == 1 then
+        cur_line = cur_line .. value
+        col = col + #value
+      else
+        for i, line in ipairs(lines) do
+          if i == #lines then
+            cur_line = line
+          else
+            cur_line = cur_line .. line
+            table.insert(result, cur_line)
+            cur_line = ''
+          end
+          col = #cur_line
+        end
+        row = row + #lines - 1
+      end
+    end
+  end
+  if cur_line then
+    table.insert(result, cur_line)
+  end
+  return result, stops
+end
+
+local function place_stops(row, col, ts_map)
+  for _, ts in ipairs(ts_map) do
+    local lrow = row + ts.row
+    local lcol = ts.col
+    if ts.row == 0 then
+      lcol = col + lcol
+    end
+    print(string.format('=> id: %s @ %d:%d', ts.id, row + ts.row, lcol))
+    add_stop(lrow, lcol, lcol + #ts.placeholder)
+  end
+  -- show_stops()
+end
+
+function M.expand_snip(word, snip)
+  local row, col = unpack(api.nvim_win_get_cursor(0))
+  col = col + 1
+  local current_line = api.nvim_get_current_line()
+  local indent = current_line:match('^(%s+)')
+  local lines = indent_snip(snip, indent)
+  local _, parsed, _ = parser.parse(table.concat(lines, '\n'), 1)
+  local processed, ts_map = process_snip(parsed)
+  print(vim.inspect(processed))
+  -- print(vim.inspect(ts_map))
+  -- print(vim.inspect(parsed))
+  -- print(vim.inspect(lines))
+  api.nvim_buf_set_text(0, row - 1, col - #word, row - 1, col, processed)
+  place_stops(row - 1, col - #word, ts_map)
+  api.nvim_win_set_cursor(0, {row, col - #word})
+  M.next_stop()
+  return ''
+end
+
+function M.expand_or_next()
+  local row, col = unpack(api.nvim_win_get_cursor(0))
+  print('row=', row, 'col=', col)
+  local current_line = api.nvim_get_current_line()
+  print(current_line)
+  local word = current_line:sub(1, col + 1):match('(%w+)$')
+  if word then
+    local ftype = vim.bo.filetype
+    if ftype and M.snips[ftype] then
+      print('snips found for', ftype)
+      local snip = M.snips[ftype][word]
+      if snip then
+        print('snip found for word',  word)
+        return M.expand_snip(word, snip)
+      end
+    end
+  end
+  return M.next_stop()
+end
+
+-- Setup
+
+M.snips = {}
+
+function M.init()
+  M.namespace = api.nvim_create_namespace('snips')
+  M.hlnamespace = api.nvim_create_namespace('snipshl')
+  -- vim.cmd('command! ListStops echo nvim_buf_get_extmarks(0, ' .. M.namespace .. ', 0, -1, {})')
+  -- vim.cmd('command! ShowMarks silent lua require "snip".show_marks()')
+  vim.cmd('command! NextMark  silent call lua require "snip".next_mark()')
+
+  -- TODO: use <cmd>?
+  api.nvim_set_keymap("i", "<c-]>", "<Esc>:lua return snip.expand_or_next()<CR>", {
+    noremap = true;
+    silent = true;
+  })
+
+  api.nvim_set_keymap("i", "<c-b>", "<Esc>:lua return snip.previous_stop()<CR>", {
+    noremap = true;
+    silent = true;
+  })
+
+  api.nvim_set_keymap("s", "<c-]>", "<Esc>:<C-u>lua return snip.next_stop()<CR>", {
+    noremap = true;
+    silent = true;
+  })
+
+  api.nvim_set_keymap("s", "<c-b>", "<Esc>:<C-u>lua return snip.previous_stop()<CR>", {
+    noremap = true;
+    silent = true;
+  })
+
+  read_snips()
+end
+
+M.init()
+
+return M
+
+-- vim:et ts=2 sw=2

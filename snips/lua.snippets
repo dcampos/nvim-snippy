@@ -1,0 +1,29 @@
+snippet fun
+	function ${1:name}(${2:params})
+		${0}
+	end
+snippet locfun
+	local function ${1:name}(${2:params})
+		${0}
+	end
+snippet for
+	for ${1:value} in ${2:table} do
+		${0}
+	end
+snippet while
+	while ${1:values} do
+		${0}
+	end
+snippet repeat
+	repeat
+		${1:what}
+	until ${2:condition}
+snippet choice
+	local foo = ${1|bar,baz,quux|}
+	local ${2|var1,var2,var3|} = ${0}
+snippet elseif
+	elseif $1 then
+		$2
+	end
+snippet date
+	local ${1:date} = "`strftime("%d/%m/%Y")`"
