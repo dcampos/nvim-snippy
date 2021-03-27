@@ -19,11 +19,10 @@ snippet repeat
 		${1:what}
 	until ${2:condition}
 snippet choice
-	local foo = ${1|bar,baz,quux|}
-	local ${2|var1,var2,var3|} = ${0}
+	local foo = ${1|bar,baz,quux|}${0}
 snippet elseif
 	elseif $1 then
 		$2
 	end
 snippet date
-	local ${1:date} = "`strftime("%d/%m/%Y")`"
+	local ${1:date} = "${2:`strftime("%d/%m/%Y")`}"
