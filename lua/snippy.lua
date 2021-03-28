@@ -162,9 +162,9 @@ end
 
 -- Snippet expanding
 
-local function indent_snip(snip, indent)
+local function indent_snip(body, indent)
     local lines = {}
-    for i, line in ipairs(snip.body) do
+    for i, line in ipairs(body) do
         if vim.bo.expandtab then
             line = line:gsub('\t', string.rep(' ', vim.bo.shiftwidth))
         end
@@ -238,13 +238,22 @@ end
 function M.expand_snip(word, snip)
     local row, col = unpack(api.nvim_win_get_cursor(0))
     col = col + 1 - #word
+    print('row=', row, 'col=', col)
     local current_line = api.nvim_get_current_line()
     local indent = current_line:match('^(%s+)')
-    local lines = indent_snip(snip, indent)
+    local body = {}
+    if type(snip) == 'table' then
+        -- Structured snippet
+        body = snip.body
+    else
+        -- Text snippet
+        body = vim.split(snip, '\n', true)
+    end
+    local lines = indent_snip(body, indent)
     local _, parsed, _ = parser.parse(table.concat(lines, '\n'), 1)
     local processed, ts_map = process_snip(parsed, row, col)
-    print(vim.inspect(ts_map))
-    print(vim.inspect(processed))
+    -- print(vim.inspect(ts_map))
+    -- print(vim.inspect(processed))
     lines = vim.split(processed, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(ts_map)
