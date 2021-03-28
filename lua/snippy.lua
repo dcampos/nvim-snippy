@@ -50,15 +50,21 @@ end
 -- Stop management
 
 local function add_stop(stop)
+    api.nvim_win_set_cursor(0, {stop.startpos[1], 0})
     local lnum = stop.startpos[1] - 1
     local startcol = stop.startpos[2]
     local endcol = stop.endpos[2]
     print(string.format('=> Placing stop @ %d:%d-%d', lnum, startcol, endcol))
     print(api.nvim_get_current_line())
     local stops = vim.b.stops or {}
-    local smark = api.nvim_buf_set_extmark(0, M.namespace, lnum, startcol, {})
+    local end_col = endcol
+    if end_col >= fn.col('$') then
+        end_col = fn.col('$') - 1
+    end
+    print(string.format('startcol=%d, end_col=%d, $=%d, line=%d', startcol, end_col, fn.col('$'), fn.line('.')))
+    local smark = api.nvim_buf_set_extmark(0, M.namespace, lnum, startcol, {end_line=lnum, end_col=end_col, hl_group='Search', right_gravity=false, end_right_gravity=true})
     local emark = api.nvim_buf_set_extmark(0, M.namespace, lnum, endcol, {})
-    table.insert(stops, {startmark=smark, endmark=emark, choices=stop.choices})
+    table.insert(stops, {id=stop.id, startmark=smark, endmark=emark, choices=stop.choices})
     vim.b.stops = stops
 end
 
@@ -76,7 +82,7 @@ local function clear_stops()
     for _, stop in pairs(vim.b.stops) do
         print('Clearing marks', vim.inspect(stop))
         api.nvim_buf_del_extmark(0, M.namespace, stop.startmark)
-        api.nvim_buf_del_extmark(0, M.namespace, stop.startmark)
+        api.nvim_buf_del_extmark(0, M.namespace, stop.endmark)
     end
     vim.b.stops = {}
 end
@@ -131,12 +137,45 @@ local function present_choices(stop, startpos)
     end))
 end
 
+function M.get_stop_text(stop)
+    local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.startmark, {})
+    local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.endmark, {})
+    local lines = api.nvim_buf_get_lines(0, smark[1], emark[1] + 1, false)
+    lines[#lines] = lines[#lines]:sub(1, emark[2])
+    lines[1] = lines[1]:sub(smark[2] + 1)
+    return lines
+end
+
+function M.set_stop_text(stop, lines)
+    local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.startmark, {})
+    local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.endmark, {})
+    api.nvim_buf_set_text(0, smark[1], smark[2], emark[1], emark[2], lines)
+end
+
+local function mirror_stop(number)
+    local stops = vim.b.stops
+    if number < 0 or number > #stops  then
+        return
+    end
+    local value = stops[number]
+    local text = M.get_stop_text(value)
+    for i, stop in ipairs(stops) do
+        if i > number and stop.id == value.id then
+            print('> setting text <', table.concat(text, '\n'), '> for stop', i)
+            M.set_stop_text(stop, text)
+        end
+    end
+end
+
 function M.jump(stop)
     local stops = vim.b.stops
     if not stops or not #stops then
         return
     end
     print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
+    if vim.b.current_stop then
+        mirror_stop(vim.b.current_stop)
+    end
     if #stops >= stop and stop > 0 then
         print('> Jumping to stop', stop)
         local value = stops[stop]
