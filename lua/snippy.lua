@@ -8,6 +8,9 @@ local fn = vim.fn
 
 local M = {}
 
+-- TODO: make buffer local
+M.stops = {}
+
 -- Util
 
 local function print_error(...)
@@ -49,42 +52,68 @@ end
 
 -- Stop management
 
+Stop = {id=-1, mark=nil, choices=nil}
+Stop.__index = Stop
+
+function Stop.new(o)
+    return setmetatable(o, Stop)
+end
+
+function Stop:get_range()
+    local mark = api.nvim_buf_get_extmark_by_id(0, M.namespace, self.mark, {details=true})
+    if #mark then
+        local startrow, startcol = mark[1], mark[2]
+        local endrow, endcol = mark[3].end_row, mark[3].end_col
+        return {startrow, startcol}, {endrow, endcol}
+    end
+    return nil
+end
+
+function Stop:get_text()
+    local startpos, endpos = self:get_range()
+    local lines = api.nvim_buf_get_lines(0, startpos[1], endpos[1] + 1, false)
+    lines[#lines] = lines[#lines]:sub(1, endpos[2])
+    lines[1] = lines[1]:sub(startpos[2] + 1)
+    return lines
+end
+
+function Stop:set_text(lines)
+    local startpos, endpos = self:get_range()
+    api.nvim_buf_set_text(0, startpos[1], startpos[2], endpos[1], endpos[2], lines)
+end
+
 local function add_stop(stop)
-    api.nvim_win_set_cursor(0, {stop.startpos[1], 0})
     local lnum = stop.startpos[1] - 1
     local startcol = stop.startpos[2]
     local endcol = stop.endpos[2]
     print(string.format('=> Placing stop @ %d:%d-%d', lnum, startcol, endcol))
-    print(api.nvim_get_current_line())
-    local stops = vim.b.stops or {}
+    local stops = M.stops or {}
     local end_col = endcol
-    if end_col >= fn.col('$') then
-        end_col = fn.col('$') - 1
-    end
-    print(string.format('startcol=%d, end_col=%d, $=%d, line=%d', startcol, end_col, fn.col('$'), fn.line('.')))
-    local smark = api.nvim_buf_set_extmark(0, M.namespace, lnum, startcol, {end_line=lnum, end_col=end_col, hl_group='Search', right_gravity=false, end_right_gravity=true})
-    local emark = api.nvim_buf_set_extmark(0, M.namespace, lnum, endcol, {})
-    table.insert(stops, {id=stop.id, startmark=smark, endmark=emark, choices=stop.choices})
-    vim.b.stops = stops
+    local smark = api.nvim_buf_set_extmark(0, M.namespace, lnum, startcol, {
+        end_line = lnum;
+        end_col = end_col;
+        hl_group = 'Search';
+        right_gravity = false;
+        end_right_gravity = true;
+    })
+    table.insert(stops, Stop.new({id=stop.id, mark=smark, choices=stop.choices}))
+    M.stops = stops
 end
 
 local function show_stops()
-    for _, stop in pairs(vim.b.stops) do
+    for _, stop in pairs(M.stops) do
         print(vim.inspect(stop))
-        local smarkid, emarkid = stop.startmark, stop.endmark
-        local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, smarkid, {})
-        local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, emarkid, {})
-        api.nvim_buf_add_highlight(0, M.hlnamespace, 'Cursor', smark[1], smark[2], emark[2])
+        local startpos, endpos = stop:get_range()
+        api.nvim_buf_add_highlight(0, M.hlnamespace, 'Cursor', startpos[1], startpos[2], endpos[2])
     end
 end
 
 local function clear_stops()
-    for _, stop in pairs(vim.b.stops) do
+    for _, stop in pairs(M.stops) do
         print('Clearing marks', vim.inspect(stop))
-        api.nvim_buf_del_extmark(0, M.namespace, stop.startmark)
-        api.nvim_buf_del_extmark(0, M.namespace, stop.endmark)
+        api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
     end
-    vim.b.stops = {}
+    M.stops = {}
 end
 
 function M.previous_stop()
@@ -118,16 +147,16 @@ local function start_insert(pos)
 end
 
 local function make_completion_choices(choices)
-  local items = {}
-  for _, value in ipairs(choices) do
-    table.insert(items, {
-      word = value,
-      abbr = value,
-      menu = '[snip]',
-      kind = 'Choice'
-    })
-  end
-  return items
+    local items = {}
+    for _, value in ipairs(choices) do
+        table.insert(items, {
+            word = value,
+            abbr = value,
+            menu = '[snip]',
+            kind = 'Choice'
+        })
+    end
+    return items
 end
 
 local function present_choices(stop, startpos)
@@ -137,38 +166,23 @@ local function present_choices(stop, startpos)
     end))
 end
 
-function M.get_stop_text(stop)
-    local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.startmark, {})
-    local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.endmark, {})
-    local lines = api.nvim_buf_get_lines(0, smark[1], emark[1] + 1, false)
-    lines[#lines] = lines[#lines]:sub(1, emark[2])
-    lines[1] = lines[1]:sub(smark[2] + 1)
-    return lines
-end
-
-function M.set_stop_text(stop, lines)
-    local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.startmark, {})
-    local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, stop.endmark, {})
-    api.nvim_buf_set_text(0, smark[1], smark[2], emark[1], emark[2], lines)
-end
-
 local function mirror_stop(number)
-    local stops = vim.b.stops
+    local stops = M.stops
     if number < 0 or number > #stops  then
         return
     end
     local value = stops[number]
-    local text = M.get_stop_text(value)
+    local text = value:get_text()
     for i, stop in ipairs(stops) do
         if i > number and stop.id == value.id then
             print('> setting text <', table.concat(text, '\n'), '> for stop', i)
-            M.set_stop_text(stop, text)
+            stop:set_text(text)
         end
     end
 end
 
 function M.jump(stop)
-    local stops = vim.b.stops
+    local stops = M.stops
     if not stops or not #stops then
         return
     end
@@ -179,18 +193,17 @@ function M.jump(stop)
     if #stops >= stop and stop > 0 then
         print('> Jumping to stop', stop)
         local value = stops[stop]
-        local smark = api.nvim_buf_get_extmark_by_id(0, M.namespace, value.startmark, {})
-        local emark = api.nvim_buf_get_extmark_by_id(0, M.namespace, value.endmark, {})
+        local startpos, endpos = value:get_range()
         -- api.nvim_feedkeys(t'<Esc>', 'i', true)
-        print('> smark =', vim.inspect(smark))
-        print('> emark =', vim.inspect(emark))
-        if smark[1] == emark[1] and smark[2] >= emark[2] then
-            start_insert(smark)
+        print('> startpos =', vim.inspect(startpos))
+        print('> endpos =', vim.inspect(endpos))
+        if startpos[1] == endpos[1] and startpos[2] >= endpos[2] then
+            start_insert(startpos)
         elseif value.choices then
-            start_insert(emark)
-            present_choices(value, smark)
+            start_insert(endpos)
+            present_choices(value, startpos)
         else
-            select_stop(smark, emark)
+            select_stop(startpos, endpos)
         end
         vim.b.current_stop = stop
     else
