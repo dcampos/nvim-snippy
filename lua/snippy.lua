@@ -52,7 +52,7 @@ end
 
 -- Stop management
 
-Stop = {id=-1, mark=nil, choices=nil}
+Stop = {id=-1, mark=nil, choices=nil, transform=nil}
 Stop.__index = Stop
 
 function Stop.new(o)
@@ -74,19 +74,25 @@ function Stop:get_text()
     local lines = api.nvim_buf_get_lines(0, startpos[1], endpos[1] + 1, false)
     lines[#lines] = lines[#lines]:sub(1, endpos[2])
     lines[1] = lines[1]:sub(startpos[2] + 1)
-    return lines
+    return table.concat(lines, '\n')
 end
 
-function Stop:set_text(lines)
+function Stop:set_text(text)
     local startpos, endpos = self:get_range()
+    if self.transform then
+        print('transforming text for', vim.inspect(self))
+        local transform = self.transform
+        text = fn.substitute(text, transform.value, transform.format, transform.options)
+    end
+    local lines = vim.split(text, '\n', true)
     api.nvim_buf_set_text(0, startpos[1], startpos[2], endpos[1], endpos[2], lines)
 end
 
-local function add_stop(stop)
-    local lnum = stop.startpos[1] - 1
-    local startcol = stop.startpos[2]
-    local endcol = stop.endpos[2]
-    print(string.format('=> Placing stop @ %d:%d-%d', lnum, startcol, endcol))
+local function add_stop(spec)
+    local lnum = spec.startpos[1] - 1
+    local startcol = spec.startpos[2]
+    local endcol = spec.endpos[2]
+    print(string.format('=> Placing spec @ %d:%d-%d', lnum, startcol, endcol))
     local stops = M.stops or {}
     local end_col = endcol
     local smark = api.nvim_buf_set_extmark(0, M.namespace, lnum, startcol, {
@@ -96,17 +102,17 @@ local function add_stop(stop)
         right_gravity = false;
         end_right_gravity = true;
     })
-    table.insert(stops, Stop.new({id=stop.id, mark=smark, choices=stop.choices}))
+    table.insert(stops, Stop.new({id=spec.id, mark=smark, choices=spec.choices, transform=spec.transform}))
     M.stops = stops
 end
 
-local function show_stops()
-    for _, stop in pairs(M.stops) do
-        print(vim.inspect(stop))
-        local startpos, endpos = stop:get_range()
-        api.nvim_buf_add_highlight(0, M.hlnamespace, 'Cursor', startpos[1], startpos[2], endpos[2])
-    end
-end
+-- local function show_stops()
+--     for _, stop in pairs(M.stops) do
+--         print(vim.inspect(stop))
+--         local startpos, endpos = stop:get_range()
+--         api.nvim_buf_add_highlight(0, M.hlnamespace, 'Cursor', startpos[1], startpos[2], endpos[2])
+--     end
+-- end
 
 local function clear_stops()
     for _, stop in pairs(M.stops) do
@@ -175,7 +181,7 @@ local function mirror_stop(number)
     local text = value:get_text()
     for i, stop in ipairs(stops) do
         if i > number and stop.id == value.id then
-            print('> setting text <', table.concat(text, '\n'), '> for stop', i)
+            print('> setting text <', text, '> for stop', i)
             stop:set_text(text)
         end
     end
@@ -238,7 +244,7 @@ local function process_structure(structure, row, col)
             if value.type == 'tabstop' then
                 local stopname = '' -- 'stop' .. value.id
                 result = result .. stopname
-                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, col}, placeholder=stopname})
+                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, col}, placeholder=stopname, transform=value.regex})
                 col = col + #stopname
             elseif value.type == 'placeholder' then
                 -- local stopname = value.value[1] or ''
@@ -301,12 +307,17 @@ function M.expand_snip(word, snip)
         -- Text snippet
         body = vim.split(snip, '\n', true)
     end
-    local lines = indent_snip(body, indent)
-    local _, parsed, _ = parser.parse(table.concat(lines, '\n'), 1)
+    local text = table.concat(indent_snip(body, indent), '\n')
+    local ok, parsed, pos = parser.parse(text, 1)
+    if not ok or pos < #text then
+        print_error('> Error while parsing snippet')
+        return
+    end
+    print(vim.inspect(parsed))
     local processed, ts_map = process_snip(parsed, row, col)
     -- print(vim.inspect(ts_map))
     -- print(vim.inspect(processed))
-    lines = vim.split(processed, '\n', true)
+    local lines = vim.split(processed, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(ts_map)
     api.nvim_win_set_cursor(0, {row, col})

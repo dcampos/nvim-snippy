@@ -178,12 +178,18 @@ anything = lazy(function() return any(
     -- -- text: we do this on a per usecase basis
 ) end)
 
-tabstop = map(
-    any(
-        seq(dollar, int),
-        seq(dollar, open, int, close)
+tabstop = any(
+    map(
+        any(
+            seq(dollar, int),
+            seq(dollar, open, int, close)
+        ),
+        function(v) return { type = "tabstop", id = v[1] } end
     ),
-    function(v) return { type = "tabstop", id = v[1] } end
+    map(
+        seq(dollar, open, int, regex), -- regex already eats the close
+        function(v) return { type = "tabstop", id = v[1], regex = v[2] } end
+    )
 )
 
 placeholder = map(
