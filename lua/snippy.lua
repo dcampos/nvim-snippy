@@ -1,10 +1,11 @@
 ---
 ---
 
-local parser = require 'snippy.parser'
+local parser = require 'snippy.parser2'
 local api = vim.api
 local cmd = vim.cmd
 local fn = vim.fn
+local i = vim.inspect
 
 local M = {}
 
@@ -82,7 +83,7 @@ function Stop:set_text(text)
     if self.transform then
         print('transforming text for', vim.inspect(self))
         local transform = self.transform
-        text = fn.substitute(text, transform.value, transform.format, transform.options)
+        text = fn.substitute(text, transform.regex.raw, transform.format.escaped, transform.flags)
     end
     local lines = vim.split(text, '\n', true)
     api.nvim_buf_set_text(0, startpos[1], startpos[2], endpos[1], endpos[2], lines)
@@ -119,6 +120,7 @@ local function clear_stops()
         print('Clearing marks', vim.inspect(stop))
         api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
     end
+    M.current_stop = 0
     M.stops = {}
 end
 
@@ -174,7 +176,7 @@ end
 
 local function mirror_stop(number)
     local stops = M.stops
-    if number < 0 or number > #stops  then
+    if number < 1 or number > #stops  then
         return
     end
     local value = stops[number]
@@ -244,37 +246,38 @@ local function process_structure(structure, row, col)
             if value.type == 'tabstop' then
                 local stopname = '' -- 'stop' .. value.id
                 result = result .. stopname
-                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, col}, placeholder=stopname, transform=value.regex})
+                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, col}, placeholder=stopname, transform=value.transform})
                 col = col + #stopname
             elseif value.type == 'placeholder' then
                 -- local stopname = value.value[1] or ''
-                local inner, ts, r, c = process_structure(value.value, row, col)
+                local inner, ts, r, c = process_structure(value.children, row, col)
                 result = result .. inner
                 table.insert(stops, {id=value.id, startpos={row, col}, endpos={r, c}, placeholder=inner})
                 row = r
                 col = c
                 vim.list_extend(stops, ts)
             elseif value.type == 'choice' then
-                local choice = value.value[1]
+                local choice = value.children[1]
                 local endcol = col + #choice
-                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, endcol}, placeholder=choice, choices=value.value})
+                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, endcol}, placeholder=choice, choices=value.choices})
                 result = result .. choice
                 col = col + #choice
             elseif value.type == 'eval' then
                 local evaluated = fn.eval(value.value) or ''
                 result = result .. evaluated
                 col = col + #evaluated
+            elseif value.type == 'text' then
+                local data = value.escaped
+                local lines = vim.split(data, '\n')
+                result = result .. data
+                row = row + #lines - 1
+                if #lines > 1 then
+                    col = #lines[#lines]
+                else
+                    col = col + #lines[#lines]
+                end
             else
                 print_error(string.format('Unsupported element "%s" at %d:%d', value.type, row, col))
-            end
-        else
-            local lines = vim.split(value, '\n')
-            result = result .. value
-            row = row + #lines - 1
-            if #lines > 1 then
-                col = #lines[#lines]
-            else
-                col = col + #lines[#lines]
             end
         end
     end
@@ -309,6 +312,7 @@ function M.expand_snip(word, snip)
     end
     local text = table.concat(indent_snip(body, indent), '\n')
     local ok, parsed, pos = parser.parse(text, 1)
+    -- print(vim.inspect(parsed))
     if not ok or pos < #text then
         print_error('> Error while parsing snippet')
         return
