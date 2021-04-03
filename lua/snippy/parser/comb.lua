@@ -64,7 +64,7 @@ local function many(parser)
     return function (text, apos)
         local pos = apos
         local values = {}
-        while pos < #text do
+        while pos <= #text do
             local ok, value, _pos = parser(text, pos)
             if ok then
                 table.insert(values, value)
