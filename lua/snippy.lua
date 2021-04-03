@@ -1,11 +1,44 @@
 ---
 ---
 
-local parser = require 'snippy.parser2'
+local parser = require 'snippy.parser'
 local api = vim.api
 local cmd = vim.cmd
 local fn = vim.fn
 local i = vim.inspect
+
+local varmap = {
+    TM_SELECTED_TEXT = function () return '' end,
+    TM_CURRENT_LINE = function () return vim.api.nvim_get_current_line() end,
+    TM_CURRENT_WORD = function () return '' end,
+    TM_LINE_INDEX = function () return 0 end,
+    TM_LINE_NUMBER = function () return 1 end,
+    TM_FILENAME = function () return vim.fn.expand('%:t') end,
+    TM_FILENAME_BASE = function () return vim.fn.expand('%:t:r') end,
+    TM_DIRECTORY = function () return vim.fn.expand('%:p:h:t') end,
+    TM_FILEPATH = function () return vim.fn.expand('%:p') end,
+    CLIPBOARD = function () return '' end,
+    WORKSPACE_NAME = function () return '' end,
+    WORKSPACE_FOLDER = function () return '' end,
+    CURRENT_YEAR = function () return fn.strftime('%Y') end,
+    CURRENT_YEAR_SHORT = function () return fn.strftime('%y') end,
+    CURRENT_MONTH = function () return fn.strftime('%m') end,
+    CURRENT_MONTH_NAME = function () return fn.strftime('%B') end,
+    CURRENT_MONTH_NAME_SHORT = function () return fn.strftime('%b') end,
+    CURRENT_DATE = function () return fn.strftime('%d') end,
+    CURRENT_DAY_NAME = function () return fn.strftime('%A') end,
+    CURRENT_DAY_NAME_SHORT = function () return fn.strftime('%a') end,
+    CURRENT_HOUR = function () return fn.strftime('%H') end,
+    CURRENT_MINUTE = function () return fn.strftime('%M') end,
+    CURRENT_SECOND = function () return fn.strftime('%S') end,
+    CURRENT_SECONDS_UNIX = function () return fn.localtime() end,
+    RANDOM = function () return math.random() end,
+    RANDOM_HEX = function () return nil end,
+    UUID = function () return nil end,
+    BLOCK_COMMENT_START = function () return '/*' end,
+    BLOCK_COMMENT_END = function () return '*/' end,
+    LINE_COMMENT = function () return '//' end,
+}
 
 local M = {}
 
@@ -35,7 +68,7 @@ local function read_snippets_file(snippets_file)
             current = prefix
             local description = line:match(' *"(.+)" *$')
             snips[prefix] = {prefix=prefix, description = description, body = {}}
-        else
+        elseif line:sub(1,1) ~= '#' then
             local value = line:gsub('^\t', '')
             if current then
                 table.insert(snips[current].body, value)
@@ -81,7 +114,7 @@ end
 function Stop:set_text(text)
     local startpos, endpos = self:get_range()
     if self.transform then
-        print('transforming text for', vim.inspect(self))
+        -- print('transforming text for', vim.inspect(self))
         local transform = self.transform
         text = fn.substitute(text, transform.regex.raw, transform.format.escaped, transform.flags)
     end
@@ -90,14 +123,15 @@ function Stop:set_text(text)
 end
 
 local function add_stop(spec)
-    local lnum = spec.startpos[1] - 1
+    local startrow = spec.startpos[1] - 1
     local startcol = spec.startpos[2]
+    local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
-    print(string.format('=> Placing spec @ %d:%d-%d', lnum, startcol, endcol))
+    print(string.format('=> Placing spec @ %d:%d-%d:%d', startrow, startcol, endrow, endcol))
     local stops = M.stops or {}
     local end_col = endcol
-    local smark = api.nvim_buf_set_extmark(0, M.namespace, lnum, startcol, {
-        end_line = lnum;
+    local smark = api.nvim_buf_set_extmark(0, M.namespace, startrow, startcol, {
+        end_line = endrow;
         end_col = end_col;
         hl_group = 'Search';
         right_gravity = false;
@@ -117,7 +151,7 @@ end
 
 local function clear_stops()
     for _, stop in pairs(M.stops) do
-        print('Clearing marks', vim.inspect(stop))
+        -- print('Clearing marks', vim.inspect(stop))
         api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
     end
     M.current_stop = 0
@@ -183,7 +217,7 @@ local function mirror_stop(number)
     local text = value:get_text()
     for i, stop in ipairs(stops) do
         if i > number and stop.id == value.id then
-            print('> setting text <', text, '> for stop', i)
+            -- print('> setting text <', text, '> for stop', i)
             stop:set_text(text)
         end
     end
@@ -194,17 +228,17 @@ function M.jump(stop)
     if not stops or not #stops then
         return
     end
-    print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
+    -- print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
     if vim.b.current_stop then
         mirror_stop(vim.b.current_stop)
     end
     if #stops >= stop and stop > 0 then
-        print('> Jumping to stop', stop)
+        -- print('> Jumping to stop', stop)
         local value = stops[stop]
         local startpos, endpos = value:get_range()
         -- api.nvim_feedkeys(t'<Esc>', 'i', true)
-        print('> startpos =', vim.inspect(startpos))
-        print('> endpos =', vim.inspect(endpos))
+        -- print('> startpos =', vim.inspect(startpos))
+        -- print('> endpos =', vim.inspect(endpos))
         if startpos[1] == endpos[1] and startpos[2] >= endpos[2] then
             start_insert(startpos)
         elseif value.choices then
@@ -236,7 +270,31 @@ local function indent_snip(body, indent)
     return lines
 end
 
-local function process_structure(structure, row, col)
+local process_structure
+
+local function evaluate_text(text, row, col)
+    local lines = vim.split(text, '\n', true)
+    row = row + #lines - 1
+    if #lines > 1 then
+        col = #lines[#lines]
+    else
+        col = col + #text
+    end
+    return text, row, col
+end
+
+local function evaluate_variable(variable, row, col)
+    local ts = {}
+    local result = varmap[variable.name] and varmap[variable.name]()
+    if not result then
+        result, ts, row, col = process_structure(variable.children, row, col)
+    else
+        _, row, col = evaluate_text(result, row, col)
+    end
+    return result, ts, row, col
+end
+
+function process_structure(structure, row, col)
     print('> process structure at', row, ':', col)
     local stops = {}
     local result =  ''
@@ -256,6 +314,13 @@ local function process_structure(structure, row, col)
                 row = r
                 col = c
                 vim.list_extend(stops, ts)
+            elseif value.type == 'variable' then
+                local inner, ts, r, c = evaluate_variable(value, row, col)
+                result = result .. inner
+                table.insert(stops, {id=value.id, startpos={row, col}, endpos={r, c}, placeholder=inner, tranform=value.transform})
+                row = r
+                col = c
+                vim.list_extend(stops, ts)
             elseif value.type == 'choice' then
                 local choice = value.children[1]
                 local endcol = col + #choice
@@ -263,19 +328,13 @@ local function process_structure(structure, row, col)
                 result = result .. choice
                 col = col + #choice
             elseif value.type == 'eval' then
-                local evaluated = fn.eval(value.value) or ''
-                result = result .. evaluated
-                col = col + #evaluated
+                local text = fn.eval(value.children[1].escaped) or ''
+                _, row, col = evaluate_text(text, row, col)
+                result = result .. text
             elseif value.type == 'text' then
-                local data = value.escaped
-                local lines = vim.split(data, '\n')
-                result = result .. data
-                row = row + #lines - 1
-                if #lines > 1 then
-                    col = #lines[#lines]
-                else
-                    col = col + #lines[#lines]
-                end
+                local text = value.escaped
+                _, row, col = evaluate_text(text, row, col)
+                result = result .. text
             else
                 print_error(string.format('Unsupported element "%s" at %d:%d', value.type, row, col))
             end
@@ -285,13 +344,14 @@ local function process_structure(structure, row, col)
 end
 
 local function process_snip(structure, row, col)
+    print('> process snip at', row, ':', col)
     local result, stops, _, _ = process_structure(structure, row, col)
     return result, stops
 end
 
 local function place_stops(ts_map)
     for _, ts in ipairs(ts_map) do
-        print(string.format('=> id: %s @ %d:%d', ts.id, ts.startpos[1], ts.startpos[2]))
+        -- print(string.format('=> id: %s @ %d:%d', ts.id, ts.startpos[1], ts.startpos[2]))
         add_stop(ts)
     end
 end
@@ -299,7 +359,7 @@ end
 function M.expand_snip(word, snip)
     local row, col = unpack(api.nvim_win_get_cursor(0))
     col = col + 1 - #word
-    print('row=', row, 'col=', col)
+    -- print('row=', row, 'col=', col)
     local current_line = api.nvim_get_current_line()
     local indent = current_line:match('^(%s+)')
     local body = {}
@@ -317,7 +377,7 @@ function M.expand_snip(word, snip)
         print_error('> Error while parsing snippet')
         return
     end
-    print(vim.inspect(parsed))
+    -- print(vim.inspect(parsed))
     local processed, ts_map = process_snip(parsed, row, col)
     -- print(vim.inspect(ts_map))
     -- print(vim.inspect(processed))
@@ -331,17 +391,17 @@ end
 
 function M.expand_or_next()
     local row, col = unpack(api.nvim_win_get_cursor(0))
-    print('row=', row, 'col=', col)
+    -- print('row=', row, 'col=', col)
     local current_line = api.nvim_get_current_line()
-    print(current_line)
+    -- print(current_line)
     local word = current_line:sub(1, col + 1):match('(%w+)$')
     if word then
         local ftype = vim.bo.filetype
         if ftype and M.snips[ftype] then
-            print('snips found for', ftype)
+            -- print('snips found for', ftype)
             local snip = M.snips[ftype][word]
             if snip then
-                print('snip found for word',  word)
+                -- print('snip found for word',  word)
                 return M.expand_snip(word, snip)
             end
         end
