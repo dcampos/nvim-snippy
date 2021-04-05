@@ -1,6 +1,6 @@
 local inspect = require "inspect"
 
-local parser = require  "snippy.parser2"
+local parser = require  "snippy.parser"
 
 describe("Parser tests", function ()
     it("Parse a basic snippet", function ()
@@ -68,5 +68,13 @@ describe("Parser tests", function ()
         assert.is_same(result[#result],
             {type = 'eval', children =
                 {[1] = {type = 'text', raw = 'g:snips_author', escaped = 'g:snips_author'}}})
+    end)
+    it("Parse single ending character", function ()
+        local snip = 'local ${1} = "`g:snips_author`"'
+        local ok, result, pos = parser.parse(snip, 1)
+        assert.is_true(ok)
+        assert.is_same(pos, #snip + 1)
+        assert.is_same(result[#result],
+            {type = 'text', raw = '"', escaped = '"'})
     end)
 end)

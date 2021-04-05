@@ -8,7 +8,7 @@ snippet locfun
 	end
 snippet for
 	for ${1:value} in ${2:table} do
-		${0:${2}}
+		${0}
 	end
 snippet while
 	while ${1:values} do
@@ -29,9 +29,9 @@ snippet date
 snippet regex
 	local ${1:foo} = ${1/foo/bar/}
 snippet fname
-	local ${1:filename} = $TM_FILENAME
+	local ${1:filename} = "$TM_FILENAME"
 snippet year
-	local ${1:year} = ${CURRENT_YEAR:1992}
+	local ${1:year} = ${CURRENT_YEAR:1992}x
 # Invalid variable
-snippet var3
-	local ${1:lorem} = ${LOREM:`system("lorem -p 2")`}
+snippet lorem
+	local ${1:lorem} = "${LOREM:`system("lorem -p 2")`}"

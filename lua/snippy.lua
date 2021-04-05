@@ -5,7 +5,7 @@ local parser = require 'snippy.parser'
 local api = vim.api
 local cmd = vim.cmd
 local fn = vim.fn
-local i = vim.inspect
+local inspect = vim.inspect
 
 local varmap = {
     TM_SELECTED_TEXT = function () return '' end,
@@ -256,97 +256,97 @@ end
 
 -- Snippet expanding
 
-local function indent_snip(body, indent)
-    local lines = {}
-    for i, line in ipairs(body) do
+Builder = {input='', row=nil, col=nil, indent=''}
+Builder.__index = Builder
+
+function Builder.new(o)
+    local builder = setmetatable(o, Builder)
+    builder.stops = {}
+    builder.result = ''
+    return builder
+end
+
+function Builder:add(content)
+    print('> result (add) =', inspect(self.result))
+    self.result = self.result .. content
+end
+
+function Builder:indent_lines(lines)
+    local result = {}
+    for i, line in ipairs(lines) do
         if vim.bo.expandtab then
             line = line:gsub('\t', string.rep(' ', vim.bo.shiftwidth))
         end
-        if i > 1 and indent then
-            line = indent .. line
+        if i > 1 and self.indent then
+            line = self.indent .. line
         end
-        table.insert(lines, line)
+        table.insert(result, line)
     end
-    return lines
+    return result
 end
 
-local process_structure
-
-local function evaluate_text(text, row, col)
+function Builder:append_text(text)
+    print('> result (append_text) =', inspect(self.result))
     local lines = vim.split(text, '\n', true)
-    row = row + #lines - 1
+    lines = self:indent_lines(lines)
+    self.row = self.row + #lines - 1
     if #lines > 1 then
-        col = #lines[#lines]
+        self.col = #lines[#lines]
     else
-        col = col + #text
+        self.col = self.col + #lines[1]
     end
-    return text, row, col
+    self:add(table.concat(lines, '\n'))
 end
 
-local function evaluate_variable(variable, row, col)
-    local ts = {}
+function Builder:evaluate_variable(variable)
     local result = varmap[variable.name] and varmap[variable.name]()
     if not result then
-        result, ts, row, col = process_structure(variable.children, row, col)
+        self:process_structure(variable.children)
     else
-        _, row, col = evaluate_text(result, row, col)
+        self:append_text(result)
     end
-    return result, ts, row, col
 end
 
-function process_structure(structure, row, col)
-    print('> process structure at', row, ':', col)
-    local stops = {}
-    local result =  ''
+function Builder:process_structure(structure)
+    print('> process structure at', self.row, ':', self.col)
+    print('> result =', inspect(self.result))
     -- print(vim.inspect(structure))
     for _, value in ipairs(structure) do
         if type(value) == 'table' then
+            print('> type =', inspect(value.type))
             if value.type == 'tabstop' then
-                local stopname = '' -- 'stop' .. value.id
-                result = result .. stopname
-                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, col}, placeholder=stopname, transform=value.transform})
-                col = col + #stopname
+                table.insert(self.stops, {id=value.id, startpos={self.row, self.col}, endpos={self.row, self.col}, placeholder='', transform=value.transform})
             elseif value.type == 'placeholder' then
-                -- local stopname = value.value[1] or ''
-                local inner, ts, r, c = process_structure(value.children, row, col)
-                result = result .. inner
-                table.insert(stops, {id=value.id, startpos={row, col}, endpos={r, c}, placeholder=inner})
-                row = r
-                col = c
-                vim.list_extend(stops, ts)
+                local startrow, startcol = self.row, self.col
+                self:process_structure(value.children)
+                table.insert(self.stops, {id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}})
             elseif value.type == 'variable' then
-                local inner, ts, r, c = evaluate_variable(value, row, col)
-                result = result .. inner
-                table.insert(stops, {id=value.id, startpos={row, col}, endpos={r, c}, placeholder=inner, tranform=value.transform})
-                row = r
-                col = c
-                vim.list_extend(stops, ts)
+                local startrow, startcol = self.row, self.col
+                self:evaluate_variable(value)
+                table.insert(self.stops, {id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, tranform=value.transform})
             elseif value.type == 'choice' then
                 local choice = value.children[1]
-                local endcol = col + #choice
-                table.insert(stops, {id=value.id, startpos={row, col}, endpos={row, endcol}, placeholder=choice, choices=value.choices})
-                result = result .. choice
-                col = col + #choice
+                local startrow, startcol = self.row, self.col
+                self:append_text(choice)
+                table.insert(self.stops, {id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, choices=value.choices})
             elseif value.type == 'eval' then
                 local text = fn.eval(value.children[1].escaped) or ''
-                _, row, col = evaluate_text(text, row, col)
-                result = result .. text
+                self:append_text(text)
             elseif value.type == 'text' then
                 local text = value.escaped
-                _, row, col = evaluate_text(text, row, col)
-                result = result .. text
+                self:append_text(text)
             else
-                print_error(string.format('Unsupported element "%s" at %d:%d', value.type, row, col))
+                print_error(string.format('Unsupported element "%s" at %d:%d', value.type, self.row, self.col))
             end
         end
     end
-    return result, stops, row, col
 end
 
-local function process_snip(structure, row, col)
-    print('> process snip at', row, ':', col)
-    local result, stops, _, _ = process_structure(structure, row, col)
-    return result, stops
+function Builder:build_snip(structure)
+    print('> process snip at', self.row, ':', self.col)
+    print('> result =', inspect(self.result))
+    self:process_structure(structure)
+    return self.result, self.stops
 end
 
 local function place_stops(ts_map)
@@ -359,7 +359,6 @@ end
 function M.expand_snip(word, snip)
     local row, col = unpack(api.nvim_win_get_cursor(0))
     col = col + 1 - #word
-    -- print('row=', row, 'col=', col)
     local current_line = api.nvim_get_current_line()
     local indent = current_line:match('^(%s+)')
     local body = {}
@@ -370,17 +369,17 @@ function M.expand_snip(word, snip)
         -- Text snippet
         body = vim.split(snip, '\n', true)
     end
-    local text = table.concat(indent_snip(body, indent), '\n')
+    local text = table.concat(body, '\n')
     local ok, parsed, pos = parser.parse(text, 1)
-    -- print(vim.inspect(parsed))
-    if not ok or pos < #text then
-        print_error('> Error while parsing snippet')
+    if not ok or pos <= #text then
+        print_error("> Error while parsing snippet: didn't parse till end")
         return
     end
-    -- print(vim.inspect(parsed))
-    local processed, ts_map = process_snip(parsed, row, col)
-    -- print(vim.inspect(ts_map))
-    -- print(vim.inspect(processed))
+    local builder = Builder.new({row = row, col = col, indent = indent, result = ''})
+    local processed, ts_map = builder:build_snip(parsed)
+    -- print('> text =', i(text))
+    -- print('> strutcure =', i(parsed))
+    -- print('> processed =', i(processed))
     local lines = vim.split(processed, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(ts_map)
@@ -391,17 +390,13 @@ end
 
 function M.expand_or_next()
     local row, col = unpack(api.nvim_win_get_cursor(0))
-    -- print('row=', row, 'col=', col)
     local current_line = api.nvim_get_current_line()
-    -- print(current_line)
     local word = current_line:sub(1, col + 1):match('(%w+)$')
     if word then
         local ftype = vim.bo.filetype
         if ftype and M.snips[ftype] then
-            -- print('snips found for', ftype)
             local snip = M.snips[ftype][word]
             if snip then
-                -- print('snip found for word',  word)
                 return M.expand_snip(word, snip)
             end
         end

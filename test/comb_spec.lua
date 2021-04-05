@@ -26,6 +26,14 @@ describe("Combinator tests", function ()
             {true, {'my \\$var = 1', 'my $var = 1'}, 13}
         )
     end)
+    it("Should parse single caracter", function ()
+        local text = skip('[{}]', '')
+        local ok, result, pos = text('x', 1)
+        assert.is_same(
+            {ok, result, pos},
+            {true, {'x', 'x'}, 2}
+        )
+    end)
     it("Basic token", function ()
         local tok = token('foo')
         local ok, result, pos = tok('foo', 1)
