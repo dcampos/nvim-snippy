@@ -22,8 +22,8 @@ snippet choice
 	local foo = ${1|bar,baz,quux|}${0}
 snippet ife
 	if $1 then
-	elseif $2 then
-		$0
+	elseif $0 then
+		$2
 	end
 snippet date
 	local ${1:date} = "${2:`strftime("%d/%m/%Y")`}"

@@ -222,6 +222,17 @@ local function mirror_stop(number)
     end
 end
 
+local function sort_stops(stops)
+    table.sort(stops, function (s1, s2)
+        if s1.id == 0 then
+            return false
+        elseif s2.id == 0 then
+            return true
+        end
+        return s1.id < s2.id
+    end)
+end
+
 function M.jump(stop)
     local stops = M.stops
     if not stops or not #stops then
@@ -379,13 +390,15 @@ function M.expand_snip(word, snip)
         return
     end
     local builder = Builder.new({row = row, col = col, indent = indent, result = ''})
-    local processed, ts_map = builder:build_snip(parsed)
+    local processed, stops = builder:build_snip(parsed)
     -- print('> text =', i(text))
     -- print('> strutcure =', i(parsed))
     -- print('> processed =', i(processed))
     local lines = vim.split(processed, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
-    place_stops(ts_map)
+    sort_stops(stops)
+    -- print('> sorted =', inspect(stops))
+    place_stops(stops)
     api.nvim_win_set_cursor(0, {row, col})
     M.next_stop()
     return ''
