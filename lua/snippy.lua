@@ -101,7 +101,7 @@ end
 
 -- Stop management
 
-Stop = {id=-1, mark=nil, choices=nil, transform=nil}
+Stop = {id=-1, mark=nil}
 Stop.__index = Stop
 
 function Stop.new(o)
@@ -128,9 +128,9 @@ end
 
 function Stop:set_text(text)
     local startpos, endpos = self:get_range()
-    if self.transform then
+    if self.spec.transform then
         -- print('transforming text for', vim.inspect(self))
-        local transform = self.transform
+        local transform = self.spec.transform
         text = fn.substitute(text, transform.regex.raw, transform.format.escaped, transform.flags)
     end
     local lines = vim.split(text, '\n', true)
@@ -138,11 +138,19 @@ function Stop:set_text(text)
 end
 
 local function add_stop(spec)
+    local function is_traversable()
+        for _, stop in ipairs(M.stops) do
+            if stop.id == spec.id then
+                return false
+            end
+        end
+        return spec.type == 'tabstop' or spec.type == 'placeholder' or spec.type == 'choice'
+    end
     local startrow = spec.startpos[1] - 1
     local startcol = spec.startpos[2]
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
-    print(string.format('=> Placing spec @ %d:%d-%d:%d', startrow, startcol, endrow, endcol))
+    print(string.format('=> Placing stop @ %d:%d-%d:%d => traversable = %s', startrow, startcol, endrow, endcol, is_traversable()))
     local stops = M.stops or {}
     local end_col = endcol
     local smark = api.nvim_buf_set_extmark(0, M.namespace, startrow, startcol, {
@@ -152,7 +160,7 @@ local function add_stop(spec)
         right_gravity = false;
         end_right_gravity = true;
     })
-    table.insert(stops, Stop.new({id=spec.id, mark=smark, choices=spec.choices, transform=spec.transform}))
+    table.insert(stops, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
     M.stops = stops
 end
 
@@ -176,11 +184,17 @@ end
 
 function M.previous_stop()
     local stop = (vim.b.current_stop or 0) - 1
+    while M.stops[stop] and not M.stops[stop].traversable do
+        stop = stop - 1
+    end
     M.jump(stop)
 end
 
 function M.next_stop()
     local stop = (vim.b.current_stop or 0) + 1
+    while M.stops[stop] and not M.stops[stop].traversable do
+        stop = stop + 1
+    end
     M.jump(stop)
 end
 
@@ -219,7 +233,7 @@ end
 local function present_choices(stop, startpos)
     local timer = vim.loop.new_timer()
     timer:start(500, 0, vim.schedule_wrap(function ()
-        fn.complete(startpos[2] + 1, make_completion_choices(stop.choices))
+        fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
     end))
 end
 
@@ -263,23 +277,36 @@ function M.jump(stop)
     if vim.b.current_stop then
         mirror_stop(vim.b.current_stop)
     end
+    print('> Jumping to stop', stop)
+    local should_finish = false
     if #stops >= stop and stop > 0 then
-        -- print('> Jumping to stop', stop)
         local value = stops[stop]
         local startpos, endpos = value:get_range()
         -- api.nvim_feedkeys(t'<Esc>', 'i', true)
         -- print('> startpos =', vim.inspect(startpos))
         -- print('> endpos =', vim.inspect(endpos))
-        if startpos[1] == endpos[1] and startpos[2] >= endpos[2] then
-            start_insert(startpos)
-        elseif value.choices then
-            start_insert(endpos)
-            present_choices(value, startpos)
+        if value.spec.type == 'tabstop' or value.spec.type == 'choice' then
+            if value.spec.type == 'choice' then
+                start_insert(endpos)
+                print('> presenting choices...')
+                present_choices(value, startpos)
+            else
+                print('> starting insert...')
+                start_insert(startpos)
+            end
+            if stop == #stops then
+                should_finish = true
+            end
         else
             select_stop(startpos, endpos)
         end
+
         vim.b.current_stop = stop
     else
+        should_finish = true
+    end
+
+    if should_finish then
         -- Start inserting at the end of the current stop
         local value = stops[vim.b.current_stop]
         local _, endpos = value:get_range()
@@ -350,20 +377,20 @@ function Builder:process_structure(structure)
         if type(value) == 'table' then
             print('> type =', inspect(value.type))
             if value.type == 'tabstop' then
-                table.insert(self.stops, {id=value.id, startpos={self.row, self.col}, endpos={self.row, self.col}, placeholder='', transform=value.transform})
+                table.insert(self.stops, {type=value.type, id=value.id, startpos={self.row, self.col}, endpos={self.row, self.col}, placeholder='', transform=value.transform})
             elseif value.type == 'placeholder' then
                 local startrow, startcol = self.row, self.col
                 self:process_structure(value.children)
-                table.insert(self.stops, {id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}})
+                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}})
             elseif value.type == 'variable' then
                 local startrow, startcol = self.row, self.col
                 self:evaluate_variable(value)
-                table.insert(self.stops, {id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, tranform=value.transform})
+                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, tranform=value.transform})
             elseif value.type == 'choice' then
                 local choice = value.children[1]
                 local startrow, startcol = self.row, self.col
                 self:append_text(choice)
-                table.insert(self.stops, {id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, choices=value.choices})
+                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, choices=value.choices})
             elseif value.type == 'eval' then
                 local text = fn.eval(value.children[1].escaped) or ''
                 self:append_text(text)
@@ -377,10 +404,20 @@ function Builder:process_structure(structure)
     end
 end
 
+function Builder:fix_ending()
+    for _, stop in ipairs(self.stops) do
+        if stop.id == 0 then
+            return
+        end
+    end
+    table.insert(self.stops, {type='tabstop', id=0, startpos={self.row, self.col}, endpos={self.row, self.col}})
+end
+
 function Builder:build_snip(structure)
     print('> process snip at', self.row, ':', self.col)
     print('> result =', inspect(self.result))
     self:process_structure(structure)
+    self:fix_ending()
     return self.result, self.stops
 end
 
