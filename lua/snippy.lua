@@ -180,11 +180,10 @@ local function start_insert(pos)
     pos[1] = pos[1] + 1
     pos[2] = pos[2] + 1
     fn.setpos(".", {0, pos[1], pos[2]})
-    local line = api.nvim_get_current_line()
-    if pos[2] > #line then
-        api.nvim_input("a")
+    if pos[2] >= fn.col('$') then
+        cmd 'startinsert!'
     else
-        api.nvim_input("i")
+        cmd 'startinsert'
     end
 end
 
@@ -249,6 +248,10 @@ function M.jump(stop)
         end
         vim.b.current_stop = stop
     else
+        -- Start inserting at the end of the current stop
+        local value = stops[vim.b.current_stop]
+        local _, endpos = value:get_range()
+        start_insert(endpos)
         vim.b.current_stop = 0
         clear_stops()
     end
