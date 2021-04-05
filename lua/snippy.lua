@@ -45,6 +45,21 @@ local M = {}
 -- TODO: make buffer local
 M.stops = {}
 
+local function setup_autocmds()
+    local bufnr = fn.bufnr('%')
+    cmd('augroup snippy_local')
+    cmd('autocmd! * <buffer=' .. bufnr ..'>')
+    cmd('autocmd TextChanged,TextChangedI,TextChangedP <buffer=' .. bufnr .. '> lua snippy.mirror_stops()')
+    cmd('augroup END')
+end
+
+local function clear_autocmds()
+    local bufnr = fn.bufnr('%')
+    cmd('augroup snippy_local')
+    cmd('autocmd! * <buffer=' .. bufnr ..'>')
+    cmd('augroup END')
+end
+
 -- Util
 
 local function print_error(...)
@@ -156,6 +171,7 @@ local function clear_stops()
     end
     M.current_stop = 0
     M.stops = {}
+    clear_autocmds()
 end
 
 function M.previous_stop()
@@ -216,9 +232,14 @@ local function mirror_stop(number)
     local text = value:get_text()
     for i, stop in ipairs(stops) do
         if i > number and stop.id == value.id then
-            -- print('> setting text <', text, '> for stop', i)
             stop:set_text(text)
         end
+    end
+end
+
+function M.mirror_stops()
+    if vim.b.current_stop ~= 0 then
+        mirror_stop(vim.b.current_stop)
     end
 end
 
@@ -390,15 +411,16 @@ function M.expand_snip(word, snip)
         return
     end
     local builder = Builder.new({row = row, col = col, indent = indent, result = ''})
-    local processed, stops = builder:build_snip(parsed)
+    local content, stops = builder:build_snip(parsed)
     -- print('> text =', i(text))
     -- print('> strutcure =', i(parsed))
-    -- print('> processed =', i(processed))
-    local lines = vim.split(processed, '\n', true)
+    -- print('> content =', i(content))
+    local lines = vim.split(content, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     sort_stops(stops)
     -- print('> sorted =', inspect(stops))
     place_stops(stops)
+    setup_autocmds()
     api.nvim_win_set_cursor(0, {row, col})
     M.next_stop()
     return ''
