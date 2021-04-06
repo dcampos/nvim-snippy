@@ -137,7 +137,7 @@ function Stop:set_text(text)
     api.nvim_buf_set_text(0, startpos[1], startpos[2], endpos[1], endpos[2], lines)
 end
 
-local function add_stop(spec)
+local function add_stop(spec, pos)
     local function is_traversable()
         for _, stop in ipairs(M.stops) do
             if stop.id == spec.id then
@@ -150,7 +150,7 @@ local function add_stop(spec)
     local startcol = spec.startpos[2]
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
-    print(string.format('=> Placing stop @ %d:%d-%d:%d => traversable = %s', startrow, startcol, endrow, endcol, is_traversable()))
+    print(string.format('=> Placing stop %d @ %d:%d-%d:%d => traversable = %s', spec.id, startrow, startcol, endrow, endcol, is_traversable()))
     local stops = M.stops or {}
     local end_col = endcol
     local smark = api.nvim_buf_set_extmark(0, M.namespace, startrow, startcol, {
@@ -160,7 +160,7 @@ local function add_stop(spec)
         right_gravity = false;
         end_right_gravity = true;
     })
-    table.insert(stops, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
+    table.insert(stops, pos, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
     M.stops = stops
 end
 
@@ -178,12 +178,13 @@ local function clear_stops()
         api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
     end
     M.current_stop = 0
+    M.max_id = 0
     M.stops = {}
     clear_autocmds()
 end
 
 function M.previous_stop()
-    local stop = (vim.b.current_stop or 0) - 1
+    local stop = (M.current_stop or 0) - 1
     while M.stops[stop] and not M.stops[stop].traversable do
         stop = stop - 1
     end
@@ -191,7 +192,7 @@ function M.previous_stop()
 end
 
 function M.next_stop()
-    local stop = (vim.b.current_stop or 0) + 1
+    local stop = (M.current_stop or 0) + 1
     while M.stops[stop] and not M.stops[stop].traversable do
         stop = stop + 1
     end
@@ -252,8 +253,8 @@ local function mirror_stop(number)
 end
 
 function M.mirror_stops()
-    if vim.b.current_stop ~= 0 then
-        mirror_stop(vim.b.current_stop)
+    if M.current_stop ~= 0 then
+        mirror_stop(M.current_stop)
     end
 end
 
@@ -268,14 +269,29 @@ local function sort_stops(stops)
     end)
 end
 
+local function make_unique_ids(stops)
+    local max_id = M.max_id or 0
+    local id_map = {}
+    for _, stop in ipairs(stops) do
+        if id_map[stop.id] then
+            stop.id = id_map[stop.id]
+        else
+            max_id = max_id + 1
+            id_map[stop.id] = max_id
+            stop.id = max_id
+        end
+    end
+    M.max_id = max_id
+end
+
 function M.jump(stop)
     local stops = M.stops
     if not stops or not #stops then
         return
     end
     -- print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
-    if vim.b.current_stop then
-        mirror_stop(vim.b.current_stop)
+    if M.current_stop then
+        mirror_stop(M.current_stop)
     end
     print('> Jumping to stop', stop)
     local should_finish = false
@@ -301,17 +317,17 @@ function M.jump(stop)
             select_stop(startpos, endpos)
         end
 
-        vim.b.current_stop = stop
+        M.current_stop = stop
     else
         should_finish = true
     end
 
     if should_finish then
         -- Start inserting at the end of the current stop
-        local value = stops[vim.b.current_stop]
+        local value = stops[M.current_stop]
         local _, endpos = value:get_range()
         start_insert(endpos)
-        vim.b.current_stop = 0
+        M.current_stop = 0
         clear_stops()
     end
 end
@@ -421,10 +437,13 @@ function Builder:build_snip(structure)
     return self.result, self.stops
 end
 
-local function place_stops(ts_map)
-    for _, ts in ipairs(ts_map) do
-        -- print(string.format('=> id: %s @ %d:%d', ts.id, ts.startpos[1], ts.startpos[2]))
-        add_stop(ts)
+local function place_stops(stops)
+    sort_stops(stops)
+    make_unique_ids(stops)
+    local pos = M.current_stop + 1
+    for _, spec in ipairs(stops) do
+        add_stop(spec, pos)
+        pos = pos + 1
     end
 end
 
@@ -447,15 +466,13 @@ function M.expand_snip(word, snip)
         print_error("> Error while parsing snippet: didn't parse till end")
         return
     end
-    local builder = Builder.new({row = row, col = col, indent = indent, result = ''})
+    local builder = Builder.new({row = row, col = col, indent = indent, word = word})
     local content, stops = builder:build_snip(parsed)
     -- print('> text =', i(text))
     -- print('> strutcure =', i(parsed))
     -- print('> content =', i(content))
     local lines = vim.split(content, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
-    sort_stops(stops)
-    -- print('> sorted =', inspect(stops))
     place_stops(stops)
     setup_autocmds()
     api.nvim_win_set_cursor(0, {row, col})
@@ -482,6 +499,7 @@ end
 -- Setup
 
 M.snips = {}
+M.current_stop = 0
 
 function M.init()
     M.namespace = api.nvim_create_namespace('snips')
