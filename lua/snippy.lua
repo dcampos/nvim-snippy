@@ -188,7 +188,7 @@ function M.previous_stop()
     while M.stops[stop] and not M.stops[stop].traversable do
         stop = stop - 1
     end
-    M.jump(stop)
+    return M.jump(stop)
 end
 
 function M.next_stop()
@@ -196,7 +196,7 @@ function M.next_stop()
     while M.stops[stop] and not M.stops[stop].traversable do
         stop = stop + 1
     end
-    M.jump(stop)
+    return M.jump(stop)
 end
 
 local function select_stop(from, to)
@@ -286,8 +286,8 @@ end
 
 function M.jump(stop)
     local stops = M.stops
-    if not stops or not #stops then
-        return
+    if not stops or #stops == 0 then
+        return false
     end
     -- print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
     if M.current_stop then
@@ -330,6 +330,8 @@ function M.jump(stop)
         M.current_stop = 0
         clear_stops()
     end
+
+    return true
 end
 
 -- Snippet expanding
@@ -447,7 +449,7 @@ local function place_stops(stops)
     end
 end
 
-function M.expand_snip(word, snip)
+function M.insert_snip(word, snip)
     local row, col = unpack(api.nvim_win_get_cursor(0))
     col = col + 1 - #word
     local current_line = api.nvim_get_current_line()
@@ -464,7 +466,7 @@ function M.expand_snip(word, snip)
     local ok, parsed, pos = parser.parse(text, 1)
     if not ok or pos <= #text then
         print_error("> Error while parsing snippet: didn't parse till end")
-        return
+        return false
     end
     local builder = Builder.new({row = row, col = col, indent = indent, word = word})
     local content, stops = builder:build_snip(parsed)
@@ -477,23 +479,53 @@ function M.expand_snip(word, snip)
     setup_autocmds()
     api.nvim_win_set_cursor(0, {row, col})
     M.next_stop()
-    return ''
+    return true
 end
 
-function M.expand_or_next()
-    local row, col = unpack(api.nvim_win_get_cursor(0))
+local function get_snippet_at_cursor()
+    local _, col = unpack(api.nvim_win_get_cursor(0))
     local current_line = api.nvim_get_current_line()
     local word = current_line:sub(1, col + 1):match('(%w+)$')
     if word then
         local ftype = vim.bo.filetype
         if ftype and M.snips[ftype] then
-            local snip = M.snips[ftype][word]
-            if snip then
-                return M.expand_snip(word, snip)
-            end
+            return word, M.snips[ftype][word]
         end
     end
-    return M.next_stop()
+    return nil, nil
+end
+
+function M.expand_or_advance()
+    return M.expand() or M.next_stop()
+end
+
+function M.expand()
+    local word, snip = get_snippet_at_cursor()
+    if word and snip then
+        return M.insert_snip(word, snip)
+    end
+    return false
+end
+
+function M.can_expand()
+    local word, snip = get_snippet_at_cursor()
+    if word and snip then
+        return true
+    else
+        return false
+    end
+end
+
+function M.can_jump(dir)
+    if dir >= 0 then
+        return #M.stops > 0 and M.current_stop <= #M.stops
+    else
+        return #M.stops > 0 and M.current_stop > 1
+    end
+end
+
+function M.can_expand_or_advance()
+    return M.can_expand() or M.can_jump(1)
 end
 
 -- Setup
@@ -506,24 +538,28 @@ function M.init()
     M.hlnamespace = api.nvim_create_namespace('snipshl')
 
     -- TODO: use <cmd>?
-    api.nvim_set_keymap("i", "<c-]>", "<Esc>:lua return snippy.expand_or_next()<CR>", {
+    api.nvim_set_keymap("i", "<Tab>", "v:lua.snippy.can_expand_or_advance() ? '<Esc>:lua return snippy.expand_or_advance()<CR>' : '<Tab>'", {
         noremap = true;
         silent = true;
+        expr = true;
     })
 
-    api.nvim_set_keymap("i", "<c-b>", "<Esc>:lua return snippy.previous_stop()<CR>", {
+    api.nvim_set_keymap("i", "<S-Tab>", "v:lua.snippy.can_jump(-1) ? '<Esc>:lua return snippy.previous_stop()<CR>' : '<S-Tab>'", {
         noremap = true;
         silent = true;
+        expr = true;
     })
 
-    api.nvim_set_keymap("s", "<c-]>", "<Esc>:<C-u>lua return snippy.next_stop()<CR>", {
+    api.nvim_set_keymap("s", "<Tab>", "v:lua.snippy.can_jump(1) ? '<Esc>:lua return snippy.next_stop()<CR>' : '<Tab>'", {
         noremap = true;
         silent = true;
+        expr = true;
     })
 
-    api.nvim_set_keymap("s", "<c-b>", "<Esc>:<C-u>lua return snippy.previous_stop()<CR>", {
+    api.nvim_set_keymap("s", "<S-Tab>", "v:lua.snippy.can_jump(-1) ? '<Esc>:lua return snippy.previous_stop()<CR>' : '<S-Tab>'", {
         noremap = true;
         silent = true;
+        expr = true;
     })
 
     read_snips()
