@@ -50,6 +50,7 @@ local function setup_autocmds()
     cmd('augroup snippy_local')
     cmd('autocmd! * <buffer=' .. bufnr ..'>')
     cmd('autocmd TextChanged,TextChangedI,TextChangedP <buffer=' .. bufnr .. '> lua snippy.mirror_stops()')
+    cmd('autocmd CursorMoved,CursorMovedI <buffer=' .. bufnr .. '> lua snippy.check_position()')
     cmd('augroup END')
 end
 
@@ -172,7 +173,7 @@ end
 --     end
 -- end
 
-local function clear_stops()
+local function clear_state()
     for _, stop in pairs(M.stops) do
         -- print('Clearing marks', vim.inspect(stop))
         api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
@@ -328,7 +329,7 @@ function M.jump(stop)
         local _, endpos = value:get_range()
         start_insert(endpos)
         M.current_stop = 0
-        clear_stops()
+        clear_state()
     end
 
     return true
@@ -447,6 +448,20 @@ local function place_stops(stops)
         add_stop(spec, pos)
         pos = pos + 1
     end
+end
+
+-- Check if cursor is inside any stop
+function M.check_position()
+    local row, col = unpack(api.nvim_win_get_cursor(0))
+    row = row - 1
+    for _, stop in ipairs(M.stops) do
+        local from, to = stop:get_range()
+        if (from[1] < row or (from[1] == row and from[2] <= col))
+                and (to[1] > row or (to[1] == row and to[2] >= col)) then
+            return
+        end
+    end
+    clear_state()
 end
 
 function M.insert_snip(word, snip)
