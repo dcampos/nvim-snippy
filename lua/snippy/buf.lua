@@ -8,6 +8,18 @@ M._state = {}
 
 M.namespace = api.nvim_create_namespace('snippy')
 
+setmetatable(M, {
+    __index = function (table, key)
+        if key == "current_stop" then
+            return table.state().current_stop
+        elseif key == "stops" then
+            return table.state().stops
+        else
+            return rawget(table, key)
+        end
+    end
+})
+
 function M.state()
     local bufnr = fn.bufnr('%')
     if not M._state[bufnr] then
@@ -19,28 +31,28 @@ function M.state()
     return M._state[bufnr]
 end
 
-function M.stops()
-    return M.state().stops
-end
+-- function M.stops()
+--     return M.state().stops
+-- end
 
-function M.set_stops(stops)
-    M.state().stops = stops
-end
+-- function M.set_stops(stops)
+--     M.state().stops = stops
+-- end
 
-function M.current_stop()
-    return M.state().current_stop
-end
+-- function M.current_stop()
+--     return M.state().current_stop
+-- end
 
-function M.set_current_stop(number)
-    M.state().current_stop = number
-end
+-- function M.set_current_stop(number)
+--     M.state().current_stop = number
+-- end
 
 function M.clear_state()
-    for _, stop in pairs(M.stops()) do
+    for _, stop in pairs(M.state().stops) do
         api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
     end
-    M.set_current_stop(0)
-    M.set_stops({})
+    M.state().current_stop = 0
+    M.state().stops = {}
     M.clear_autocmds()
 end
 

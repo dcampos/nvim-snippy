@@ -52,7 +52,7 @@ end
 
 local function add_stop(spec, pos)
     local function is_traversable()
-        for _, stop in ipairs(buf.stops()) do
+        for _, stop in ipairs(buf.stops) do
             if stop.id == spec.id then
                 return false
             end
@@ -64,7 +64,7 @@ local function add_stop(spec, pos)
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
     print(string.format('=> Placing stop %d @ %d:%d-%d:%d => traversable = %s', spec.id, startrow, startcol, endrow, endcol, is_traversable()))
-    local stops = buf.stops()
+    local stops = buf.stops
     local end_col = endcol
     local smark = api.nvim_buf_set_extmark(0, buf.namespace, startrow, startcol, {
         end_line = endrow;
@@ -74,7 +74,7 @@ local function add_stop(spec, pos)
         end_right_gravity = true;
     })
     table.insert(stops, pos, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
-    buf.set_stops(stops)
+    buf.stops = stops
 end
 
 local function select_stop(from, to)
@@ -117,7 +117,7 @@ local function present_choices(stop, startpos)
 end
 
 local function mirror_stop(number)
-    local stops = buf.stops()
+    local stops = buf.stops
     if number < 1 or number > #stops  then
         return
     end
@@ -159,12 +159,14 @@ end
 local function place_stops(stops)
     sort_stops(stops)
     make_unique_ids(stops)
-    local pos = buf.current_stop() + 1
+    local pos = buf.current_stop + 1
     for _, spec in ipairs(stops) do
         add_stop(spec, pos)
         pos = pos + 1
     end
 end
+
+-- Snippet management
 
 local function get_snippet_at_cursor()
     local _, col = unpack(api.nvim_win_get_cursor(0))
@@ -182,14 +184,14 @@ end
 -- Public functions
 
 function M.mirror_stops()
-    if buf.current_stop() ~= 0 then
-        mirror_stop(buf.current_stop())
+    if buf.current_stop ~= 0 then
+        mirror_stop(buf.current_stop)
     end
 end
 
 function M.previous_stop()
-    local stops = buf.stops()
-    local stop = (buf.current_stop() or 0) - 1
+    local stops = buf.stops
+    local stop = (buf.current_stop or 0) - 1
     while stops[stop] and not stops[stop].traversable do
         stop = stop - 1
     end
@@ -197,8 +199,8 @@ function M.previous_stop()
 end
 
 function M.next_stop()
-    local stops = buf.stops()
-    local stop = (buf.current_stop() or 0) + 1
+    local stops = buf.stops
+    local stop = (buf.current_stop or 0) + 1
     while stops[stop] and not stops[stop].traversable do
         stop = stop + 1
     end
@@ -206,22 +208,18 @@ function M.next_stop()
 end
 
 function M.jump(stop)
-    local stops = buf.stops()
+    local stops = buf.stops
     if not stops or #stops == 0 then
         return false
     end
-    -- print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
-    if buf.current_stop() then
-        mirror_stop(buf.current_stop())
+    if buf.current_stop then
+        mirror_stop(buf.current_stop)
     end
     print('> Jumping to stop', stop)
     local should_finish = false
     if #stops >= stop and stop > 0 then
         local value = stops[stop]
         local startpos, endpos = value:get_range()
-        -- api.nvim_feedkeys(t'<Esc>', 'i', true)
-        -- print('> startpos =', vim.inspect(startpos))
-        -- print('> endpos =', vim.inspect(endpos))
         if value.spec.type == 'tabstop' or value.spec.type == 'choice' then
             if value.spec.type == 'choice' then
                 start_insert(endpos)
@@ -238,17 +236,17 @@ function M.jump(stop)
             select_stop(startpos, endpos)
         end
 
-        buf.set_current_stop(stop)
+        buf.current_stop = stop
     else
         should_finish = true
     end
 
     if should_finish then
         -- Start inserting at the end of the current stop
-        local value = stops[buf.current_stop()]
+        local value = stops[buf.current_stop]
         local _, endpos = value:get_range()
         start_insert(endpos)
-        buf.set_current_stop(0)
+        buf.current_stop = 0
         buf.clear_state()
     end
 
@@ -257,7 +255,7 @@ end
 
 -- Check if cursor is inside any stop
 function M.check_position()
-    local stops = buf.stops()
+    local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
     for _, stop in ipairs(stops) do
@@ -291,14 +289,10 @@ function M.insert_snip(word, snip)
     end
     local builder = Builder.new({row = row, col = col, indent = indent, word = word})
     local content, stops = builder:build_snip(parsed)
-    -- print('> text =', i(text))
-    -- print('> strutcure =', i(parsed))
-    -- print('> content =', i(content))
     local lines = vim.split(content, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
     buf.setup_autocmds()
-    api.nvim_win_set_cursor(0, {row, col})
     M.next_stop()
     return true
 end
@@ -325,11 +319,11 @@ function M.can_expand()
 end
 
 function M.can_jump(dir)
-    local stops = buf.stops()
+    local stops = buf.stops
     if dir >= 0 then
-        return #stops > 0 and buf.current_stop() <= #stops
+        return #stops > 0 and buf.current_stop <= #stops
     else
-        return #stops > 0 and buf.current_stop() > 1
+        return #stops > 0 and buf.current_stop > 1
     end
 end
 
@@ -340,7 +334,6 @@ end
 -- Setup
 
 M.snips = {}
-M.state = {}
 
 function M.init()
     -- TODO: use <cmd>?
