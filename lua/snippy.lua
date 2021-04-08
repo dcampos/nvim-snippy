@@ -1,49 +1,12 @@
----
----
-
 local parser = require 'snippy.parser'
 local api = vim.api
 local cmd = vim.cmd
 local fn = vim.fn
-local inspect = vim.inspect
 
-local varmap = {
-    TM_SELECTED_TEXT = function () return '' end,
-    TM_CURRENT_LINE = function () return vim.api.nvim_get_current_line() end,
-    TM_CURRENT_WORD = function () return '' end,
-    TM_LINE_INDEX = function () return 0 end,
-    TM_LINE_NUMBER = function () return 1 end,
-    TM_FILENAME = function () return vim.fn.expand('%:t') end,
-    TM_FILENAME_BASE = function () return vim.fn.expand('%:t:r') end,
-    TM_DIRECTORY = function () return vim.fn.expand('%:p:h:t') end,
-    TM_FILEPATH = function () return vim.fn.expand('%:p') end,
-    CLIPBOARD = function () return '' end,
-    WORKSPACE_NAME = function () return '' end,
-    WORKSPACE_FOLDER = function () return '' end,
-    CURRENT_YEAR = function () return fn.strftime('%Y') end,
-    CURRENT_YEAR_SHORT = function () return fn.strftime('%y') end,
-    CURRENT_MONTH = function () return fn.strftime('%m') end,
-    CURRENT_MONTH_NAME = function () return fn.strftime('%B') end,
-    CURRENT_MONTH_NAME_SHORT = function () return fn.strftime('%b') end,
-    CURRENT_DATE = function () return fn.strftime('%d') end,
-    CURRENT_DAY_NAME = function () return fn.strftime('%A') end,
-    CURRENT_DAY_NAME_SHORT = function () return fn.strftime('%a') end,
-    CURRENT_HOUR = function () return fn.strftime('%H') end,
-    CURRENT_MINUTE = function () return fn.strftime('%M') end,
-    CURRENT_SECOND = function () return fn.strftime('%S') end,
-    CURRENT_SECONDS_UNIX = function () return fn.localtime() end,
-    RANDOM = function () return math.random() end,
-    RANDOM_HEX = function () return nil end,
-    UUID = function () return nil end,
-    BLOCK_COMMENT_START = function () return '/*' end,
-    BLOCK_COMMENT_END = function () return '*/' end,
-    LINE_COMMENT = function () return '//' end,
-}
+local Builder = require 'snippy.builder'
+local Stop = require 'snippy.stop'
 
 local M = {}
-
--- TODO: make buffer local
-M.stops = {}
 
 local function setup_autocmds()
     local bufnr = fn.bufnr('%')
@@ -102,45 +65,36 @@ end
 
 -- Stop management
 
-Stop = {id=-1, mark=nil}
-Stop.__index = Stop
-
-function Stop.new(o)
-    return setmetatable(o, Stop)
-end
-
-function Stop:get_range()
-    local mark = api.nvim_buf_get_extmark_by_id(0, M.namespace, self.mark, {details=true})
-    if #mark then
-        local startrow, startcol = mark[1], mark[2]
-        local endrow, endcol = mark[3].end_row, mark[3].end_col
-        return {startrow, startcol}, {endrow, endcol}
+local function buf_state()
+    local bufnr = fn.bufnr('%')
+    if not M.state[bufnr] then
+        M.state[bufnr] = {
+            stops = {};
+            current_stop = 0;
+        }
     end
-    return nil
+    return M.state[bufnr]
 end
 
-function Stop:get_text()
-    local startpos, endpos = self:get_range()
-    local lines = api.nvim_buf_get_lines(0, startpos[1], endpos[1] + 1, false)
-    lines[#lines] = lines[#lines]:sub(1, endpos[2])
-    lines[1] = lines[1]:sub(startpos[2] + 1)
-    return table.concat(lines, '\n')
+local function buf_stops()
+    return buf_state().stops
 end
 
-function Stop:set_text(text)
-    local startpos, endpos = self:get_range()
-    if self.spec.transform then
-        -- print('transforming text for', vim.inspect(self))
-        local transform = self.spec.transform
-        text = fn.substitute(text, transform.regex.raw, transform.format.escaped, transform.flags)
-    end
-    local lines = vim.split(text, '\n', true)
-    api.nvim_buf_set_text(0, startpos[1], startpos[2], endpos[1], endpos[2], lines)
+local function set_buf_stops(stops)
+    buf_state().stops = stops
+end
+
+local function buf_current_stop()
+    return buf_state().current_stop
+end
+
+local function set_buf_current_stop(number)
+    buf_state().current_stop = number
 end
 
 local function add_stop(spec, pos)
     local function is_traversable()
-        for _, stop in ipairs(M.stops) do
+        for _, stop in ipairs(buf_stops()) do
             if stop.id == spec.id then
                 return false
             end
@@ -152,9 +106,9 @@ local function add_stop(spec, pos)
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
     print(string.format('=> Placing stop %d @ %d:%d-%d:%d => traversable = %s', spec.id, startrow, startcol, endrow, endcol, is_traversable()))
-    local stops = M.stops or {}
+    local stops = buf_stops()
     local end_col = endcol
-    local smark = api.nvim_buf_set_extmark(0, M.namespace, startrow, startcol, {
+    local smark = api.nvim_buf_set_extmark(0, Snippy_namespace, startrow, startcol, {
         end_line = endrow;
         end_col = end_col;
         hl_group = 'Search';
@@ -162,42 +116,18 @@ local function add_stop(spec, pos)
         end_right_gravity = true;
     })
     table.insert(stops, pos, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
-    M.stops = stops
+    set_buf_stops(stops)
 end
-
--- local function show_stops()
---     for _, stop in pairs(M.stops) do
---         print(vim.inspect(stop))
---         local startpos, endpos = stop:get_range()
---         api.nvim_buf_add_highlight(0, M.hlnamespace, 'Cursor', startpos[1], startpos[2], endpos[2])
---     end
--- end
 
 local function clear_state()
-    for _, stop in pairs(M.stops) do
+    for _, stop in pairs(buf_stops()) do
         -- print('Clearing marks', vim.inspect(stop))
-        api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
+        api.nvim_buf_del_extmark(0, Snippy_namespace, stop.mark)
     end
-    M.current_stop = 0
     M.max_id = 0
-    M.stops = {}
+    set_buf_current_stop(0)
+    set_buf_stops({})
     clear_autocmds()
-end
-
-function M.previous_stop()
-    local stop = (M.current_stop or 0) - 1
-    while M.stops[stop] and not M.stops[stop].traversable do
-        stop = stop - 1
-    end
-    return M.jump(stop)
-end
-
-function M.next_stop()
-    local stop = (M.current_stop or 0) + 1
-    while M.stops[stop] and not M.stops[stop].traversable do
-        stop = stop + 1
-    end
-    return M.jump(stop)
 end
 
 local function select_stop(from, to)
@@ -240,7 +170,7 @@ local function present_choices(stop, startpos)
 end
 
 local function mirror_stop(number)
-    local stops = M.stops
+    local stops = buf_stops()
     if number < 1 or number > #stops  then
         return
     end
@@ -250,12 +180,6 @@ local function mirror_stop(number)
         if i > number and stop.id == value.id then
             stop:set_text(text)
         end
-    end
-end
-
-function M.mirror_stops()
-    if M.current_stop ~= 0 then
-        mirror_stop(M.current_stop)
     end
 end
 
@@ -285,14 +209,63 @@ local function make_unique_ids(stops)
     M.max_id = max_id
 end
 
+local function place_stops(stops)
+    sort_stops(stops)
+    make_unique_ids(stops)
+    local pos = buf_current_stop() + 1
+    for _, spec in ipairs(stops) do
+        add_stop(spec, pos)
+        pos = pos + 1
+    end
+end
+
+local function get_snippet_at_cursor()
+    local _, col = unpack(api.nvim_win_get_cursor(0))
+    local current_line = api.nvim_get_current_line()
+    local word = current_line:sub(1, col + 1):match('(%w+)$')
+    if word then
+        local ftype = vim.bo.filetype
+        if ftype and M.snips[ftype] then
+            return word, M.snips[ftype][word]
+        end
+    end
+    return nil, nil
+end
+
+-- Public functions
+
+function M.mirror_stops()
+    if buf_current_stop() ~= 0 then
+        mirror_stop(buf_current_stop())
+    end
+end
+
+function M.previous_stop()
+    local stops = buf_stops()
+    local stop = (buf_current_stop() or 0) - 1
+    while stops[stop] and not stops[stop].traversable do
+        stop = stop - 1
+    end
+    return M.jump(stop)
+end
+
+function M.next_stop()
+    local stops = buf_stops()
+    local stop = (buf_current_stop() or 0) + 1
+    while stops[stop] and not stops[stop].traversable do
+        stop = stop + 1
+    end
+    return M.jump(stop)
+end
+
 function M.jump(stop)
-    local stops = M.stops
+    local stops = buf_stops()
     if not stops or #stops == 0 then
         return false
     end
     -- print('> #stops =', #stops, '- stops =', vim.inspect(stops), '- stop =', stop)
-    if M.current_stop then
-        mirror_stop(M.current_stop)
+    if buf_current_stop() then
+        mirror_stop(buf_current_stop())
     end
     print('> Jumping to stop', stop)
     local should_finish = false
@@ -318,143 +291,29 @@ function M.jump(stop)
             select_stop(startpos, endpos)
         end
 
-        M.current_stop = stop
+        set_buf_current_stop(stop)
     else
         should_finish = true
     end
 
     if should_finish then
         -- Start inserting at the end of the current stop
-        local value = stops[M.current_stop]
+        local value = stops[buf_current_stop()]
         local _, endpos = value:get_range()
         start_insert(endpos)
-        M.current_stop = 0
+        set_buf_current_stop(0)
         clear_state()
     end
 
     return true
 end
 
--- Snippet expanding
-
-Builder = {input='', row=nil, col=nil, indent=''}
-Builder.__index = Builder
-
-function Builder.new(o)
-    local builder = setmetatable(o, Builder)
-    builder.stops = {}
-    builder.result = ''
-    return builder
-end
-
-function Builder:add(content)
-    print('> result (add) =', inspect(self.result))
-    self.result = self.result .. content
-end
-
-function Builder:indent_lines(lines)
-    local result = {}
-    for i, line in ipairs(lines) do
-        if vim.bo.expandtab then
-            line = line:gsub('\t', string.rep(' ', vim.bo.shiftwidth))
-        end
-        if i > 1 and self.indent then
-            line = self.indent .. line
-        end
-        table.insert(result, line)
-    end
-    return result
-end
-
-function Builder:append_text(text)
-    print('> result (append_text) =', inspect(self.result))
-    local lines = vim.split(text, '\n', true)
-    lines = self:indent_lines(lines)
-    self.row = self.row + #lines - 1
-    if #lines > 1 then
-        self.col = #lines[#lines]
-    else
-        self.col = self.col + #lines[1]
-    end
-    self:add(table.concat(lines, '\n'))
-end
-
-function Builder:evaluate_variable(variable)
-    local result = varmap[variable.name] and varmap[variable.name]()
-    if not result then
-        self:process_structure(variable.children)
-    else
-        self:append_text(result)
-    end
-end
-
-function Builder:process_structure(structure)
-    print('> process structure at', self.row, ':', self.col)
-    print('> result =', inspect(self.result))
-    -- print(vim.inspect(structure))
-    for _, value in ipairs(structure) do
-        if type(value) == 'table' then
-            print('> type =', inspect(value.type))
-            if value.type == 'tabstop' then
-                table.insert(self.stops, {type=value.type, id=value.id, startpos={self.row, self.col}, endpos={self.row, self.col}, placeholder='', transform=value.transform})
-            elseif value.type == 'placeholder' then
-                local startrow, startcol = self.row, self.col
-                self:process_structure(value.children)
-                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}})
-            elseif value.type == 'variable' then
-                local startrow, startcol = self.row, self.col
-                self:evaluate_variable(value)
-                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, tranform=value.transform})
-            elseif value.type == 'choice' then
-                local choice = value.children[1]
-                local startrow, startcol = self.row, self.col
-                self:append_text(choice)
-                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, choices=value.choices})
-            elseif value.type == 'eval' then
-                local text = fn.eval(value.children[1].escaped) or ''
-                self:append_text(text)
-            elseif value.type == 'text' then
-                local text = value.escaped
-                self:append_text(text)
-            else
-                print_error(string.format('Unsupported element "%s" at %d:%d', value.type, self.row, self.col))
-            end
-        end
-    end
-end
-
-function Builder:fix_ending()
-    for _, stop in ipairs(self.stops) do
-        if stop.id == 0 then
-            return
-        end
-    end
-    table.insert(self.stops, {type='tabstop', id=0, startpos={self.row, self.col}, endpos={self.row, self.col}})
-end
-
-function Builder:build_snip(structure)
-    print('> process snip at', self.row, ':', self.col)
-    print('> result =', inspect(self.result))
-    self:process_structure(structure)
-    self:fix_ending()
-    return self.result, self.stops
-end
-
-local function place_stops(stops)
-    sort_stops(stops)
-    make_unique_ids(stops)
-    local pos = M.current_stop + 1
-    for _, spec in ipairs(stops) do
-        add_stop(spec, pos)
-        pos = pos + 1
-    end
-end
-
 -- Check if cursor is inside any stop
 function M.check_position()
+    local stops = buf_stops()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
-    for _, stop in ipairs(M.stops) do
+    for _, stop in ipairs(stops) do
         local from, to = stop:get_range()
         if (from[1] < row or (from[1] == row and from[2] <= col))
                 and (to[1] > row or (to[1] == row and to[2] >= col)) then
@@ -497,19 +356,6 @@ function M.insert_snip(word, snip)
     return true
 end
 
-local function get_snippet_at_cursor()
-    local _, col = unpack(api.nvim_win_get_cursor(0))
-    local current_line = api.nvim_get_current_line()
-    local word = current_line:sub(1, col + 1):match('(%w+)$')
-    if word then
-        local ftype = vim.bo.filetype
-        if ftype and M.snips[ftype] then
-            return word, M.snips[ftype][word]
-        end
-    end
-    return nil, nil
-end
-
 function M.expand_or_advance()
     return M.expand() or M.next_stop()
 end
@@ -532,10 +378,11 @@ function M.can_expand()
 end
 
 function M.can_jump(dir)
+    local stops = buf_stops()
     if dir >= 0 then
-        return #M.stops > 0 and M.current_stop <= #M.stops
+        return #stops > 0 and buf_current_stop() <= #stops
     else
-        return #M.stops > 0 and M.current_stop > 1
+        return #stops > 0 and buf_current_stop() > 1
     end
 end
 
@@ -546,11 +393,11 @@ end
 -- Setup
 
 M.snips = {}
-M.current_stop = 0
+M.state = {}
 
 function M.init()
-    M.namespace = api.nvim_create_namespace('snips')
-    M.hlnamespace = api.nvim_create_namespace('snipshl')
+    -- TODO: make non-global
+    Snippy_namespace = api.nvim_create_namespace('snippy')
 
     -- TODO: use <cmd>?
     api.nvim_set_keymap("i", "<Tab>", "v:lua.snippy.can_expand_or_advance() ? '<Esc>:lua return snippy.expand_or_advance()<CR>' : '<Tab>'", {
