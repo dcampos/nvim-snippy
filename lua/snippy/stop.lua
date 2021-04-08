@@ -1,15 +1,21 @@
+local buf = require 'snippy.buf'
+
 local api = vim.api
 local fn = vim.fn
 
 Stop = {}
 
 function Stop.new(o)
-    local self = setmetatable(o, {__index = Stop, id = -1, mark = nil})
+    local self = setmetatable(o, {
+        __index = Stop,
+        id = -1,
+        mark = nil
+    })
     return self
 end
 
 function Stop:get_range()
-    local mark = api.nvim_buf_get_extmark_by_id(0, Snippy_namespace, self.mark, {details=true})
+    local mark = api.nvim_buf_get_extmark_by_id(0, buf.namespace, self.mark, {details=true})
     if #mark then
         local startrow, startcol = mark[1], mark[2]
         local endrow, endcol = mark[3].end_row, mark[3].end_col
