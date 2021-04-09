@@ -3,6 +3,8 @@ local buf = require 'snippy.buf'
 local api = vim.api
 local fn = vim.fn
 
+local inspect = (vim and vim.inspect) or require 'inspect'
+
 Stop = {}
 
 function Stop.new(o)
@@ -16,7 +18,7 @@ end
 
 function Stop:get_range()
     local mark = api.nvim_buf_get_extmark_by_id(0, buf.namespace, self.mark, {details=true})
-    if #mark then
+    if #mark > 0 then
         local startrow, startcol = mark[1], mark[2]
         local endrow, endcol = mark[3].end_row, mark[3].end_col
         return {startrow, startcol}, {endrow, endcol}

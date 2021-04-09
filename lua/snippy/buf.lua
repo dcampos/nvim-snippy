@@ -9,13 +9,22 @@ M._state = {}
 M.namespace = api.nvim_create_namespace('snippy')
 
 setmetatable(M, {
-    __index = function (table, key)
+    __index = function (self, key)
         if key == "current_stop" then
-            return table.state().current_stop
+            return self.state().current_stop
         elseif key == "stops" then
-            return table.state().stops
+            return self.state().stops
         else
-            return rawget(table, key)
+            return rawget(self, key)
+        end
+    end;
+    __newindex = function (self, key, value)
+        if key == "current_stop" then
+            self.state().current_stop = value
+        elseif key == "stops" then
+            self.state().stops = value
+        else
+            return rawset(self, key, value)
         end
     end
 })

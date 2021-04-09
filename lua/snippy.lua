@@ -26,7 +26,9 @@ local function read_snippets_file(snippets_file)
     local ftype = fn.fnamemodify(snippets_file, ':t:r')
     local snips = {}
     local current = nil
-    for line in io.lines(snippets_file) do
+    local file = io.open(snippets_file)
+    local lines = vim.split(file:read('*a'), '\n')
+    for _, line in ipairs(lines) do
         if line:sub(1, 7) == 'snippet' then
             local prefix = line:match(' +(%w+) *')
             current = prefix
@@ -246,7 +248,6 @@ function M.jump(stop)
         local value = stops[buf.current_stop]
         local _, endpos = value:get_range()
         start_insert(endpos)
-        buf.current_stop = 0
         buf.clear_state()
     end
 
@@ -319,7 +320,8 @@ function M.can_expand()
 end
 
 function M.can_jump(dir)
-    local stops = buf.stops
+    local stops = buf.state().stops
+    print("> Can jump? Stops =", #stops)
     if dir >= 0 then
         return #stops > 0 and buf.current_stop <= #stops
     else
