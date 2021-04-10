@@ -6,20 +6,40 @@ local M = {}
 
 local function read_snippets_file(snippets_file)
     local snips = {}
-    local current = nil
     local file = io.open(snippets_file)
     local lines = vim.split(file:read('*a'), '\n')
-    for _, line in ipairs(lines) do
-        if line:sub(1, 7) == 'snippet' then
-            local prefix = line:match(' +(%w+) *')
-            current = prefix
-            local description = line:match(' *"(.+)" *$')
-            snips[prefix] = {prefix=prefix, description = description, body = {}}
-        elseif line:sub(1,1) ~= '#' then
-            local value = line:gsub('^\t', '')
-            if current then
-                table.insert(snips[current].body, value)
+    local i = 1
+
+    local function parse_snippet()
+        local line = lines[i]
+        local prefix = line:match(' +(%w+) *')
+        local description = line:match(' *"(.+)" *$')
+        local body = {}
+        i = i + 1
+        while i <= #lines do
+            line = lines[i]
+            if line:sub(1, 1) == '\t' or line == '' then
+                -- print('> line =', line)
+                line = line:sub(2)
+                table.insert(body, line)
+                i = i + 1
+            else
+                break
             end
+        end
+        snips[prefix] = {prefix=prefix, description = description, body = body}
+    end
+
+    while i <= #lines do
+        local line = lines[i]
+        if line:sub(1, 7) == 'snippet' then
+            -- print('> parsing snippet - line:', line)
+            parse_snippet()
+        elseif line:sub(1, 1) == '#' or vim.trim(line) == '' then
+            -- Skip empty lines or comments
+            i = i + 1
+        else
+            error(string.format("Invalid line in snippets file %s: %s", snippets_file, line))
         end
     end
     return snips
