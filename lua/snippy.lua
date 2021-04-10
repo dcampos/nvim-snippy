@@ -1,11 +1,13 @@
 local parser = require 'snippy.parser'
+local reader = require 'snippy.reader'
 local buf = require 'snippy.buf'
-local api = vim.api
-local cmd = vim.cmd
-local fn = vim.fn
 
 local Builder = require 'snippy.builder'
 local Stop = require 'snippy.stop'
+
+local api = vim.api
+local cmd = vim.cmd
+local fn = vim.fn
 
 local M = {}
 
@@ -18,36 +20,6 @@ end
 
 local function t(input)
     return api.nvim_replace_termcodes(input, true, false, true)
-end
-
--- Loading
-
-local function read_snippets_file(snippets_file)
-    local ftype = fn.fnamemodify(snippets_file, ':t:r')
-    local snips = {}
-    local current = nil
-    local file = io.open(snippets_file)
-    local lines = vim.split(file:read('*a'), '\n')
-    for _, line in ipairs(lines) do
-        if line:sub(1, 7) == 'snippet' then
-            local prefix = line:match(' +(%w+) *')
-            current = prefix
-            local description = line:match(' *"(.+)" *$')
-            snips[prefix] = {prefix=prefix, description = description, body = {}}
-        elseif line:sub(1,1) ~= '#' then
-            local value = line:gsub('^\t', '')
-            if current then
-                table.insert(snips[current].body, value)
-            end
-        end
-    end
-    M.snips[ftype] = snips
-end
-
-local function read_snips()
-    for _,file in ipairs(vim.split(fn.glob('snips/*.snippets'), '\n', true)) do
-        read_snippets_file(file)
-    end
 end
 
 -- Stop management
@@ -363,7 +335,7 @@ function M.init()
         expr = true;
     })
 
-    read_snips()
+    M.snips = reader.read_snips()
 end
 
 M.init()
