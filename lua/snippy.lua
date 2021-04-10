@@ -307,38 +307,7 @@ end
 
 -- Setup
 
-M.snips = {}
-
-function M.init()
-    -- TODO: use <cmd>?
-    api.nvim_set_keymap("i", "<Tab>", "v:lua.snippy.can_expand_or_advance() ? '<Esc>:lua return snippy.expand_or_advance()<CR>' : '<Tab>'", {
-        noremap = true;
-        silent = true;
-        expr = true;
-    })
-
-    api.nvim_set_keymap("i", "<S-Tab>", "v:lua.snippy.can_jump(-1) ? '<Esc>:lua return snippy.previous_stop()<CR>' : '<S-Tab>'", {
-        noremap = true;
-        silent = true;
-        expr = true;
-    })
-
-    api.nvim_set_keymap("s", "<Tab>", "v:lua.snippy.can_jump(1) ? '<Esc>:lua return snippy.next_stop()<CR>' : '<Tab>'", {
-        noremap = true;
-        silent = true;
-        expr = true;
-    })
-
-    api.nvim_set_keymap("s", "<S-Tab>", "v:lua.snippy.can_jump(-1) ? '<Esc>:lua return snippy.previous_stop()<CR>' : '<S-Tab>'", {
-        noremap = true;
-        silent = true;
-        expr = true;
-    })
-
-    M.snips = reader.read_snips()
-end
-
-M.init()
+M.snips = reader.read_snips()
 
 return M
 
