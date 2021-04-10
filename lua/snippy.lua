@@ -37,7 +37,6 @@ local function add_stop(spec, pos)
     local startcol = spec.startpos[2]
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
-    print(string.format('=> Placing stop %d @ %d:%d-%d:%d => traversable = %s', spec.id, startrow, startcol, endrow, endcol, is_traversable()))
     local stops = buf.stops
     local end_col = endcol
     local smark = api.nvim_buf_set_extmark(0, buf.namespace, startrow, startcol, {
@@ -189,7 +188,6 @@ function M.jump(stop)
     if buf.current_stop then
         mirror_stop(buf.current_stop)
     end
-    print('> Jumping to stop', stop)
     local should_finish = false
     if #stops >= stop and stop > 0 then
         local value = stops[stop]
@@ -197,10 +195,8 @@ function M.jump(stop)
         if value.spec.type == 'tabstop' or value.spec.type == 'choice' then
             if value.spec.type == 'choice' then
                 start_insert(endpos)
-                print('> presenting choices...')
                 present_choices(value, startpos)
             else
-                print('> starting insert...')
                 start_insert(startpos)
             end
             if stop == #stops then
@@ -293,7 +289,6 @@ end
 
 function M.can_jump(dir)
     local stops = buf.state().stops
-    print("> Can jump? Stops =", #stops)
     if dir >= 0 then
         return #stops > 0 and buf.current_stop <= #stops
     else

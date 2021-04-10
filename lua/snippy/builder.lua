@@ -45,7 +45,6 @@ function Builder.new(o)
 end
 
 function Builder:add(content)
-    print('> result (add) =', inspect(self.result))
     self.result = self.result .. content
 end
 
@@ -64,7 +63,6 @@ function Builder:indent_lines(lines)
 end
 
 function Builder:append_text(text)
-    print('> result (append_text) =', inspect(self.result))
     local lines = vim.split(text, '\n', true)
     lines = self:indent_lines(lines)
     self.row = self.row + #lines - 1
@@ -86,12 +84,8 @@ function Builder:evaluate_variable(variable)
 end
 
 function Builder:process_structure(structure)
-    print('> process structure at', self.row, ':', self.col)
-    print('> result =', inspect(self.result))
-    -- print(vim.inspect(structure))
     for _, value in ipairs(structure) do
         if type(value) == 'table' then
-            print('> type =', inspect(value.type))
             if value.type == 'tabstop' then
                 table.insert(self.stops, {type=value.type, id=value.id, startpos={self.row, self.col}, endpos={self.row, self.col}, placeholder='', transform=value.transform})
             elseif value.type == 'placeholder' then
@@ -130,8 +124,6 @@ function Builder:fix_ending()
 end
 
 function Builder:build_snip(structure)
-    print('> process snip at', self.row, ':', self.col)
-    print('> result =', inspect(self.result))
     self:process_structure(structure)
     self:fix_ending()
     return self.result, self.stops
