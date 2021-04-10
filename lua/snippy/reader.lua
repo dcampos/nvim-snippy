@@ -6,9 +6,12 @@ local M = {}
 
 local function read_snippets_file(snippets_file)
     local snips = {}
+    local extends = {}
     local file = io.open(snippets_file)
     local lines = vim.split(file:read('*a'), '\n')
     local i = 1
+
+    -- print('> parsing file:', snippets_file)
 
     local function parse_snippet()
         local line = lines[i]
@@ -35,6 +38,11 @@ local function read_snippets_file(snippets_file)
         if line:sub(1, 7) == 'snippet' then
             -- print('> parsing snippet - line:', line)
             parse_snippet()
+        elseif line:sub(1, 7) == 'extends' then
+            -- print('> extends found', i, line)
+            local scopes = vim.split(vim.trim(line:sub(8)), '%s+')
+            vim.list_extend(extends, scopes)
+            i = i + 1
         elseif line:sub(1, 1) == '#' or vim.trim(line) == '' then
             -- Skip empty lines or comments
             i = i + 1
@@ -42,7 +50,7 @@ local function read_snippets_file(snippets_file)
             error(string.format("Invalid line in snippets file %s: %s", snippets_file, line))
         end
     end
-    return snips
+    return snips, extends
 end
 
 local function read_snippet_file(snippet_file)
@@ -62,7 +70,7 @@ local function list_dirs(ftype)
     local all = {}
     local exprs = {
         'snippets/'.. ftype ..'.snippets',
-        'snippets/'.. ftype ..'*.snippets',
+        'snippets/'.. ftype ..'_*.snippets',
         'snippets/'.. ftype ..'/*.snippets',
         'snippets/'.. ftype ..'/*.snippet',
         'snippets/'.. ftype ..'/*/*.snippet',
@@ -74,18 +82,33 @@ local function list_dirs(ftype)
     return all
 end
 
-function M.read_snippets(ftype)
+local function load_scope(ftype, stack)
     local snips = {}
+    local extends = {}
     for _, file in ipairs(list_dirs(ftype)) do
         local result = {}
+        local extended = {}
         if file:match('.snippets$') then
-            result = read_snippets_file(file)
+            result, extended = read_snippets_file(file)
+            extends = vim.list_extend(extends, extended)
         elseif file:match('.snippet$') then
             result = read_snippet_file(file)
         end
-        snips[ftype] = snips[ftype] or {}
-        snips[ftype] = vim.tbl_extend('force', snips[ftype], result)
+        snips = vim.tbl_extend('force', snips, result)
     end
+    for _, extended in ipairs(extends) do
+        if vim.tbl_contains(stack, extended) then
+            error(string.format('Recursive dependency found: %s',
+                table.concat(vim.tbl_flatten({stack, extended}), ' -> ')))
+        end
+        local result = load_scope(extended, vim.tbl_flatten({stack, ftype}))
+        snips = vim.tbl_extend('keep', snips, result)
+    end
+    return snips
+end
+
+function M.read_snippets(ftype)
+    local snips = load_scope(ftype, {})
     return snips
 end
 

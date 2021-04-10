@@ -307,8 +307,11 @@ cmd('autocmd!')
 cmd('autocmd FileType * lua snippy.read_snippets(vim.fn.expand("<amatch>"))')
 cmd('augroup END')
 
+M.snips = {}
+
 function M.read_snippets(scope)
-    M.snips = reader.read_snippets(scope)
+    local snips = reader.read_snippets(scope)
+    M.snips[scope] = snips
 end
 
 return M
