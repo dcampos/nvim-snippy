@@ -5,7 +5,7 @@ local fn = vim.fn
 
 local inspect = (vim and vim.inspect) or require 'inspect'
 
-Stop = {}
+local Stop = {}
 
 function Stop.new(o)
     local self = setmetatable(o, {

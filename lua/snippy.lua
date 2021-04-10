@@ -302,7 +302,14 @@ end
 
 -- Setup
 
-M.snips = reader.read_snips()
+cmd('augroup snippy')
+cmd('autocmd!')
+cmd('autocmd FileType * lua snippy.read_snippets(vim.fn.expand("<amatch>"))')
+cmd('augroup END')
+
+function M.read_snippets(scope)
+    M.snips = reader.read_snippets(scope)
+end
 
 return M
 
