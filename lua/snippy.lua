@@ -25,6 +25,13 @@ end
 
 -- Stop management
 
+local function ensure_normal_mode()
+    if fn.mode() ~= 'n' then
+        -- print('> entering normal...')
+        api.nvim_feedkeys(t"<Esc>", 'n', true)
+    end
+end
+
 local function add_stop(spec, pos)
     local function is_traversable()
         for _, stop in ipairs(buf.stops) do
@@ -52,21 +59,42 @@ local function add_stop(spec, pos)
 end
 
 local function select_stop(from, to)
-    fn.setpos("'<", {0, from[1] + 1, from[2] + 1})
-    fn.setpos("'>", {0, to[1] + 1, to[2]})
-    if fn.mode() ~= 's' then
-        api.nvim_feedkeys(t'gv<C-g>', 'ntx', true)
-    end
+    -- print('> from=', vim.inspect(from))
+    -- print('> to=', vim.inspect(to))
+    api.nvim_win_set_cursor(0, {from[1] + 1, from[2] + 1})
+    -- print('> cursor1=', vim.inspect(api.nvim_win_get_cursor(0)))
+    -- print('> selecting stop, mode =', fn.mode())
+    ensure_normal_mode()
+    -- print('> after feedkeys =', fn.mode())
+    -- print('> cursor2=', vim.inspect(api.nvim_win_get_cursor(0)))
+    api.nvim_feedkeys(t(string.format("%sG%s|", from[1] + 1, from[2] + 1)), 'n', true)
+    api.nvim_feedkeys(t("v"), 'n', true)
+    api.nvim_feedkeys(t(string.format("%sG%s|", to[1] + 1, to[2])), 'n', true)
+    -- fn.setpos("'<", {0, from[1] + 1, from[2] + 1})
+    -- fn.setpos("'>", {0, to[1] + 1, to[2]})
+    api.nvim_feedkeys(t("o<c-g>"), 'n', true)
 end
 
 local function start_insert(pos)
-    pos[1] = pos[1] + 1
-    pos[2] = pos[2] + 1
-    fn.setpos(".", {0, pos[1], pos[2]})
-    if pos[2] >= fn.col('$') then
-        cmd 'startinsert!'
+    -- print('> starting insert, mode =', fn.mode())
+    if fn.mode() == 'i' then
+        -- print('> i - pos =', vim.inspect(pos))
+        api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
     else
-        cmd 'startinsert'
+        -- print('> n - pos =', vim.inspect(pos))
+        ensure_normal_mode()
+        -- print('> cursor1 =', vim.inspect(api.nvim_win_get_cursor(0)))
+        -- pos[1] = pos[1] + 1
+        -- fn.setpos(".", {0, pos[1], pos[2]})
+        -- api.nvim_win_set_cursor(0, {pos[1], pos[2]})
+        api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2])), 'n', true)
+        if pos[2] == 0 then
+            -- cmd 'startinsert!'
+            api.nvim_feedkeys(t("i"), 'n', true)
+        else
+            -- cmd 'startinsert'
+            api.nvim_feedkeys(t("a"), 'n', true)
+        end
     end
 end
 
@@ -221,7 +249,7 @@ function M.jump(stop)
 
     if should_finish then
         -- Start inserting at the end of the current stop
-        print('> finishing..')
+        -- print('> finishing..')
         local value = stops[buf.current_stop]
         local _, endpos = value:get_range()
         start_insert(endpos)
@@ -236,20 +264,38 @@ function M.check_position()
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
+    -- print('> mode =', fn.mode())
+    -- print('> row, col =', row, col)
     for _, stop in ipairs(stops) do
         local from, to = stop:get_range()
-        if (from[1] < row or (from[1] == row and from[2] - 1 <= col))
-                and (to[1] > row or (to[1] == row and to[2] >= col)) then
+        local startrow, startcol = unpack(from)
+        local endrow, endcol = unpack(to)
+        -- print('>>>', startrow, startcol, endrow, endcol)
+        if fn.mode() == 'n' then
+            if startcol + 1 == fn.col('$') then
+                startcol = startcol - 1
+            end
+            if endcol + 1 == fn.col('$') then
+                endcol = endcol - 1
+            end
+        end
+        -- print('> startrow, startcol =', startrow, startcol)
+        -- print('> endrow, endcol =', endrow, endcol)
+        if (startrow < row or (startrow == row and startcol <= col))
+                and (endrow > row or (endrow == row and endcol >= col)) then
             return
         end
     end
-    print('> clearing.. cursor =', row, col)
+    -- print('> clearing...')
     buf.clear_state()
 end
 
 function M.insert_snip(word, snip)
     local row, col = unpack(api.nvim_win_get_cursor(0))
-    col = col + 1 - #word
+    if fn.mode() ~= 'i' then
+        col = col + 1
+    end
+    col = col - #word
     local current_line = api.nvim_get_current_line()
     local indent = current_line:match('^(%s+)')
     local body = {}
@@ -263,7 +309,7 @@ function M.insert_snip(word, snip)
     local text = table.concat(body, '\n')
     local ok, parsed, pos = parser.parse(text, 1)
     if not ok or pos <= #text then
-        print_error("> Error while parsing snippet: didn't parse till end")
+        -- print_error("> Error while parsing snippet: didn't parse till end")
         return false
     end
     local builder = Builder.new({row = row, col = col, indent = indent, word = word})
@@ -300,7 +346,7 @@ end
 function M.can_jump(dir)
     local stops = buf.state().stops
     if dir >= 0 then
-        print('> can_jump =', #stops > 0 and buf.current_stop <= #stops)
+        -- print('> can_jump =', #stops > 0 and buf.current_stop <= #stops)
         return #stops > 0 and buf.current_stop <= #stops
     else
         return #stops > 0 and buf.current_stop > 1
