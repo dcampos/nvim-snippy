@@ -1,6 +1,7 @@
 local parser = require 'snippy.parser'
 local reader = require 'snippy.reader'
 local buf = require 'snippy.buf'
+local config = require 'snippy.config'
 
 local Builder = require 'snippy.builder'
 local Stop = require 'snippy.stop'
@@ -146,15 +147,16 @@ local function get_snippet_at_cursor()
     local current_line = api.nvim_get_current_line()
     local word = current_line:sub(1, col + 1):match('(%S+)$')
     if word then
-        local ftype = vim.bo.filetype
-        if ftype and M.snips[ftype] then
-            while #word > 0 do
-                if M.snips[ftype][word] then
-                    return word, M.snips[ftype][word]
-                else
-                    word = word:sub(2)
+        local scopes = config.get_scopes()
+        while #word > 0 do
+            for _, scope in ipairs(scopes) do
+                if scope and M.snips[scope] then
+                    if M.snips[scope][word] then
+                        return word, M.snips[scope][word]
+                    end
                 end
             end
+            word = word:sub(2)
         end
     end
     return nil, nil
@@ -310,15 +312,17 @@ end
 
 cmd('augroup snippy')
 cmd('autocmd!')
-cmd('autocmd FileType * lua snippy.read_snippets(vim.fn.expand("<amatch>"))')
+cmd('autocmd FileType * lua snippy.read_snippets()')
 cmd('augroup END')
 
 M.snips = {}
 
-function M.read_snippets(scope)
-    local snips = reader.read_snippets(scope)
-    M.snips[scope] = snips
+function M.read_snippets()
+    local snips = reader.read_snippets()
+    M.snips = vim.tbl_extend('force', M.snips, snips)
 end
+
+config.init({})
 
 return M
 

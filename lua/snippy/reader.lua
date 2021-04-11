@@ -1,4 +1,5 @@
 local fn = vim.fn
+local config = require 'snippy.config'
 
 local M = {}
 
@@ -82,10 +83,10 @@ local function list_dirs(ftype)
     return all
 end
 
-local function load_scope(ftype, stack)
+local function load_scope(scope, stack)
     local snips = {}
     local extends = {}
-    for _, file in ipairs(list_dirs(ftype)) do
+    for _, file in ipairs(list_dirs(scope)) do
         local result = {}
         local extended = {}
         if file:match('.snippets$') then
@@ -101,14 +102,21 @@ local function load_scope(ftype, stack)
             error(string.format('Recursive dependency found: %s',
                 table.concat(vim.tbl_flatten({stack, extended}), ' -> ')))
         end
-        local result = load_scope(extended, vim.tbl_flatten({stack, ftype}))
+        local result = load_scope(extended, vim.tbl_flatten({stack, scope}))
         snips = vim.tbl_extend('keep', snips, result)
     end
     return snips
 end
 
-function M.read_snippets(ftype)
-    local snips = load_scope(ftype, {})
+function M.read_snippets()
+    local snips = {}
+    local get_scopes = config.get_scopes
+    for _, scope in ipairs(get_scopes()) do
+        if not scope or scope == '' then
+            error('Invalid scope:', scope)
+        end
+        snips[scope] = load_scope(scope, {})
+    end
     return snips
 end
 
