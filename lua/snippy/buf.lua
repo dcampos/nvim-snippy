@@ -67,18 +67,26 @@ end
 
 function M.setup_autocmds()
     local bufnr = fn.bufnr('%')
-    cmd('augroup snippy_local')
-    cmd('autocmd! * <buffer=' .. bufnr ..'>')
-    cmd('autocmd TextChanged,TextChangedI,TextChangedP <buffer=' .. bufnr .. '> lua snippy.mirror_stops()')
-    cmd('autocmd CursorMoved,CursorMovedI <buffer=' .. bufnr .. '> lua snippy.check_position()')
-    cmd('augroup END')
+    api.nvim_exec(
+        string.format([[
+            augroup snippy_local
+            autocmd! * <buffer=%s>
+            autocmd TextChanged,TextChangedI,TextChangedP <buffer=%s> lua snippy.mirror_stops()
+            autocmd CursorMoved,CursorMovedI <buffer=%s> lua snippy.check_position()
+            augroup END
+        ]], bufnr, bufnr, bufnr),
+        false)
 end
 
 function M.clear_autocmds()
     local bufnr = fn.bufnr('%')
-    cmd('augroup snippy_local')
-    cmd('autocmd! * <buffer=' .. bufnr ..'>')
-    cmd('augroup END')
+    api.nvim_exec(
+        string.format([[
+            augroup snippy_local
+            autocmd! * <buffer=' .. bufnr ..'>
+            augroup END
+        ]], bufnr),
+        false)
 end
 
 return M

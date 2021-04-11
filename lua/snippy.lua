@@ -313,10 +313,12 @@ end
 
 -- Setup
 
-cmd('augroup snippy')
-cmd('autocmd!')
-cmd('autocmd FileType * lua snippy.read_snippets()')
-cmd('augroup END')
+api.nvim_exec([[
+    augroup snippy
+    autocmd!
+    autocmd FileType * lua snippy.read_snippets()
+    augroup END
+]], false)
 
 M.snips = {}
 
