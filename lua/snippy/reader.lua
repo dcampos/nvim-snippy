@@ -15,7 +15,7 @@ local function read_snippets_file(snippets_file)
 
     local function parse_snippet()
         local line = lines[i]
-        local prefix = line:match(' +(%w+) *')
+        local prefix = line:match(' +(%S+) *')
         local description = line:match(' *"(.+)" *$')
         local body = {}
         i = i + 1

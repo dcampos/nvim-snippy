@@ -144,11 +144,17 @@ end
 local function get_snippet_at_cursor()
     local _, col = unpack(api.nvim_win_get_cursor(0))
     local current_line = api.nvim_get_current_line()
-    local word = current_line:sub(1, col + 1):match('(%w+)$')
+    local word = current_line:sub(1, col + 1):match('(%S+)$')
     if word then
         local ftype = vim.bo.filetype
         if ftype and M.snips[ftype] then
-            return word, M.snips[ftype][word]
+            while #word > 0 do
+                if M.snips[ftype][word] then
+                    return word, M.snips[ftype][word]
+                else
+                    word = word:sub(2)
+                end
+            end
         end
     end
     return nil, nil
