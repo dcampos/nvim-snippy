@@ -221,6 +221,7 @@ function M.jump(stop)
 
     if should_finish then
         -- Start inserting at the end of the current stop
+        print('> finishing..')
         local value = stops[buf.current_stop]
         local _, endpos = value:get_range()
         start_insert(endpos)
@@ -237,11 +238,12 @@ function M.check_position()
     row = row - 1
     for _, stop in ipairs(stops) do
         local from, to = stop:get_range()
-        if (from[1] < row or (from[1] == row and from[2] <= col))
+        if (from[1] < row or (from[1] == row and from[2] - 1 <= col))
                 and (to[1] > row or (to[1] == row and to[2] >= col)) then
             return
         end
     end
+    print('> clearing.. cursor =', row, col)
     buf.clear_state()
 end
 
@@ -298,6 +300,7 @@ end
 function M.can_jump(dir)
     local stops = buf.state().stops
     if dir >= 0 then
+        print('> can_jump =', #stops > 0 and buf.current_stop <= #stops)
         return #stops > 0 and buf.current_stop <= #stops
     else
         return #stops > 0 and buf.current_stop > 1
