@@ -45,7 +45,7 @@ local function add_stop(spec, pos)
     local smark = api.nvim_buf_set_extmark(0, buf.namespace, startrow, startcol, {
         end_line = endrow;
         end_col = end_col;
-        hl_group = 'Search';
+        hl_group = nil; -- 'Search';
         right_gravity = false;
         end_right_gravity = true;
     })
@@ -261,26 +261,29 @@ function M.check_position()
     buf.clear_state()
 end
 
-function M.insert_snip(word, snip)
+function M.expand_snippet(snippet, word)
     local row, col = unpack(api.nvim_win_get_cursor(0))
     if fn.mode() ~= 'i' then
         col = col + 1
     end
+    if not word then
+        word = ''
+    end
     col = col - #word
     local current_line = api.nvim_get_current_line()
-    local indent = current_line:match('^(%s+)')
+    local indent = current_line:match('(%s+)$')
     local body = {}
-    if type(snip) == 'table' then
+    if type(snippet) == 'table' then
         -- Structured snippet
-        body = snip.body
+        body = snippet.body
     else
         -- Text snippet
-        body = vim.split(snip, '\n', true)
+        body = vim.split(snippet, '\n', true)
     end
     local text = table.concat(body, '\n')
     local ok, parsed, pos = parser.parse(text, 1)
     if not ok or pos <= #text then
-        -- print_error("> Error while parsing snippet: didn't parse till end")
+        error("> Error while parsing snippet: didn't parse till end")
         return false
     end
     local builder = Builder.new({row = row, col = col, indent = indent, word = word})
@@ -298,9 +301,9 @@ function M.expand_or_advance()
 end
 
 function M.expand()
-    local word, snip = get_snippet_at_cursor()
-    if word and snip then
-        return M.insert_snip(word, snip)
+    local word, snippet = get_snippet_at_cursor()
+    if word and snippet then
+        return M.expand_snippet(snippet, word)
     end
     return false
 end
@@ -342,6 +345,10 @@ M.snips = {}
 function M.read_snippets()
     local snips = reader.read_snippets()
     M.snips = vim.tbl_extend('force', M.snips, snips)
+end
+
+function M.setup(o)
+    config.init(o)
 end
 
 config.init({})

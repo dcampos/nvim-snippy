@@ -30,7 +30,7 @@ setmetatable(M, {
 })
 
 function M.state()
-    local bufnr = fn.bufnr('%')
+    local bufnr = api.nvim_buf_get_number(0)
     if not M._state[bufnr] then
         M._state[bufnr] = {
             stops = {};
@@ -66,7 +66,7 @@ function M.clear_state()
 end
 
 function M.setup_autocmds()
-    local bufnr = fn.bufnr('%')
+    local bufnr = api.nvim_buf_get_number(0)
     api.nvim_exec(
         string.format([[
             augroup snippy_local
@@ -79,7 +79,7 @@ function M.setup_autocmds()
 end
 
 function M.clear_autocmds()
-    local bufnr = fn.bufnr('%')
+    local bufnr = api.nvim_buf_get_number(0)
     api.nvim_exec(
         string.format([[
             augroup snippy_local
