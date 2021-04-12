@@ -14,11 +14,6 @@ local M = {}
 
 -- Util
 
-local function print_error(...)
-    api.nvim_err_writeln(table.concat(vim.tbl_flatten{...}, ' '))
-    cmd 'redraw'
-end
-
 local function t(input)
     return api.nvim_replace_termcodes(input, true, false, true)
 end
@@ -59,40 +54,23 @@ local function add_stop(spec, pos)
 end
 
 local function select_stop(from, to)
-    -- print('> from=', vim.inspect(from))
-    -- print('> to=', vim.inspect(to))
     api.nvim_win_set_cursor(0, {from[1] + 1, from[2] + 1})
-    -- print('> cursor1=', vim.inspect(api.nvim_win_get_cursor(0)))
-    -- print('> selecting stop, mode =', fn.mode())
     ensure_normal_mode()
-    -- print('> after feedkeys =', fn.mode())
-    -- print('> cursor2=', vim.inspect(api.nvim_win_get_cursor(0)))
     api.nvim_feedkeys(t(string.format("%sG%s|", from[1] + 1, from[2] + 1)), 'n', true)
     api.nvim_feedkeys(t("v"), 'n', true)
     api.nvim_feedkeys(t(string.format("%sG%s|", to[1] + 1, to[2])), 'n', true)
-    -- fn.setpos("'<", {0, from[1] + 1, from[2] + 1})
-    -- fn.setpos("'>", {0, to[1] + 1, to[2]})
     api.nvim_feedkeys(t("o<c-g>"), 'n', true)
 end
 
 local function start_insert(pos)
-    -- print('> starting insert, mode =', fn.mode())
     if fn.mode() == 'i' then
-        -- print('> i - pos =', vim.inspect(pos))
         api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
     else
-        -- print('> n - pos =', vim.inspect(pos))
         ensure_normal_mode()
-        -- print('> cursor1 =', vim.inspect(api.nvim_win_get_cursor(0)))
-        -- pos[1] = pos[1] + 1
-        -- fn.setpos(".", {0, pos[1], pos[2]})
-        -- api.nvim_win_set_cursor(0, {pos[1], pos[2]})
         api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2])), 'n', true)
         if pos[2] == 0 then
-            -- cmd 'startinsert!'
             api.nvim_feedkeys(t("i"), 'n', true)
         else
-            -- cmd 'startinsert'
             api.nvim_feedkeys(t("a"), 'n', true)
         end
     end
@@ -249,7 +227,6 @@ function M.jump(stop)
 
     if should_finish then
         -- Start inserting at the end of the current stop
-        -- print('> finishing..')
         local value = stops[buf.current_stop]
         local _, endpos = value:get_range()
         start_insert(endpos)
@@ -264,13 +241,10 @@ function M.check_position()
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
-    -- print('> mode =', fn.mode())
-    -- print('> row, col =', row, col)
     for _, stop in ipairs(stops) do
         local from, to = stop:get_range()
         local startrow, startcol = unpack(from)
         local endrow, endcol = unpack(to)
-        -- print('>>>', startrow, startcol, endrow, endcol)
         if fn.mode() == 'n' then
             if startcol + 1 == fn.col('$') then
                 startcol = startcol - 1
@@ -279,14 +253,11 @@ function M.check_position()
                 endcol = endcol - 1
             end
         end
-        -- print('> startrow, startcol =', startrow, startcol)
-        -- print('> endrow, endcol =', endrow, endcol)
         if (startrow < row or (startrow == row and startcol <= col))
                 and (endrow > row or (endrow == row and endcol >= col)) then
             return
         end
     end
-    -- print('> clearing...')
     buf.clear_state()
 end
 
