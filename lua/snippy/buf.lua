@@ -83,7 +83,7 @@ function M.clear_autocmds()
     api.nvim_exec(
         string.format([[
             augroup snippy_local
-            autocmd! * <buffer=' .. bufnr ..'>
+            autocmd! * <buffer=%s>
             augroup END
         ]], bufnr),
         false)
