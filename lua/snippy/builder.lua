@@ -67,9 +67,9 @@ function Builder:append_text(text)
     lines = self:indent_lines(lines)
     self.row = self.row + #lines - 1
     if #lines > 1 then
-        self.col = #lines[#lines]
+        self.col = fn.strchars(lines[#lines])
     else
-        self.col = self.col + #lines[1]
+        self.col = self.col + fn.strchars(lines[1])
     end
     self:add(table.concat(lines, '\n'))
 end
