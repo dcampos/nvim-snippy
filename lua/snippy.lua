@@ -45,7 +45,7 @@ local function add_stop(spec, pos)
     local smark = api.nvim_buf_set_extmark(0, buf.namespace, startrow, startcol, {
         end_line = endrow;
         end_col = end_col;
-        hl_group = nil; -- 'Search';
+        hl_group = config.hl_group;
         right_gravity = false;
         end_right_gravity = true;
     })
