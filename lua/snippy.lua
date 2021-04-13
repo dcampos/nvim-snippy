@@ -151,7 +151,7 @@ end
 local function get_snippet_at_cursor()
     local _, col = unpack(api.nvim_win_get_cursor(0))
     local current_line = api.nvim_get_current_line()
-    local word = current_line:sub(1, col + 1):match('(%S+)$')
+    local word = current_line:sub(1, col):match('(%S+)$')
     if word then
         local scopes = config.get_scopes()
         while #word > 0 do
@@ -169,6 +169,44 @@ local function get_snippet_at_cursor()
 end
 
 -- Public functions
+
+function M.complete_done()
+    local completed_item = vim.v.completed_item
+    if completed_item.user_data then
+        local word = completed_item.word
+        local user_data = completed_item.user_data
+        if type(user_data) == 'table' and user_data.snippy then
+            local snippet = user_data.snippy.snippet
+            M.expand_snippet(snippet, word)
+        end
+    end
+end
+
+function M.get_completion_items()
+    local items = {}
+
+    local scopes = config.get_scopes()
+
+    for _, scope in ipairs(scopes) do
+        if scope and M.snips[scope] then
+            for _, snip in pairs(M.snips[scope]) do
+                table.insert(items, {
+                    word = snip.prefix,
+                    abbr = snip.prefix,
+                    kind = 'Snippet',
+                    dup = 1,
+                    user_data = {
+                        snippy = {
+                            snippet = table.concat(snip.body, '\n')
+                        }
+                    }
+                })
+            end
+        end
+    end
+
+    return items
+end
 
 function M.mirror_stops()
     if buf.current_stop ~= 0 then
@@ -271,7 +309,7 @@ function M.expand_snippet(snippet, word)
     end
     col = col - #word
     local current_line = api.nvim_get_current_line()
-    local indent = current_line:match('(%s+)$')
+    local indent = current_line:match('^(%s+)')
     local body = {}
     if type(snippet) == 'table' then
         -- Structured snippet
