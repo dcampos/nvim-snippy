@@ -244,12 +244,11 @@ function M.jump(stop)
     if #stops >= stop and stop > 0 then
         local value = stops[stop]
         local startpos, endpos = value:get_range()
-        if value.spec.type == 'tabstop' or value.spec.type == 'choice' then
+        local empty = startpos[1] == endpos[1] and endpos[2] == startpos[2]
+        if empty or value.spec.type == 'choice' then
+            start_insert(endpos)
             if value.spec.type == 'choice' then
-                start_insert(endpos)
                 present_choices(value, startpos)
-            else
-                start_insert(startpos)
             end
             if stop == #stops then
                 should_finish = true
