@@ -331,15 +331,14 @@ function M.expand_snippet(snippet, word)
     col = col - #word
     local current_line = api.nvim_get_current_line()
     local indent = current_line:match('^(%s+)')
-    local body = {}
+    local text
     if type(snippet) == 'table' then
         -- Structured snippet
-        body = snippet.body
+        text = table.concat(snippet.body, '\n')
     else
         -- Text snippet
-        body = vim.split(snippet, '\n', true)
+        text = snippet
     end
-    local text = table.concat(body, '\n')
     local ok, parsed, pos = parser.parse(text, 1)
     if not ok or pos <= #text then
         error("> Error while parsing snippet: didn't parse till end")
