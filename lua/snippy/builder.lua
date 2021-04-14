@@ -1,9 +1,11 @@
-local U = require 'snippy.util'
+local util = require 'snippy.util'
+local shared = require 'snippy.shared'
 local inspect = vim.inspect
 local fn = vim.fn
 
 local varmap = {
-    TM_SELECTED_TEXT = function () return '' end,
+    TM_SELECTED_TEXT = function () return shared.selected_text end,
+    VISUAL = function () return shared.selected_text end,
     TM_CURRENT_LINE = function () return vim.api.nvim_get_current_line() end,
     TM_CURRENT_WORD = function () return '' end,
     TM_LINE_INDEX = function () return 0 end,

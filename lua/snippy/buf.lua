@@ -1,3 +1,5 @@
+local shared = require 'snippy.shared'
+
 local api = vim.api
 local fn = vim.fn
 local cmd = vim.cmd
@@ -5,8 +7,6 @@ local cmd = vim.cmd
 local M = {}
 
 M._state = {}
-
-M.namespace = api.nvim_create_namespace('snippy')
 
 setmetatable(M, {
     __index = function (self, key)
@@ -58,7 +58,7 @@ end
 
 function M.clear_state()
     for _, stop in pairs(M.state().stops) do
-        api.nvim_buf_del_extmark(0, M.namespace, stop.mark)
+        api.nvim_buf_del_extmark(0, shared.namespace, stop.mark)
     end
     M.state().current_stop = 0
     M.state().stops = {}

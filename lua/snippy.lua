@@ -2,6 +2,7 @@ local parser = require 'snippy.parser'
 local reader = require 'snippy.reader'
 local buf = require 'snippy.buf'
 local config = require 'snippy.config'
+local shared = require 'snippy.shared'
 
 local Builder = require 'snippy.builder'
 local Stop = require 'snippy.stop'
@@ -42,7 +43,7 @@ local function add_stop(spec, pos)
     local endcol = spec.endpos[2]
     local stops = buf.stops
     local end_col = endcol
-    local smark = api.nvim_buf_set_extmark(0, buf.namespace, startrow, startcol, {
+    local smark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
         end_line = endrow;
         end_col = end_col;
         hl_group = config.hl_group;
@@ -206,6 +207,27 @@ function M.get_completion_items()
     end
 
     return items
+end
+
+function M.cut_text(mode, visual)
+    local tmpval, tmptype = fn.getreg('"'), fn.getregtype('"')
+    local keys
+    if visual then
+        keys = "gv"
+        api.nvim_exec("normal! y", false)
+    else
+        if mode == 'line' then
+            keys = "'[V']"
+        elseif mode == 'char' then
+            keys = "`[v`]"
+        else
+            return
+        end
+        api.nvim_exec("normal! " .. keys .. "y", false)
+    end
+    shared.set_selection(api.nvim_eval('@"'), mode)
+    fn.setreg('"', tmpval, tmptype)
+    api.nvim_feedkeys(t(keys .. '"_c'), 'n', true)
 end
 
 function M.mirror_stops()
