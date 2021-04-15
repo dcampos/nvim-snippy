@@ -10,6 +10,9 @@ local function read_snippets_file(snippets_file)
     local extends = {}
     local file = io.open(snippets_file)
     local lines = vim.split(file:read('*a'), '\n')
+    if lines[#lines] == '' then
+        table.remove(lines)
+    end
     local i = 1
 
     -- print('> parsing file:', snippets_file)
@@ -69,6 +72,7 @@ end
 
 local function list_dirs(ftype)
     local all = {}
+    local dirs = config.snippet_dirs or vim.o.rtp
     local exprs = {
         'snippets/'.. ftype ..'.snippets',
         'snippets/'.. ftype ..'_*.snippets',
@@ -77,7 +81,7 @@ local function list_dirs(ftype)
         'snippets/'.. ftype ..'/*/*.snippet',
     }
     for _, expr in ipairs(exprs) do
-        local paths = fn.globpath(vim.o.rtp, expr, 0, 1)
+        local paths = fn.globpath(dirs, expr, 0, 1)
         all = vim.list_extend(all, paths)
     end
     return all
@@ -112,10 +116,9 @@ function M.read_snippets()
     local snips = {}
     local get_scopes = config.get_scopes
     for _, scope in ipairs(get_scopes()) do
-        if not scope or scope == '' then
-            error('Invalid scope:', scope)
+        if scope and scope ~= '' then
+            snips[scope] = load_scope(scope, {})
         end
-        snips[scope] = load_scope(scope, {})
     end
     return snips
 end

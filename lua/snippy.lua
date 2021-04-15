@@ -317,6 +317,7 @@ function M.check_position()
             return
         end
     end
+    -- error('clearing' .. vim.inspect({row, col}))
     buf.clear_state()
 end
 
@@ -349,8 +350,10 @@ function M.expand_snippet(snippet, word)
     local lines = vim.split(content, '\n', true)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
-    buf.setup_autocmds()
     M.next_stop()
+    vim.defer_fn(function ()
+        buf.setup_autocmds()
+    end, 100)
     return true
 end
 
