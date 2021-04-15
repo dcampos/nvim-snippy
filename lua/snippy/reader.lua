@@ -3,6 +3,14 @@ local config = require 'snippy.config'
 
 local M = {}
 
+local exprs = {
+    'snippets/%s.snippets',
+    'snippets/%s_*.snippets',
+    'snippets/%s/*.snippets',
+    'snippets/%s/*.snippet',
+    'snippets/%s/*/*.snippet',
+}
+
 -- Loading
 
 local function read_snippets_file(snippets_file)
@@ -15,12 +23,11 @@ local function read_snippets_file(snippets_file)
     end
     local i = 1
 
-    -- print('> parsing file:', snippets_file)
-
     local function parse_snippet()
         local line = lines[i]
-        local prefix = line:match(' +(%S+) *')
-        local description = line:match(' *"(.+)" *$')
+        local prefix = line:match('%s+(%S+)%s*')
+        assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
+        local description = line:match('%s*"(.+)"%s*$')
         local body = {}
         i = i + 1
         while i <= #lines do
@@ -73,15 +80,9 @@ end
 local function list_dirs(ftype)
     local all = {}
     local dirs = config.snippet_dirs or vim.o.rtp
-    local exprs = {
-        'snippets/'.. ftype ..'.snippets',
-        'snippets/'.. ftype ..'_*.snippets',
-        'snippets/'.. ftype ..'/*.snippets',
-        'snippets/'.. ftype ..'/*.snippet',
-        'snippets/'.. ftype ..'/*/*.snippet',
-    }
     for _, expr in ipairs(exprs) do
-        local paths = fn.globpath(dirs, expr, 0, 1)
+        local e = expr:format(ftype)
+        local paths = fn.globpath(dirs, e, 0, 1)
         all = vim.list_extend(all, paths)
     end
     return all
@@ -110,6 +111,33 @@ local function load_scope(scope, stack)
         snips = vim.tbl_extend('keep', snips, result)
     end
     return snips
+end
+
+function M.list_available_scopes()
+    local dirs = config.snippet_dirs or vim.o.rtp
+    local patterns = {
+        '/snippets/(.-)/.-%.snippets',
+        '/snippets/(.-)/.-%.snippet',
+        '/snippets/(_).-%.snippets',
+        '/snippets/(.-)_.-%.snippets',
+        '/snippets/(.-)%.snippets',
+        '/snippets/(.-)%.snippet'
+    }
+    local scopes = {}
+    for _, expr in ipairs(exprs) do
+        local e = expr:format('*')
+        local paths = fn.globpath(dirs, e, 0, 1)
+        for _, path in ipairs(paths) do
+            for _, pat in ipairs(patterns) do
+                local m = path:match(pat)
+                if m then
+                    scopes[m] = true
+                    break
+                end
+            end
+        end
+    end
+    return vim.tbl_keys(scopes)
 end
 
 function M.read_snippets()

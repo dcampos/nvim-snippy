@@ -1,9 +1,9 @@
 local helpers = require('test.functional.helpers')(after_each)
 local Screen = require('test.functional.ui.screen')
-local clear, command = helpers.clear, helpers.command
+local clear, command, eval = helpers.clear, helpers.command, helpers.eval
 local feed, alter_slashes, meths = helpers.feed, helpers.alter_slashes, helpers.meths
 local insert = helpers.insert
-local eq, neq = helpers.eq, helpers.neq
+local eq, neq, ok = helpers.eq, helpers.neq, helpers.ok
 local sleep = helpers.sleep
 
 describe("Snippy tests", function ()
@@ -35,6 +35,23 @@ describe("Snippy tests", function ()
             test2 = {prefix = 'test2', body = {'This is the second test.'}},
         }
         eq({_ = snips}, meths.execute_lua([[return snippy.snips]], {}))
+    end)
+
+    it("Read vim-snippets snippets", function ()
+        local snippet_dirs = '../vim-snippets/'
+        command(string.format([[
+            lua snippy.setup({
+                snippet_dirs = '%s',
+                get_scopes = function () return {vim.bo.ft} end,
+            })
+        ]], snippet_dirs))
+        local scopes = eval([[luaeval('require "snippy.reader".list_available_scopes()')]])
+        neq({}, scopes)
+        for _, scope in ipairs(scopes) do
+            command("set filetype=" ..  scope)
+            local snips = meths.execute_lua([[return snippy.snips]], {})
+            neq(nil, snips[scope])
+        end
     end)
 
     it("Insert basic snippet", function ()
@@ -306,5 +323,57 @@ describe("Snippy tests", function ()
         neq({current_stop = 0, stops = {}},
             meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+    end)
+
+    it("Clear state on move", function ()
+        command("set filetype=")
+        feed("i")
+        command("lua snippy.expand_snippet([[local $1 = $0]])")
+        screen:expect{grid=[[
+        local ^ =                                                                         |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]], attr_ids={
+            [1] = {bold = true, foreground = Screen.colors.Blue};
+            [2] = {bold = true};
+        }}
+        neq({current_stop = 0, stops = {}},
+            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        feed('<left>')
+        screen:expect{grid=[[
+        local^  =                                                                         |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]], attr_ids={
+            [1] = {bold = true, foreground = Screen.colors.Blue};
+            [2] = {bold = true};
+        }}
+        sleep(200)
+        eq({current_stop = 0, stops = {}},
+            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
     end)
 end)
