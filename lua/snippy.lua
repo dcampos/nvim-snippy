@@ -23,7 +23,6 @@ end
 
 local function ensure_normal_mode()
     if fn.mode() ~= 'n' then
-        -- print('> entering normal...')
         api.nvim_feedkeys(t"<Esc>", 'n', true)
     end
 end
@@ -64,15 +63,16 @@ local function select_stop(from, to)
 end
 
 local function start_insert(pos)
-    if fn.mode() == 'i' then
-        api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
-    else
+    -- Update cursor - in insert mode, we're done.
+    -- In other modes, we ensure col('$') will work.
+    api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
+    if fn.mode() ~= 'i' then
         ensure_normal_mode()
-        api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2])), 'n', true)
-        if pos[2] == 0 then
-            api.nvim_feedkeys(t("i"), 'n', true)
-        else
+        api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2] + 1)), 'n', true)
+        if pos[2] + 1 >= fn.col('$') then
             api.nvim_feedkeys(t("a"), 'n', true)
+        else
+            api.nvim_feedkeys(t("i"), 'n', true)
         end
     end
 end
@@ -259,7 +259,7 @@ function M.jump(stop)
     if not stops or #stops == 0 then
         return false
     end
-    if buf.current_stop then
+    if buf.current_stop ~= 0 then
         mirror_stop(buf.current_stop)
     end
     local should_finish = false
@@ -300,8 +300,10 @@ function M.check_position()
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
+    local ranges = {}
     for _, stop in ipairs(stops) do
         local from, to = stop:get_range()
+        table.insert(ranges, {from, to})
         local startrow, startcol = unpack(from)
         local endrow, endcol = unpack(to)
         if fn.mode() == 'n' then
@@ -317,7 +319,6 @@ function M.check_position()
             return
         end
     end
-    -- error('clearing' .. vim.inspect({row, col}))
     buf.clear_state()
 end
 
@@ -353,7 +354,7 @@ function M.expand_snippet(snippet, word)
     M.next_stop()
     vim.defer_fn(function ()
         buf.setup_autocmds()
-    end, 100)
+    end, 200)
     return true
 end
 
@@ -381,7 +382,6 @@ end
 function M.can_jump(dir)
     local stops = buf.state().stops
     if dir >= 0 then
-        -- print('> can_jump =', #stops > 0 and buf.current_stop <= #stops)
         return #stops > 0 and buf.current_stop <= #stops
     else
         return #stops > 0 and buf.current_stop > 1
@@ -390,6 +390,10 @@ end
 
 function M.can_expand_or_advance()
     return M.can_expand() or M.can_jump(1)
+end
+
+function M.is_active()
+    return buf.current_stop > 0 and not vim.tbl_isempty(buf.stops)
 end
 
 -- Setup

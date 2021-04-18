@@ -37,22 +37,22 @@ describe("Snippy tests", function ()
         eq({_ = snips}, meths.execute_lua([[return snippy.snips]], {}))
     end)
 
-    it("Read vim-snippets snippets", function ()
-        local snippet_dirs = '../vim-snippets/'
-        command(string.format([[
-            lua snippy.setup({
-                snippet_dirs = '%s',
-                get_scopes = function () return {vim.bo.ft} end,
-            })
-        ]], snippet_dirs))
-        local scopes = eval([[luaeval('require "snippy.reader".list_available_scopes()')]])
-        neq({}, scopes)
-        for _, scope in ipairs(scopes) do
-            command("set filetype=" ..  scope)
-            local snips = meths.execute_lua([[return snippy.snips]], {})
-            neq(nil, snips[scope])
-        end
-    end)
+    -- it("Read vim-snippets snippets", function ()
+    --     local snippet_dirs = '../vim-snippets/'
+    --     command(string.format([[
+    --         lua snippy.setup({
+    --             snippet_dirs = '%s',
+    --             get_scopes = function () return {vim.bo.ft} end,
+    --         })
+    --     ]], snippet_dirs))
+    --     local scopes = eval([[luaeval('require "snippy.reader".list_available_scopes()')]])
+    --     neq({}, scopes)
+    --     for _, scope in ipairs(scopes) do
+    --         command("set filetype=" ..  scope)
+    --         local snips = meths.execute_lua([[return snippy.snips]], {})
+    --         neq(nil, snips[scope])
+    --     end
+    -- end)
 
     it("Insert basic snippet", function ()
         command("lua snippy.setup({snippet_dirs = '../snippy/test/'})")
@@ -134,8 +134,7 @@ describe("Snippy tests", function ()
         }}
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
         feed("<plug>(snippy-next-stop)")
-        eq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
     it("Expand and select placeholder", function ()
@@ -167,8 +166,7 @@ describe("Snippy tests", function ()
             [3] = {bold = true};
         }}
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        neq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         feed("<plug>(snippy-next-stop)")
         screen:expect{grid=[[
         local var = ^                                                                     |
@@ -190,8 +188,7 @@ describe("Snippy tests", function ()
             [1] = {foreground = Screen.colors.Blue, bold = true};
             [2] = {bold = true};
         }}
-        eq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
     it("Expand anonymous snippet", function ()
@@ -218,8 +215,7 @@ describe("Snippy tests", function ()
             [1] = {bold = true, foreground = Screen.colors.Blue};
             [2] = {bold = true};
         }}
-        neq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
     it("Jump back", function ()
@@ -297,8 +293,7 @@ describe("Snippy tests", function ()
             [2] = {bold = true, foreground = Screen.colors.Blue};
             [3] = {bold = true};
         }}
-        neq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         feed('foofoofoo')
         screen:expect{grid=[[
         local foofoofoo^ = barbarbar                                                      |
@@ -320,9 +315,9 @@ describe("Snippy tests", function ()
             [1] = {bold = true, foreground = Screen.colors.Blue};
             [2] = {bold = true};
         }}
-        neq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        -- neq({current_stop = 0, stops = {}},
+        --     meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
     it("Clear state on move", function ()
@@ -349,8 +344,7 @@ describe("Snippy tests", function ()
             [1] = {bold = true, foreground = Screen.colors.Blue};
             [2] = {bold = true};
         }}
-        neq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         feed('<left>')
         screen:expect{grid=[[
         local^  =                                                                         |
@@ -372,8 +366,91 @@ describe("Snippy tests", function ()
             [1] = {bold = true, foreground = Screen.colors.Blue};
             [2] = {bold = true};
         }}
-        sleep(200)
-        eq({current_stop = 0, stops = {}},
-            meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        sleep(400)
+        neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+    end)
+
+    it("Jump and mirror stops", function ()
+        -- command [[lua snippy.setup({ hl_group = 'Search' })]]
+        local snip = 'for (\\$${1:foo} = 0; \\$$1 < $2; \\$$1++) {\n\t$0\n}'
+        feed("i")
+        command("lua snippy.expand_snippet([[" .. snip .. "]])")
+        -- feed("bar")
+
+        screen:expect{grid=[[
+        for ($^f{1:oo} = 0; $ < ; $++) {                                                      |
+                                                                                         |
+        }                                                                                |
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {3:-- SELECT --}                                                                     |
+        ]], attr_ids={
+            [1] = {background = Screen.colors.LightGrey};
+            [2] = {bold = true, foreground = Screen.colors.Blue1};
+            [3] = {bold = true};
+        }}
+
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        feed("<plug>(snippy-next-stop)")
+
+        -- screen:snapshot_util()
+        screen:expect{grid=[[
+        for ($foo = 0; $foo < ^; $foo++) {                                                |
+                                                                                         |
+        }                                                                                |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]], attr_ids={
+            [1] = {bold = true, foreground = Screen.colors.Blue};
+            [2] = {bold = true};
+        }}
+
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        feed("<plug>(snippy-next-stop)")
+
+        -- screen:snapshot_util()
+        screen:expect{grid=[[
+        for ($foo = 0; $foo < ; $foo++) {                                                |
+                ^                                                                         |
+        }                                                                                |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]], attr_ids={
+            [1] = {bold = true, foreground = Screen.colors.Blue};
+            [2] = {bold = true};
+        }}
+
+        eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 end)
