@@ -1,7 +1,6 @@
 local parser = require 'snippy.parser'
 local reader = require 'snippy.reader'
 local buf = require 'snippy.buf'
-local config = require 'snippy.config'
 local shared = require 'snippy.shared'
 
 local Builder = require 'snippy.builder'
@@ -45,7 +44,7 @@ local function add_stop(spec, pos)
     local smark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
         end_line = endrow;
         end_col = end_col;
-        hl_group = config.hl_group;
+        hl_group = shared.config.hl_group;
         right_gravity = false;
         end_right_gravity = true;
     })
@@ -154,7 +153,7 @@ local function get_snippet_at_cursor()
     local current_line = api.nvim_get_current_line()
     local word = current_line:sub(1, col):match('(%S+)$')
     if word then
-        local scopes = config.get_scopes()
+        local scopes = shared.config.get_scopes()
         while #word > 0 do
             for _, scope in ipairs(scopes) do
                 if scope and M.snips[scope] then
@@ -186,7 +185,7 @@ end
 function M.get_completion_items()
     local items = {}
 
-    local scopes = config.get_scopes()
+    local scopes = shared.config.get_scopes()
 
     for _, scope in ipairs(scopes) do
         if scope and M.snips[scope] then
@@ -413,10 +412,8 @@ function M.read_snippets()
 end
 
 function M.setup(o)
-    config.init(o)
+    shared.set_config(o)
 end
-
-config.init({})
 
 return M
 

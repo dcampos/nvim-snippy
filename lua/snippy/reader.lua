@@ -1,5 +1,5 @@
 local fn = vim.fn
-local config = require 'snippy.config'
+local shared = require 'snippy.shared'
 
 local M = {}
 
@@ -79,7 +79,7 @@ end
 
 local function list_dirs(ftype)
     local all = {}
-    local dirs = config.snippet_dirs or vim.o.rtp
+    local dirs = shared.config.snippet_dirs or vim.o.rtp
     for _, expr in ipairs(exprs) do
         local e = expr:format(ftype)
         local paths = fn.globpath(dirs, e, 0, 1)
@@ -114,7 +114,7 @@ local function load_scope(scope, stack)
 end
 
 function M.list_available_scopes()
-    local dirs = config.snippet_dirs or vim.o.rtp
+    local dirs = shared.config.snippet_dirs or vim.o.rtp
     local patterns = {
         '/snippets/(.-)/.-%.snippets',
         '/snippets/(.-)/.-%.snippet',
@@ -142,7 +142,7 @@ end
 
 function M.read_snippets()
     local snips = {}
-    local get_scopes = config.get_scopes
+    local get_scopes = shared.config.get_scopes
     for _, scope in ipairs(get_scopes()) do
         if scope and scope ~= '' then
             snips[scope] = load_scope(scope, {})

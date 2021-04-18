@@ -34,6 +34,8 @@ describe("Snippy tests", function ()
             test1 = {prefix = 'test1', body = {'This is the first test.'}},
             test2 = {prefix = 'test2', body = {'This is the second test.'}},
         }
+        neq(nil, meths.execute_lua([[return require 'snippy.shared'.config.snippet_dirs]], {}))
+        neq({}, meths.execute_lua([[return require 'snippy.reader'.list_available_scopes()]], {}))
         eq({_ = snips}, meths.execute_lua([[return snippy.snips]], {}))
     end)
 
