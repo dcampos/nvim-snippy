@@ -372,7 +372,7 @@ describe("Snippy tests", function ()
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Jump and mirror stops", function ()
+    it("Jump from select to insert", function ()
         -- command [[lua snippy.setup({ hl_group = 'Search' })]]
         local snip = 'for (\\$${1:foo} = 0; \\$$1 < $2; \\$$1++) {\n\t$0\n}'
         feed("i")
@@ -455,4 +455,63 @@ describe("Snippy tests", function ()
 
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
+
+    it("Jump and mirror correctly", function ()
+        -- command [[lua snippy.setup({ hl_group = 'Search' })]]
+        local snip = '${1:var} = $0; // set $1'
+        feed("i")
+        command("lua snippy.expand_snippet([[" .. snip .. "]])")
+        feed("$foo")
+
+        -- screen:snapshot_util()
+        screen:expect{grid=[[
+        $foo^ = ; // set $foo                                                             |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]], attr_ids={
+            [1] = {bold = true, foreground = Screen.colors.Blue};
+            [2] = {bold = true};
+        }}
+
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        feed("<plug>(snippy-next-stop)")
+
+        -- screen:snapshot_util()
+        screen:expect{grid=[[
+        $foo = ^; // set $foo                                                             |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]], attr_ids={
+            [1] = {bold = true, foreground = Screen.colors.Blue};
+            [2] = {bold = true};
+        }}
+
+        eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
+    end)
+
 end)
