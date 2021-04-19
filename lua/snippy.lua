@@ -4,7 +4,6 @@ local buf = require 'snippy.buf'
 local shared = require 'snippy.shared'
 
 local Builder = require 'snippy.builder'
-local Stop = require 'snippy.stop'
 
 local api = vim.api
 local cmd = vim.cmd
@@ -24,32 +23,6 @@ local function ensure_normal_mode()
     if fn.mode() ~= 'n' then
         api.nvim_feedkeys(t"<Esc>", 'n', true)
     end
-end
-
-local function add_stop(spec, pos)
-    local function is_traversable()
-        for _, stop in ipairs(buf.stops) do
-            if stop.id == spec.id then
-                return false
-            end
-        end
-        return spec.type == 'tabstop' or spec.type == 'placeholder' or spec.type == 'choice'
-    end
-    local startrow = spec.startpos[1] - 1
-    local startcol = spec.startpos[2]
-    local endrow = spec.endpos[1] - 1
-    local endcol = spec.endpos[2]
-    local stops = buf.stops
-    local end_col = endcol
-    local smark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
-        end_line = endrow;
-        end_col = end_col;
-        hl_group = shared.config.hl_group;
-        right_gravity = false;
-        end_right_gravity = true;
-    })
-    table.insert(stops, pos, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
-    buf.stops = stops
 end
 
 local function select_stop(from, to)
@@ -141,7 +114,7 @@ local function place_stops(stops)
     make_unique_ids(stops)
     local pos = buf.current_stop + 1
     for _, spec in ipairs(stops) do
-        add_stop(spec, pos)
+        buf.add_stop(spec, pos)
         pos = pos + 1
     end
 end
@@ -259,6 +232,7 @@ function M.jump(stop)
         return false
     end
     if buf.current_stop ~= 0 then
+        buf.deactivate_stop(buf.current_stop)
         mirror_stop(buf.current_stop)
     end
     local should_finish = false
@@ -278,7 +252,7 @@ function M.jump(stop)
             select_stop(startpos, endpos)
         end
 
-        buf.current_stop = stop
+        buf.activate_stop(stop)
     else
         should_finish = true
     end
@@ -294,7 +268,7 @@ function M.jump(stop)
     return true
 end
 
--- Check if cursor is inside any stop
+-- Check if the cursor is inside any stop
 function M.check_position()
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))

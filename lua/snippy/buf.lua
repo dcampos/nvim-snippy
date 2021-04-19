@@ -1,5 +1,7 @@
 local shared = require 'snippy.shared'
 
+local Stop = require 'snippy.stop'
+
 local api = vim.api
 local fn = vim.fn
 local cmd = vim.cmd
@@ -29,6 +31,18 @@ setmetatable(M, {
     end
 })
 
+local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
+    local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
+        id = id;
+        end_line = endrow;
+        end_col = endcol;
+        hl_group = shared.config.hl_group;
+        right_gravity = right_gravity;
+        end_right_gravity = end_right_gravity;
+    })
+    return mark
+end
+
 function M.state()
     local bufnr = api.nvim_buf_get_number(0)
     if not M._state[bufnr] then
@@ -38,6 +52,50 @@ function M.state()
         }
     end
     return M._state[bufnr]
+end
+
+function M.add_stop(spec, pos)
+    local function is_traversable()
+        for _, stop in ipairs(M.state().stops) do
+            if stop.id == spec.id then
+                return false
+            end
+        end
+        return spec.type == 'tabstop' or spec.type == 'placeholder' or spec.type == 'choice'
+    end
+    local startrow = spec.startpos[1] - 1
+    local startcol = spec.startpos[2]
+    local endrow = spec.endpos[1] - 1
+    local endcol = spec.endpos[2]
+    local stops = M.state().stops
+    local smark = add_mark(nil, startrow, startcol, endrow, endcol, true, true)
+    table.insert(stops, pos, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
+    M.state().stops = stops
+end
+
+-- Change the extmarks to expand on change
+function M.activate_stop(number)
+    local value = M.state().stops[number]
+    for _, stop in ipairs(M.state().stops) do
+        if stop.id == value.id then
+            local from, to = stop:get_range()
+            local mark_id = stop.mark
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+        end
+    end
+    M.state().current_stop = number
+end
+
+-- Change the extmarks NOT to expand on change
+function M.deactivate_stop(number)
+    local value = M.state().stops[number]
+    for _, stop in ipairs(M.state().stops) do
+        if stop.id == value.id then
+            local from, to = stop:get_range()
+            local mark_id = stop.mark
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+        end
+    end
 end
 
 -- function M.stops()
