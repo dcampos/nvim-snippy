@@ -2,20 +2,15 @@ local parser = require 'snippy.parser'
 local reader = require 'snippy.reader'
 local buf = require 'snippy.buf'
 local shared = require 'snippy.shared'
+local util = require 'snippy.util'
 
 local Builder = require 'snippy.builder'
 
 local api = vim.api
-local cmd = vim.cmd
 local fn = vim.fn
+local t = util.t
 
 local M = {}
-
--- Util
-
-local function t(input)
-    return api.nvim_replace_termcodes(input, true, false, true)
-end
 
 -- Stop management
 
