@@ -130,7 +130,11 @@ local function get_snippet_at_cursor()
                     end
                 end
             end
-            word = word:sub(2)
+            if word:match('^%w') then
+                word = word:gsub('^%w+', '')
+            else
+                word = word:sub(2)
+            end
         end
     end
     return nil, nil
