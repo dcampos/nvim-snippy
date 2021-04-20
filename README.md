@@ -1,6 +1,14 @@
 # Snippy
 
-A lua-based snippets plugin for Neovim **0.5**.
+A Lua-based snippets plugin for Neovim **0.5**.
+
+## Features
+
+* Uses built-in `extmarks` feature
+* Support for defining multiple snippets in a single file
+* Support for LSP-style syntax
+* Full support for the syntax and file format used by SnipMate
+* No dependencies
 
 ## Installation
 
@@ -10,6 +18,12 @@ Using vim-plug:
 
 ```vim
 Plug 'dcampos/snippy'
+```
+
+There are no snippets installed by default. You can create your own, or install `vim-snippets`:
+
+```vim
+Plug 'honza/vim-snippets'
 ```
 
 ## Usage
@@ -26,32 +40,53 @@ smap <expr> <Tab> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<Tab>
 smap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<Tab>'
 ```
 
-Of course, you can also define different mappings to expand and jump forward.
-To expand with `<C-]>`, jump forward with `<C-j>`, and jump back with `<C-k>`,
-set it up like this:
+You can also define separate mappings to expand and jump forward. See `:help snippy-usage`.
 
-```vim
-imap <expr> <C-]> v:lua.snippy.can_expand() ? '<Plug>(snippy-expand)' : '<C-]>'
-imap <expr> <C-j> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<C-j>'
-imap <expr> <C-k> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<C-k>'
-smap <expr> <C-j> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<C-j>'
-smap <expr> <C-k> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<C-k>'
-```
+## Adding snippets
 
-You can also define mappings for cutting the currently selected text, to be used later:
+By default every `snippets` directory in `runtimepath` will be searched for
+snippets. Files with the `.snippet` extension contain a single snippet, while
+files with the `.snippets` extension can be used declare multiple snippets
+using the following format.
 
-```vim
-nmap g<Tab> <Plug>(snippy-cut-text)
-xmap <Tab> <Plug>(snippy-cut-text)
-```
+See `:help snippy-usage-snippets` for more information.
+
+The LSP snippet syntax is almost fully supported, while there is also full
+support for SnipMate-style snippets, including Vim evaluated pieces of code
+inside backticks (\`\`).
 
 ## Running tests
 
-`TODO`
+There are some functional tests available. Clone the Neovim master at the same
+level as snippy and run:
 
-## Comparison
+```
+TEST_FILE=../snippy/test/snippy_spec.lua make functionaltest
+```
 
-`TODO`
+Parser tests are run separately. Enter snippy/lua and run:
+
+```
+busted --exclude-pattern=snippy ../test/
+```
+
+You need to have `busted` installed for the above command to succeed.
+
+## Alternatives
+
+There are several snippet plugins for Vim/Neovim.
+
+* [garbas/vim-snipmate][1]: this is a fork of the original SnipMate plugin. Allows defining multiple snippets in a single text file. Depends on some Vimscript libraries, which may be viewed as a con by some people.
+* [SirVer/UltiSnips][2]: a Python-based snippet plugin for Vim. Lots of features. Supports SnipMate syntax. Some incompatibilities or performance issues with Neovim have been reported.
+* [Shougo/neosnippet.vim][3]: pure Vim plugin. Supports SnipMate syntax and file format. Uses markers inserted in the text.
+* [hrsh7th/vim-vsnip][4]: pure Vim plugin that can load snippets from VSCode. Snippets are defined in JSON files, which may not seem convenient sometimes.
+* [norcalli/snippets.nvim][5]: Lua-based snippets plugin for Neovim. Snippets must be defined in Lua code.
+
+[1]: https://github.com/garbas/vim-snipmate
+[2]: https://github.com/SirVer/UltiSnips
+[3]: https://github.com/Shougo/neosnippet.vim
+[4]: https://github.com/hrsh7th/vim-vsnip
+[5]: https://github.com/norcalli/snippets.nvim
 
 ## License
 
