@@ -273,7 +273,7 @@ describe("Snippy tests", function ()
     it("Apply transform", function ()
         command("set filetype=")
         feed("i")
-        command("lua snippy.expand_snippet([[local ${1:var} = ${1/foo/bar/g}]])")
+        command("lua snippy.expand_snippet([[local ${1:var} = ${1/snip/snap/g}]])")
         screen:expect{grid=[[
         local ^v{1:ar} = var                                                                  |
         {2:~                                                                                }|
@@ -296,9 +296,9 @@ describe("Snippy tests", function ()
             [3] = {bold = true};
         }}
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        feed('foofoofoo')
+        feed('snipsnipsnip')
         screen:expect{grid=[[
-        local foofoofoo^ = barbarbar                                                      |
+        local snipsnipsnip^ = snapsnapsnap                                                |
         {1:~                                                                                }|
         {1:~                                                                                }|
         {1:~                                                                                }|
@@ -319,6 +319,36 @@ describe("Snippy tests", function ()
         }}
         -- neq({current_stop = 0, stops = {}},
         --     meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+    end)
+
+    it("Apply transform with escaping", function ()
+        command("set filetype=")
+        feed("i")
+        command("lua snippy.expand_snippet([[local ${1:var} = ${1/\\w\\+/\\U\\0/g}]])")
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        -- screen:snapshot_util()
+        feed('snippy')
+        screen:expect{grid=[[
+        local snippy^ = SNIPPY                                                            |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]], attr_ids={
+            [1] = {bold = true, foreground = Screen.colors.Blue};
+            [2] = {bold = true};
+        }}
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
