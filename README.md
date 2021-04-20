@@ -35,9 +35,9 @@ For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 
 ```vim
 imap <expr> <Tab> v:lua.snippy.can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
-imap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<Tab>'
+imap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<S-Tab>'
 smap <expr> <Tab> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<Tab>'
-smap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<Tab>'
+smap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<S-Tab>'
 ```
 
 You can also define separate mappings to expand and jump forward. See `:help snippy-usage`.
@@ -49,11 +49,12 @@ snippets. Files with the `.snippet` extension contain a single snippet, while
 files with the `.snippets` extension can be used declare multiple snippets
 using the following format.
 
-See `:help snippy-usage-snippets` for more information.
-
 The LSP snippet syntax is almost fully supported, while there is also full
 support for SnipMate-style snippets, including Vim evaluated pieces of code
 inside backticks (\`\`).
+
+See `:help snippy-usage-snippets` and `:help snippy-snippet-syntax` for more
+information.
 
 ## Running tests
 
