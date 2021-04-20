@@ -1,5 +1,6 @@
 *snippy.txt* Snippet plugin for neovim.
-*snippy*
+
+Snippy                                                                *snippy*
 
 ==============================================================================
 CONTENTS                                                     *snippy-contents*
@@ -9,7 +10,7 @@ CONTENTS                                                     *snippy-contents*
     FUNCTIONS............................|snippy-functions|
     OPTIONS..............................|snippy-options|
     COMMANDS.............................|snippy-commands|
-    LICENSE..............................|snippy-introduction|
+    LICENSE..............................|snippy-license|
 
 
 ==============================================================================
@@ -21,7 +22,7 @@ Snippy is a lua-based snippets plugin for Neovim.
 ==============================================================================
 USAGE                                                           *snippy-usage*
 
-                                                                *snippy-setup*
+                                                          *snippy-usage-setup*
 Snippy includes a `setup` function for you to quickly configure it according
 to your needs.  See the |snippy-options| section for information on the
 available options.
@@ -30,7 +31,7 @@ available options.
                 \     hl_group = 'Search'
                 \ })
 <
-                                                             *snippy-mappings*
+                                                       *snippy-usage-mappings*
 
 Snippy comes with no mappings activated by default. So you'll want to define
 some, probably.
@@ -52,12 +53,93 @@ set it up like this:
     smap <expr> <C-j> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<C-j>'
     smap <expr> <C-k> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<C-k>'
 <
-You can also define mappings for cutting the currently selected text, to be
-used later:
+You can optionally define mappings for cutting the currently selected text, to
+be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
 >
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
+                                                       *snippy-usage-snippets*
+
+By default every `snippets` directory in |runtimepath| will be searched for
+snippets. Snippy uses the same format as SnipMate, so the following patterns
+are accepted:
+    - snippets/{filetype}.snippets
+    - snippets/{filetype}_{name}.snippets
+    - snippets/{filetype}/{name}.snippets
+    - snippets/{filetype}.snippet
+    - snippets/{filetype}/{trigger}.snippet
+    - snippets/{filetype}/{trigger}/{description}.snippet
+
+Files with the `.snippet` extension contain a single snippet, while files with
+the `.snippets` extension can be used declare multiple snippets using the
+following format:
+>
+    snippet trigger1 "Description for snippet 1"
+    	This is the first line.
+    	This is the second line.
+    snippet trigger2 "Description for snippet 2"
+    	This is the first line.
+    	This is the second line.
+<
+
+==============================================================================
+SNIPPET SYNTAX                                         *snippy-snippet-syntax*
+
+Snippy should be compatible the full LSP snippet syntax, which in turn is
+based on the original TextMate syntax. Additionally, the SnipMate syntax is
+supported for compatibility.
+
+Currently there is no way to choose one syntax over the other, as the parser
+makes no distinction between them. This may change in the future.
+
+------------------------------------------------------------------------------
+LSP Snippet Syntax                                         *snippy-lsp-syntax*
+
+The full LSP snippet syntax can be found at
+https://github.com/Microsoft/language-server-protocol/blob/main/snippetSyntax.md.
+
+The only point where Snippy deviates from the LSP syntax in in the handling of
+transformations. Transformations are very complex and require support to
+Javascript regex parsing. Instead we support Vim-based regular expressions and
+a simplified format, which see |snippy-snipmate-transform| below for more
+details.
+
+------------------------------------------------------------------------------
+SnipMate Snippet Syntax                               *snippy-snipmate-syntax*
+
+SnipMate syntax is also based on the TextMate syntax and so largely compatible
+with the LSP syntax. A basic SniMate-style snippet looks like this:
+>
+    for (${1:i} = 0; $1 < ${2:limit}; $1++) {
+    	System.out.println($1);
+    }
+<
+                                                        *snippy-snipmate-eval*
+
+This syntax also allows Vim code to be evaluated inside backticks (``):
+>
+    Current date is `strftime('%c')`
+<
+                                                   *snippy-snipmate-transform*
+
+Transformations are supported for tabstops and variables, with the caveat that
+Vim regular expressions are to be used instead of Javascript ones. The
+`format` part is also a Vim regular substitution pattern. For instance:
+>
+    This ${1:word} will be changed to uppercase: ${1/.*/\U\0/g}
+<
+Will result in:
+>
+    This word will be changed to uppercase: WORD
+<
+                                                      *snippy-snipmate-visual*
+
+The special variable `$VISUAL` holds text previously selected and stored using
+the `snippy.cut_text()` function or the `<plug>(snippy-cut-text)` mapping.
+This is equivalent to the `$TM_SELECTED_TEXT` variable defined by the
+TextMate/LSP syntax.
+
 
 ==============================================================================
 FUNCTIONS                                                   *snippy-functions*
@@ -111,13 +193,32 @@ snippy.is_active()                                        *snippy.is_active()*
 ==============================================================================
 OPTIONS                                                       *snippy-options*
 
-TODO: documentation.
+This plugin can be configured by passing a dictionary to the lua function
+`snippy.setup(...)`. The following options are supported:
 
+snippet_dirs ~
+    A comma-separated list of directories containing snippets.
+        Type: |String|
+        Default: &|runtimepath|
+
+hl_group ~
+    Highlight group used for placeholders.
+        Type: |String|
+        Default: nil
+
+get_scopes ~
+    A Lua function to return a list of scopes at the current cursor position.
+        Type: Lua function.
+        Default: >
+            function()
+                return {'_', vim.bo.filetype}
+            end
+<
 
 ==============================================================================
 COMMANDS                                                     *snippy-commands*
 
-TODO: documentation.
+There are no commands currently available.
 
 
 ==============================================================================
