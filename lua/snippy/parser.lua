@@ -83,8 +83,8 @@ variable = one(
     map(seq(sigil, open, varname, colon, inner, close), function (value)
         return {type = 'variable', name = value[3], children = value[5]}
     end),
-    map(seq(sigil, open, int, transform, close), function (value)
-        return {type = 'tabstop', id = value[3], transform = value[4], children = {}}
+    map(seq(sigil, open, varname, transform, close), function (value)
+        return {type = 'variable', name = value[3], transform = value[4], children = {}}
     end)
 )
 
