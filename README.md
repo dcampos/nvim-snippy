@@ -1,6 +1,6 @@
 # Snippy
 
-A Lua-based snippets plugin for Neovim **0.5**.
+A Lua-based snippets plugin for Neovim **0.5.0+**.
 
 ## Features
 
@@ -73,21 +73,16 @@ busted --exclude-pattern=snippy ../test/
 
 You need to have `busted` installed for the above command to succeed.
 
-## Alternatives
+## Advantages
 
-There are several snippet plugins for Vim/Neovim.
+These are some of the advantages of this plugin when compared with other snippet plugins for Vim/Neovim:
 
-* [garbas/vim-snipmate][1]: this is a fork of the original SnipMate plugin. Allows defining multiple snippets in a single text file. Depends on some Vimscript libraries, which may be viewed as a con by some people.
-* [SirVer/UltiSnips][2]: a Python-based snippet plugin for Vim. Lots of features. Supports SnipMate syntax. Some incompatibilities or performance issues with Neovim have been reported.
-* [Shougo/neosnippet.vim][3]: pure Vim plugin. Supports SnipMate syntax and file format. Uses markers inserted in the text.
-* [hrsh7th/vim-vsnip][4]: pure Vim plugin that can load snippets from VSCode. Snippets are defined in JSON files, which may not seem convenient sometimes.
-* [norcalli/snippets.nvim][5]: Lua-based snippets plugin for Neovim. Snippets must be defined in Lua code.
-
-[1]: https://github.com/garbas/vim-snipmate
-[2]: https://github.com/SirVer/UltiSnips
-[3]: https://github.com/Shougo/neosnippet.vim
-[4]: https://github.com/hrsh7th/vim-vsnip
-[5]: https://github.com/norcalli/snippets.nvim
+* No dependence on any external plugin or library.
+* Only core Neovim. No need to install Python or any other external language.
+* Because it uses the built-in `extmarks` feature, there is no insertion of markers in the text.
+* No need to edit JSON files by hand. Snippets file format is much simpler and speeds up creating snippets.
+* No need to defined snippets in Lua or Vimscript code.
+* Simple and standard snippet syntax.
 
 ## License
 
