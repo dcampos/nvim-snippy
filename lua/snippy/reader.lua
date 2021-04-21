@@ -43,7 +43,7 @@ local function read_snippets_file(snippets_file)
         end
         snips[prefix] = {
             kind = 'snipmate',
-            prefix=prefix,
+            prefix = prefix,
             description = description,
             body = body
         }
@@ -79,7 +79,14 @@ local function read_snippet_file(snippet_file)
     end
     local file = io.open(snippet_file)
     local body = vim.split(file:read('*a'), '\n')
-    return {[prefix] = {prefix = prefix, description = description, body = body}}
+    return {
+        [prefix] = {
+            kind = 'snipmate',
+            prefix = prefix,
+            description = description,
+            body = body
+        }
+    }
 end
 
 local function list_dirs(ftype)

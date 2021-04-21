@@ -22,6 +22,7 @@ local slash = token('/')
 local comma = token(',')
 local bar = token('|')
 local backtick = token('`')
+local empty = token('')
 
 local varname = pattern('^[_a-zA-Z][_a-zA-Z0-9]*')
 
@@ -113,12 +114,12 @@ local function create_snipmate_parser()
         one(tabstop, placeholder, visual, choice, eval, sigil)
     end)
 
-    local inner = many(one(any, text('[$}`]', '')))
+    local inner = one(many(one(any, text('[$}`]', ''))), empty)
 
     placeholder = map(seq(sigil, open, int, colon, inner, close),
-    function (value)
-        return {type = 'placeholder', id = value[3], children = value[5]}
-    end
+        function (value)
+            return {type = 'placeholder', id = value[3], children = value[5]}
+        end
     )
 
     local visual_token = token('VISUAL')
@@ -129,6 +130,9 @@ local function create_snipmate_parser()
         end),
         map(seq(sigil, open, visual_token, close), function (value)
             return {type = 'variable', name = value[3], children = {}}
+        end),
+        map(seq(sigil, open, visual_token, colon, inner, close), function (value)
+            return {type = 'variable', name = value[3], children = value[5]}
         end)
     )
 

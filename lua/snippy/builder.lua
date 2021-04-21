@@ -86,35 +86,57 @@ function Builder:evaluate_variable(variable)
 end
 
 function Builder:process_structure(structure)
-    for _, value in ipairs(structure) do
-        if type(value) == 'table' then
-            if value.type == 'tabstop' then
-                table.insert(self.stops, {type=value.type, id=value.id, startpos={self.row, self.col}, endpos={self.row, self.col}, placeholder='', transform=value.transform})
-            elseif value.type == 'placeholder' then
-                local startrow, startcol = self.row, self.col
-                self:process_structure(value.children)
-                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}})
-            elseif value.type == 'variable' then
-                local startrow, startcol = self.row, self.col
-                self:evaluate_variable(value)
-                -- table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, tranform=value.transform})
-            elseif value.type == 'choice' then
-                local choice = value.children[1]
-                local startrow, startcol = self.row, self.col
-                self:append_text(choice)
-                table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, choices=value.choices})
-            elseif value.type == 'eval' then
-                local text = fn.eval(value.children[1].escaped) or ''
-                self:append_text(text)
-            elseif value.type == 'text' then
-                local text = value.escaped
-                self:append_text(text)
+    if type(structure) == 'table' then
+        for _, value in ipairs(structure) do
+            if type(value) == 'table' then
+                if value.type == 'tabstop' then
+                    table.insert(self.stops, {
+                        type = value.type,
+                        id = value.id,
+                        startpos = {self.row, self.col},
+                        endpos = {self.row, self.col},
+                        placeholder = '',
+                        transform = value.transform
+                    })
+                elseif value.type == 'placeholder' then
+                    local startrow, startcol = self.row, self.col
+                    self:process_structure(value.children)
+                    table.insert(self.stops, {
+                        type = value.type,
+                        id = value.id,
+                        startpos = {startrow, startcol},
+                        endpos = {self.row, self.col}
+                    })
+                elseif value.type == 'variable' then
+                    local startrow, startcol = self.row, self.col
+                    self:evaluate_variable(value)
+                    -- table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, tranform=value.transform})
+                elseif value.type == 'choice' then
+                    local choice = value.children[1]
+                    local startrow, startcol = self.row, self.col
+                    self:append_text(choice)
+                    table.insert(self.stops, {
+                        type = value.type,
+                        id = value.id,
+                        startpos = {startrow, startcol},
+                        endpos = {self.row, self.col},
+                        choices = value.choices
+                    })
+                elseif value.type == 'eval' then
+                    local text = fn.eval(value.children[1].escaped) or ''
+                    self:append_text(text)
+                elseif value.type == 'text' then
+                    local text = value.escaped
+                    self:append_text(text)
+                else
+                    util.print_error(string.format('Unsupported element "%s" at %d:%d', value.type, self.row, self.col))
+                end
             else
-                util.print_error(string.format('Unsupported element "%s" at %d:%d', value.type, self.row, self.col))
+                self:append_text(value)
             end
-        else
-            self:append_text(value)
         end
+    else
+        self:append_text(structure)
     end
 end
 
