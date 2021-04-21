@@ -86,12 +86,14 @@ following format:
 ==============================================================================
 SNIPPET SYNTAX                                         *snippy-snippet-syntax*
 
-Snippy should be compatible the full LSP snippet syntax, which in turn is
+Snippy should be compatible with the full LSP snippet syntax, which in turn is
 based on the original TextMate syntax. Additionally, the SnipMate syntax is
 supported for compatibility.
 
-Currently there is no way to choose one syntax over the other, as the parser
-makes no distinction between them. This may change in the future.
+Currently the parser for a particular snippet is chosen based on the the
+source the snippet was loaded from. If it was loaded from a SnipMate file, the
+SnipMate-style parser will be used. The default behavior is to parse using the
+LSP syntax parser.
 
 ------------------------------------------------------------------------------
 LSP Snippet Syntax                                         *snippy-lsp-syntax*
@@ -100,7 +102,7 @@ The full LSP snippet syntax can be found at
 https://github.com/Microsoft/language-server-protocol/blob/main/snippetSyntax.md.
 
 The only point where Snippy deviates from the LSP syntax in in the handling of
-transformations. Transformations are very complex and require support to
+transformations. Transformations are very complex and require support for
 Javascript regex parsing. Instead we support Vim-based regular expressions and
 a simplified format, which see |snippy-snipmate-transform| below for more
 details.

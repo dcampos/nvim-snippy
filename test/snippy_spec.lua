@@ -31,30 +31,48 @@ describe("Snippy tests", function ()
         command("lua snippy.setup({snippet_dirs = '../snippy/test/'})")
         command("set filetype=")
         local snips = {
-            test1 = {prefix = 'test1', body = {'This is the first test.'}},
-            test2 = {prefix = 'test2', body = {'This is the second test.'}},
+            test1 = {kind = 'snipmate', prefix = 'test1', body = {'This is the first test.'}},
+            test2 = {kind = 'snipmate', prefix = 'test2', body = {'This is the second test.'}},
         }
         neq(nil, meths.execute_lua([[return require 'snippy.shared'.config.snippet_dirs]], {}))
         neq({}, meths.execute_lua([[return require 'snippy.reader'.list_available_scopes()]], {}))
         eq({_ = snips}, meths.execute_lua([[return snippy.snips]], {}))
     end)
 
-    -- it("Read vim-snippets snippets", function ()
-    --     local snippet_dirs = '../vim-snippets/'
-    --     command(string.format([[
-    --         lua snippy.setup({
-    --             snippet_dirs = '%s',
-    --             get_scopes = function () return {vim.bo.ft} end,
-    --         })
-    --     ]], snippet_dirs))
-    --     local scopes = eval([[luaeval('require "snippy.reader".list_available_scopes()')]])
-    --     neq({}, scopes)
-    --     for _, scope in ipairs(scopes) do
-    --         command("set filetype=" ..  scope)
-    --         local snips = meths.execute_lua([[return snippy.snips]], {})
-    --         neq(nil, snips[scope])
-    --     end
-    -- end)
+    it("Read vim-snippets snippets", function ()
+        local snippet_dirs = '../vim-snippets/'
+        command(string.format([[
+            lua snippy.setup({
+                snippet_dirs = '%s',
+                get_scopes = function () return {vim.bo.ft} end,
+            })
+        ]], snippet_dirs))
+        local scopes = eval([[luaeval('require "snippy.reader".list_available_scopes()')]])
+        neq({}, scopes)
+        local total_failed = {}
+        for _, scope in ipairs(scopes) do
+            command("set filetype=" ..  scope)
+            local snips = meths.execute_lua([[return snippy.snips]], {})
+            neq(nil, snips[scope])
+            local failed = meths.execute_lua([[
+                local scope = vim.bo.ft
+                local failed = {}
+                for _, snip in pairs(snippy.snips[scope]) do
+                    local text = table.concat(snip.body, '\n')
+                    local ok, parsed, pos = require 'snippy.parser'.parse_snipmate(text, 1)
+                    if pos ~= #text + 1 then
+                        table.insert(failed, {snip, pos, #text+1})
+                    end
+                end
+                return failed
+            ]], {})
+            if #failed > 0 then
+                total_failed[scope] = failed
+                break
+            end
+        end
+        eq({}, total_failed)
+    end)
 
     it("Insert basic snippet", function ()
         command("lua snippy.setup({snippet_dirs = '../snippy/test/'})")

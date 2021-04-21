@@ -41,7 +41,12 @@ local function read_snippets_file(snippets_file)
                 break
             end
         end
-        snips[prefix] = {prefix=prefix, description = description, body = body}
+        snips[prefix] = {
+            kind = 'snipmate',
+            prefix=prefix,
+            description = description,
+            body = body
+        }
     end
 
     while i <= #lines do

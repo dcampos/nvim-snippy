@@ -110,8 +110,10 @@ function Builder:process_structure(structure)
                 local text = value.escaped
                 self:append_text(text)
             else
-                U.print_error(string.format('Unsupported element "%s" at %d:%d', value.type, self.row, self.col))
+                util.print_error(string.format('Unsupported element "%s" at %d:%d', value.type, self.row, self.col))
             end
+        else
+            self:append_text(value)
         end
     end
 end
