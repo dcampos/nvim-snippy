@@ -142,6 +142,21 @@ end
 
 -- Public functions
 
+function M.complete()
+    local col = api.nvim_win_get_cursor(0)[2]
+    local current_line = api.nvim_get_current_line()
+    local word = current_line:sub(1, col):match('(%S+)$')
+    local items = M.get_completion_items()
+    local choices = {}
+    for _, item in ipairs(items) do
+        if item.word:sub(1, #word) == word then
+            item.menu = '[Snippy]'
+            table.insert(choices, item)
+        end
+    end
+    fn.complete(col - #word + 1, choices)
+end
+
 function M.complete_done()
     local completed_item = vim.v.completed_item
     if completed_item.user_data then

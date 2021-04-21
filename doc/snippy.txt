@@ -189,6 +189,16 @@ snippy.cut_text({mode}, {visual})                          *snippy.cut_text()*
 snippy.is_active()                                        *snippy.is_active()*
     Checks whether there is an active snippet.
 
+snippy.get_completion_items()                  *snippy.get_completion_items()*
+    Returns a list of completion all items available in the current scope.
+
+snippy.complete()                                          *snippy.complete()*
+    Shows a basic completion menu at the current location.
+
+snippy.complete_done()                                *snippy.complete_done()*
+    To be called when the |CompleteDone| |autocmd| is fired, expanding any snippet
+    present in the |v:completed_item| variable.
+
 
 ==============================================================================
 OPTIONS                                                       *snippy-options*
