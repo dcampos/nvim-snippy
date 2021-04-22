@@ -37,16 +37,27 @@ end
 
 local tabstop, choice
 
-local transform = map(
-    seq(slash, text('/', ''), slash, text('/', ''), slash, pattern('^[ig]*')),
-    function (value)
-        return {
-            type = 'transform',
-            regex = value[2],
-            format = value[4],
-            flags = value[6]
-        }
-    end
+local transform = one(
+    map(
+        seq(slash, text('/', ''), slash, text('/', ''), slash, pattern('^[ig]*')),
+        function (value)
+            return {
+                type = 'transform',
+                regex = value[2],
+                format = value[4],
+                flags = value[6]
+            }
+        end),
+    map(
+        seq(slash, text('/', ''), slash, text('[/}]', '')),
+        function (value)
+            return {
+                type = 'transform',
+                regex = value[2],
+                format = value[4],
+                flags = ''
+            }
+        end)
 )
 
 tabstop = one(

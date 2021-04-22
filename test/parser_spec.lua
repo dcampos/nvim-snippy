@@ -43,6 +43,19 @@ describe("Parser tests", function ()
                 format = {type = 'text', raw = 'bar', escaped = 'bar'},
             }})
     end)
+    it("Parse a transform without flags", function ()
+        local snip = 'local ${1} = ${2/foo/bar}'
+        local ok, result, pos = parser.parse(snip, 1)
+        assert.is_true(ok)
+        assert.is_same(pos, #snip + 1)
+        assert.is_same(result[#result],
+            {type = 'tabstop', id = 2, children = {}, transform = {
+                type = 'transform',
+                flags = '',
+                regex = {type = 'text', raw = 'foo', escaped = 'foo'},
+                format = {type = 'text', raw = 'bar', escaped = 'bar'},
+            }})
+    end)
     it("Parse variables", function ()
         local snip = 'local ${1} = ${TM_CURRENT_YEAR}'
         local ok, result, pos = parser.parse(snip, 1)
