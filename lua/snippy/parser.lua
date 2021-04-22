@@ -78,7 +78,7 @@ local function create_parser()
         one(tabstop, placeholder, variable, choice)
     end)
 
-    local inner = opt(many(one(any, text('[$}`]', ''))))
+    local inner = opt(many(one(any, text('[$}]', ''))))
 
     placeholder = map(seq(sigil, open, int, colon, inner, close),
         function (value)
