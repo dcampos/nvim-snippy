@@ -152,6 +152,7 @@ end
 function Builder:build_snip(structure)
     self:process_structure(structure)
     self:fix_ending()
+    shared.set_selection()
     return self.result, self.stops
 end
 
