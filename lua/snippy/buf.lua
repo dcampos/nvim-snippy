@@ -129,8 +129,8 @@ function M.setup_autocmds()
         string.format([[
             augroup snippy_local
             autocmd! * <buffer=%s>
-            autocmd TextChanged,TextChangedI,TextChangedP <buffer=%s> lua snippy.mirror_stops()
-            autocmd CursorMoved,CursorMovedI <buffer=%s> lua snippy.check_position()
+            autocmd TextChanged,TextChangedI,TextChangedP <buffer=%s> lua snippy._mirror_stops()
+            autocmd CursorMoved,CursorMovedI <buffer=%s> lua snippy._check_position()
             augroup END
         ]], bufnr, bufnr, bufnr),
         false)

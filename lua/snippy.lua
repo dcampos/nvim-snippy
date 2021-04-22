@@ -216,7 +216,7 @@ function M.cut_text(mode, visual)
     api.nvim_feedkeys(t(keys .. '"_c'), 'n', true)
 end
 
-function M.mirror_stops()
+function M._mirror_stops()
     if buf.current_stop ~= 0 then
         mirror_stop(buf.current_stop)
     end
@@ -228,7 +228,7 @@ function M.previous_stop()
     while stops[stop] and not stops[stop].traversable do
         stop = stop - 1
     end
-    return M.jump(stop)
+    return M._jump(stop)
 end
 
 function M.next_stop()
@@ -237,10 +237,10 @@ function M.next_stop()
     while stops[stop] and not stops[stop].traversable do
         stop = stop + 1
     end
-    return M.jump(stop)
+    return M._jump(stop)
 end
 
-function M.jump(stop)
+function M._jump(stop)
     local stops = buf.stops
     if not stops or #stops == 0 then
         return false
@@ -283,7 +283,7 @@ function M.jump(stop)
 end
 
 -- Check if the cursor is inside any stop
-function M.check_position()
+function M._check_position()
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
