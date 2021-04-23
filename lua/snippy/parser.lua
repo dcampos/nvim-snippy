@@ -9,6 +9,8 @@ local pattern = comb.pattern
 local opt = comb.opt
 local lazy = comb.lazy
 
+local inspect = vim and vim.inspect or require 'inspect'
+
 local trim = (vim and vim.trim) or function (s)
     return string.gsub(s, "^%s*(.-)%s*$", "%1")
 end
@@ -35,30 +37,22 @@ local text = function (stop, escape)
     end)
 end
 
-local tabstop, choice
+local tabstop, choice, transform
 
-local transform = one(
-    map(
-        seq(slash, text('/', ''), slash, text('/', ''), slash, pattern('^[ig]*')),
+local flags = map(seq(slash, pattern('^[ig]*')), function (value)
+    return value[2]
+end)
+
+transform = map(
+        seq(slash, text('/', ''), slash, text('[%/}]', ''), opt(flags)),
         function (value)
             return {
                 type = 'transform',
                 regex = value[2],
                 format = value[4],
-                flags = value[6]
-            }
-        end),
-    map(
-        seq(slash, text('/', ''), slash, text('[/}]', '')),
-        function (value)
-            return {
-                type = 'transform',
-                regex = value[2],
-                format = value[4],
-                flags = ''
+                flags = value[5] or ''
             }
         end)
-)
 
 tabstop = one(
     map(seq(sigil, int), function (value)

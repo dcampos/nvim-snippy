@@ -86,6 +86,7 @@ local function sort_stops(stops)
             return true
         end
         return s1.id < s2.id
+            or util.is_before(s1.startpos, s2.startpos)
     end)
 end
 
