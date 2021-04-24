@@ -84,6 +84,12 @@ These are some of the advantages of this plugin when compared with other snippet
 * No need to defined snippets in Lua or Vimscript code.
 * Simple and standard snippet syntax.
 
+## Known bugs
+
+* There is a bug in Neovim where `extmarks` are extended to the beginning of the completed item when the `complete()` function is called and a completion menu is shown, even if the user does not select or confirm anything. See the [bug report][1] for more information.
+
+[1]: https://github.com/neovim/neovim/issues/13816
+
 ## License
 
 MIT license.
