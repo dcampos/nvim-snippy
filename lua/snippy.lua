@@ -141,6 +141,22 @@ local function get_snippet_at_cursor()
     return nil, nil
 end
 
+-- Autocmd handlers
+
+function M._handle_TextChanged()
+    buf.fix_current_stop()
+    buf.update_state()
+    M._mirror_stops()
+end
+
+function M._handle_TextChangedP()
+    buf.fix_current_stop()
+end
+
+function M._handle_CursorMoved()
+    M._check_position()
+end
+
 -- Public functions
 
 function M.complete()

@@ -45,4 +45,11 @@ function Stop:set_text(text)
     api.nvim_buf_set_text(0, startpos[1], startpos[2], endpos[1], endpos[2], lines)
 end
 
+function Stop:get_before()
+    local from, _ = self:get_range()
+    local current_line = fn.getline(from[1] + 1)
+    local pre = current_line:sub(1, from[2])
+    return pre
+end
+
 return Stop

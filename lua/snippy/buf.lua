@@ -84,6 +84,7 @@ function M.activate_stop(number)
         end
     end
     M.state().current_stop = number
+    M.update_state()
 end
 
 -- Change the extmarks NOT to expand on change
@@ -114,12 +115,31 @@ end
 --     M.state().current_stop = number
 -- end
 
+function M.update_state()
+    local current_stop = M.stops[M.current_stop]
+    local before = current_stop:get_before()
+    M.state().before = before
+end
+
+function M.fix_current_stop()
+    local current_stop = M.stops[M.current_stop]
+    local new = current_stop:get_before()
+    local old = M.state().before or new
+    local current_line = api.nvim_get_current_line()
+    if new ~= old and current_line:sub(1, #old) == old then
+        local stop = M.stops[M.current_stop]
+        local from, to = stop:get_range()
+        add_mark(stop.mark, from[1], #old, to[1], to[2], false, true)
+    end
+end
+
 function M.clear_state()
     for _, stop in pairs(M.state().stops) do
         api.nvim_buf_del_extmark(0, shared.namespace, stop.mark)
     end
     M.state().current_stop = 0
     M.state().stops = {}
+    M.state().before = nil
     M.clear_autocmds()
 end
 
@@ -129,10 +149,11 @@ function M.setup_autocmds()
         string.format([[
             augroup snippy_local
             autocmd! * <buffer=%s>
-            autocmd TextChanged,TextChangedI,TextChangedP <buffer=%s> lua snippy._mirror_stops()
-            autocmd CursorMoved,CursorMovedI <buffer=%s> lua snippy._check_position()
+            autocmd TextChanged,TextChangedI <buffer=%s> lua snippy._handle_TextChanged()
+            autocmd TextChangedP <buffer=%s> lua snippy._handle_TextChangedP()
+            autocmd CursorMoved,CursorMovedI <buffer=%s> lua snippy._handle_CursorMoved()
             augroup END
-        ]], bufnr, bufnr, bufnr),
+        ]], bufnr, bufnr, bufnr, bufnr),
         false)
 end
 
