@@ -43,6 +43,7 @@ function Builder.new(o)
     local builder = setmetatable(o, {__index = Builder})
     builder.stops = {}
     builder.result = ''
+    builder.level_indent = ''
     return builder
 end
 
@@ -50,23 +51,37 @@ function Builder:add(content)
     self.result = self.result .. content
 end
 
-function Builder:indent_lines(lines)
+--- Indents a list of lines.
+---
+--@param lines (list) A table containing lines.
+--@param indent_lines (bool) Whether the lines should idented per level.
+--@returns (string) The lines, indented.
+function Builder:indent_lines(lines, ident_level)
     local result = {}
+    local new_level
     for i, line in ipairs(lines) do
         if vim.bo.expandtab then
             line = line:gsub('\t', string.rep(' ', vim.bo.shiftwidth))
         end
+        new_level = line:match('^%s*')
         if i > 1 and self.indent then
+            if ident_level then
+                line = self.level_indent .. line
+            end
             line = self.indent .. line
         end
         table.insert(result, line)
     end
+    self.level_indent = new_level
     return result
 end
 
-function Builder:append_text(text)
+--- Appends a sequence of characters to the result.
+---
+--@param text (string) Text to be appended.
+function Builder:append_text(text, ident_level)
     local lines = vim.split(text, '\n', true)
-    lines = self:indent_lines(lines)
+    lines = self:indent_lines(lines, ident_level)
     self.row = self.row + #lines - 1
     if #lines > 1 then
         self.col = fn.strchars(lines[#lines])
@@ -76,12 +91,15 @@ function Builder:append_text(text)
     self:add(table.concat(lines, '\n'))
 end
 
+--- Evaluates a variable and possibly its children.
+---
+--@param variable (string) Variable name.
 function Builder:evaluate_variable(variable)
     local result = varmap[variable.name] and varmap[variable.name]()
     if not result then
         self:process_structure(variable.children)
     else
-        self:append_text(result)
+        self:append_text(result, true)
     end
 end
 

@@ -336,7 +336,7 @@ function M.expand_snippet(snippet, word)
     end
     col = col - #word
     local current_line = api.nvim_get_current_line()
-    local indent = current_line:match('^(%s+)')
+    local indent = current_line:match('^(%s*)')
     local text
     local ok, parsed, pos
     if type(snippet) == 'table' then
