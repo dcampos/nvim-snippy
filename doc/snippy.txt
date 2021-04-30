@@ -230,7 +230,9 @@ get_scopes ~
 ==============================================================================
 COMMANDS                                                     *snippy-commands*
 
-There are no commands currently available.
+:SnippyEdit {file}                                                |SnippyEdit|
+
+    Opens an existing snippet file in a new split. Completion available.
 
 
 ==============================================================================

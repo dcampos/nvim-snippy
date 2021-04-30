@@ -89,7 +89,7 @@ local function read_snippet_file(snippet_file)
     }
 end
 
-local function list_dirs(ftype)
+local function list_files(ftype)
     local all = {}
     local dirs = shared.config.snippet_dirs or vim.o.rtp
     for _, expr in ipairs(exprs) do
@@ -103,7 +103,7 @@ end
 local function load_scope(scope, stack)
     local snips = {}
     local extends = {}
-    for _, file in ipairs(list_dirs(scope)) do
+    for _, file in ipairs(list_files(scope)) do
         local result = {}
         local extended = {}
         if file:match('.snippets$') then
@@ -150,6 +150,16 @@ function M.list_available_scopes()
         end
     end
     return vim.tbl_keys(scopes)
+end
+
+function M.list_existing_files()
+    local files = {}
+    local get_scopes = shared.config.get_scopes
+    for _, scope in ipairs(get_scopes()) do
+        local scope_files = list_files(scope)
+        vim.list_extend(files, scope_files)
+    end
+    return files
 end
 
 function M.read_snippets()

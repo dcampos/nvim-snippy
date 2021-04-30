@@ -422,6 +422,17 @@ function M.read_snippets()
     M.snips = vim.tbl_extend('force', M.snips, snips)
 end
 
+function M.complete_snippet_files(prefix)
+    local files = reader.list_existing_files()
+    local results = {}
+    for _, file in ipairs(files) do
+        if file:find(prefix, 1, true) then
+            table.insert(results, fn.fnamemodify(file, ':p'))
+        end
+    end
+    return results
+end
+
 function M.setup(o)
     shared.set_config(o)
 end
