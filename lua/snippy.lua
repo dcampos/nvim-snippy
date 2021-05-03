@@ -30,17 +30,14 @@ local function select_stop(from, to)
 end
 
 local function start_insert(pos)
-    -- Update cursor - in insert mode, we're done.
-    -- In other modes, we ensure col('$') will work.
+    -- Update cursor - so we ensure col('$') will work.
     api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
-    if fn.mode() ~= 'i' then
-        ensure_normal_mode()
-        api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2] + 1)), 'n', true)
-        if pos[2] + 1 >= fn.col('$') then
-            api.nvim_feedkeys(t("a"), 'n', true)
-        else
-            api.nvim_feedkeys(t("i"), 'n', true)
-        end
+    ensure_normal_mode()
+    api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2] + 1)), 'n', true)
+    if pos[2] + 1 >= fn.col('$') then
+        api.nvim_feedkeys(t("a"), 'n', true)
+    else
+        api.nvim_feedkeys(t("i"), 'n', true)
     end
 end
 
@@ -359,6 +356,7 @@ function M.expand_snippet(snippet, word)
     local builder = Builder.new({row = row, col = col, indent = indent, word = word})
     local content, stops = builder:build_snip(parsed)
     local lines = vim.split(content, '\n', true)
+    vim.o.undolevels = vim.o.undolevels
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
     M.next_stop()
