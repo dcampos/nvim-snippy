@@ -189,8 +189,8 @@ function M.complete_done()
 end
 
 function M.get_completion_items()
+    M.read_snippets()
     local items = {}
-
     local scopes = shared.config.get_scopes()
 
     for _, scope in ipairs(scopes) do
