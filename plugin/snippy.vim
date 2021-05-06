@@ -30,6 +30,7 @@ augroup END
 " Commands
 command! -nargs=1 -complete=customlist,s:complete_snippet_files
             \ SnippyEdit execute "split" fnameescape(<q-args>)
+command! SnippyReload lua snippy.clear_cache()
 
 function! s:complete_snippet_files(lead, line, curpos) abort
     return luaeval('require("snippy").complete_snippet_files(_A)', a:lead)

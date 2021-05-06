@@ -34,4 +34,6 @@ function M.set_config(params)
     M.config = vim.tbl_extend('keep', M.config, params)
 end
 
+M.cache = {}
+
 return M

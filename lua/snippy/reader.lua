@@ -167,7 +167,11 @@ function M.read_snippets()
     local get_scopes = shared.config.get_scopes
     for _, scope in ipairs(get_scopes()) do
         if scope and scope ~= '' then
-            snips[scope] = load_scope(scope, {})
+            snips[scope] = shared.cache[scope]
+            if not snips[scope] then
+                snips[scope] = load_scope(scope, {})
+                shared.cache[scope] = snips[scope]
+            end
         end
     end
     return snips

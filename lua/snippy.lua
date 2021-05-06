@@ -115,6 +115,7 @@ end
 -- Snippet management
 
 local function get_snippet_at_cursor()
+    M.read_snippets()
     local _, col = unpack(api.nvim_win_get_cursor(0))
     local current_line = api.nvim_get_current_line()
     local word = current_line:sub(1, col):match('(%S+)$')
@@ -418,6 +419,10 @@ M.snips = {}
 function M.read_snippets()
     local snips = reader.read_snippets()
     M.snips = vim.tbl_extend('force', M.snips, snips)
+end
+
+function M.clear_cache()
+    shared.cache = {}
 end
 
 function M.complete_snippet_files(prefix)
