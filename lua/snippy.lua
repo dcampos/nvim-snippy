@@ -31,7 +31,11 @@ end
 
 local function start_insert(pos)
     -- Update cursor - so we ensure col('$') will work.
-    api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2] + 1})
+    if fn.mode() == 'i' then
+        api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2] + 1})
+    else
+        api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
+    end
     ensure_normal_mode()
     api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2] + 1)), 'n', true)
     if pos[2] + 1 >= fn.col('$') then
