@@ -35,7 +35,7 @@ describe("Snippy tests", function ()
             test2 = {kind = 'snipmate', prefix = 'test2', body = {'This is the second test.'}},
         }
         neq(nil, meths.execute_lua([[return require 'snippy.shared'.config.snippet_dirs]], {}))
-        neq({}, meths.execute_lua([[return require 'snippy.reader'.list_available_scopes()]], {}))
+        neq({}, meths.execute_lua([[return require 'snippy.reader.snipmate'.list_available_scopes()]], {}))
         eq({_ = snips}, meths.execute_lua([[return snippy.snips]], {}))
     end)
 
@@ -47,7 +47,7 @@ describe("Snippy tests", function ()
                 get_scopes = function () return {vim.bo.ft} end,
             })
         ]], snippet_dirs))
-        local scopes = eval([[luaeval('require "snippy.reader".list_available_scopes()')]])
+        local scopes = eval([[luaeval('require "snippy.reader.snipmate".list_available_scopes()')]])
         neq({}, scopes)
         local total_failed = {}
         for _, scope in ipairs(scopes) do

@@ -1,5 +1,5 @@
 local parser = require 'snippy.parser'
-local reader = require 'snippy.reader'
+local snipmate_reader = require 'snippy.reader.snipmate'
 local buf = require 'snippy.buf'
 local shared = require 'snippy.shared'
 local util = require 'snippy.util'
@@ -419,10 +419,15 @@ api.nvim_exec([[
 ]], false)
 
 M.snips = {}
+M.readers = {
+    snipmate_reader
+}
 
 function M.read_snippets()
-    local snips = reader.read_snippets()
-    M.snips = vim.tbl_extend('force', M.snips, snips)
+    for _, reader in ipairs(M.readers) do
+        local snips = reader.read_snippets()
+        M.snips = vim.tbl_extend('force', M.snips, snips)
+    end
 end
 
 function M.clear_cache()
@@ -430,7 +435,10 @@ function M.clear_cache()
 end
 
 function M.complete_snippet_files(prefix)
-    local files = reader.list_existing_files()
+    local files = {}
+    for _, reader in ipairs(M.readers) do
+        reader.list_existing_files()
+    end
     local results = {}
     for _, file in ipairs(files) do
         if file:find(prefix, 1, true) then
