@@ -1,3 +1,5 @@
+-- Note: this is mostly a translation to Lua from Vimscript of the vsnip parser.
+
 local comb = require "snippy.parser.comb"
 local skip = comb.skip
 local seq = comb.seq

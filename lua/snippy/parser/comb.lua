@@ -1,4 +1,4 @@
--- local i = vim.inspect
+-- Note: this is mostly a translation to Lua from Vimscript of the vsnip combinators.
 
 local function skip(stop, escape)
     return function (text, apos)
@@ -131,62 +131,6 @@ local function lazy(func)
         return func()(text, pos)
     end
 end
-
---[[
-local i = vim.inspect
-local text = skip('[{}]', '[{}]')
-local ok, result, pos = text('foo = {bar}', 1)
-print(i(ok), i(result), i(pos))
-
-local escaped = skip('[{}]', '[{}]')
-ok, result, pos = escaped("foo = \\{bar\\}", 1)
-print(i(ok), i(result), i(pos))
-
-local sigil = token('$')
-ok, result, pos = sigil('foo = ${bar}', 7)
-print(i(ok), i(result), i(pos))
-
-local lb = token('{')
-ok, result, pos = lb('foo = {bar}', 7)
-print(i(ok), i(result), i(pos))
-
-local rb = token('}')
-ok, result, pos = rb('foo = {bar}', 11)
-print(i(ok), i(result), i(pos))
-
-local bracketed = seq(sigil, lb, skip('}', '}'), rb)
-ok, result, pos = bracketed('foo = ${bar}', 7)
-print(i(ok), i(result), i(pos))
-
-local many_bracketed = many(bracketed)
-ok, result, pos = many_bracketed('${foo}${bar}${baz}', 1)
-print(i(ok), i(result), i(pos))
-
-local anything = one(text, bracketed, rb, lb)
-ok, result, pos = anything('${foo = bar}', 1)
-print(i(ok), i(result), i(pos))
-
-local p = pattern('^[a-zA-Z0-9]+')
-ok, result, pos = p('snippet foo', 1)
-print(i(ok), i(result), i(pos))
-
-local lp = lazy(function() return p end)
-ok, result, pos = lp('snippet foo', 1)
-print(i(ok), i(result), i(pos))
-
-local mp = lazy(function() return
-    map(p, function(v)
-        return {value = v}
-    end)
-end)
-ok, result, pos = mp('snippet foo', 1)
-print(i(ok), i(result), i(pos))
-
-local o = opt(p)
-ok, result, pos = o('', 1)
-print(i(ok), i(result), i(pos))
-]]
-
 
 return {
     skip = skip,
