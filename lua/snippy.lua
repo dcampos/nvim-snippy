@@ -209,7 +209,7 @@ function M.get_completion_items()
                     dup = 1,
                     user_data = {
                         snippy = {
-                            snippet = table.concat(snip.body, '\n')
+                            snippet = snip
                         }
                     }
                 })

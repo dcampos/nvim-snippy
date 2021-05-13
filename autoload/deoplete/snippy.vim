@@ -41,7 +41,7 @@ func! deoplete#snippy#try_expand() abort
             endif
         endif
 
-        if snippet ==# ''
+        if empty(snippet)
             return
         endif
 
