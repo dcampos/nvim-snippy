@@ -20,12 +20,18 @@ local function ensure_normal_mode()
     end
 end
 
+local function move_cursor_to(row, col)
+    local line = fn.getline(row)
+    col = fn.strchars(line:sub(1, col))
+    api.nvim_feedkeys(t(string.format("%sG%s|", row, col)), 'n', true)
+end
+
 local function select_stop(from, to)
     api.nvim_win_set_cursor(0, {from[1] + 1, from[2] + 1})
     ensure_normal_mode()
-    api.nvim_feedkeys(t(string.format("%sG%s|", from[1] + 1, from[2] + 1)), 'n', true)
+    move_cursor_to(from[1] + 1, from[2] + 1)
     api.nvim_feedkeys(t("v"), 'n', true)
-    api.nvim_feedkeys(t(string.format("%sG%s|", to[1] + 1, to[2])), 'n', true)
+    move_cursor_to(to[1] + 1, to[2])
     api.nvim_feedkeys(t("o<c-g>"), 'n', true)
 end
 
@@ -37,7 +43,7 @@ local function start_insert(pos)
         api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
     end
     ensure_normal_mode()
-    api.nvim_feedkeys(t(string.format("%sG%s|", pos[1] + 1, pos[2] + 1)), 'n', true)
+    move_cursor_to(pos[1] + 1, pos[2] + 1)
     if pos[2] + 1 >= fn.col('$') then
         api.nvim_feedkeys(t("a"), 'n', true)
     else
@@ -164,7 +170,7 @@ end
 function M.complete()
     local col = api.nvim_win_get_cursor(0)[2]
     local current_line = api.nvim_get_current_line()
-    local word = current_line:sub(1, col):match('(%S+)$')
+    local word = current_line:sub(1, col):match('(%S*)$')
     local items = M.get_completion_items()
     local choices = {}
     for _, item in ipairs(items) do
@@ -358,7 +364,8 @@ function M.expand_snippet(snippet, word)
         error("> Error while parsing snippet: didn't parse till end")
         return false
     end
-    local builder = Builder.new({row = row, col = col, indent = indent, word = word})
+    local fixed_col = col -- fn.strchars(current_line:sub(1, col))
+    local builder = Builder.new({row = row, col = fixed_col, indent = indent, word = word})
     local content, stops = builder:build_snip(parsed)
     local lines = vim.split(content, '\n', true)
     vim.o.undolevels = vim.o.undolevels

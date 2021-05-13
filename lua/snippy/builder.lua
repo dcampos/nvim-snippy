@@ -84,9 +84,9 @@ function Builder:append_text(text, ident_level)
     lines = self:indent_lines(lines, ident_level)
     self.row = self.row + #lines - 1
     if #lines > 1 then
-        self.col = fn.strchars(lines[#lines])
+        self.col = #lines[#lines] -- fn.strchars(lines[#lines])
     else
-        self.col = self.col + fn.strchars(lines[1])
+        self.col = self.col + #lines[1] -- fn.strchars(lines[1])
     end
     self:add(table.concat(lines, '\n'))
 end
