@@ -437,7 +437,7 @@ end
 function M.complete_snippet_files(prefix)
     local files = {}
     for _, reader in ipairs(M.readers) do
-        reader.list_existing_files()
+        vim.list_extend(files, reader.list_existing_files())
     end
     local results = {}
     for _, file in ipairs(files) do
