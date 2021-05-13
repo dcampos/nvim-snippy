@@ -141,8 +141,13 @@ function Builder:process_structure(structure)
                         choices = value.choices
                     })
                 elseif value.type == 'eval' then
-                    local text = fn.eval(value.children[1].escaped) or ''
-                    self:append_text(text)
+                    local code = value.children[1].escaped
+                    local ok, result = pcall(fn.eval, code)
+                    if ok then
+                        self:append_text(result)
+                    else
+                        util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+                    end
                 elseif value.type == 'text' then
                     local text = value.escaped
                     self:append_text(text)
