@@ -22,8 +22,8 @@ end
 
 local function move_cursor_to(row, col)
     local line = fn.getline(row)
-    col = fn.strchars(line:sub(1, col))
-    api.nvim_feedkeys(t(string.format("%sG%s|", row, col)), 'n', true)
+    col = math.max(fn.strchars(line:sub(1, col)) - 1, 0)
+    api.nvim_feedkeys(t(string.format("%sG0%s", row, string.rep("<Right>", col))), 'n', true)
 end
 
 local function select_stop(from, to)
@@ -276,6 +276,8 @@ function M._jump(stop)
     end
     local should_finish = false
     if #stops >= stop and stop > 0 then
+        -- Disable autocmds so we can move freely
+        buf.clear_autocmds()
         local value = stops[stop]
         local startpos, endpos = value:get_range()
         local empty = startpos[1] == endpos[1] and endpos[2] == startpos[2]
@@ -292,6 +294,11 @@ function M._jump(stop)
         end
 
         buf.activate_stop(stop)
+
+        -- Reenable autocmds after a delay
+        vim.defer_fn(function ()
+            buf.setup_autocmds()
+        end, 200)
     else
         should_finish = true
     end

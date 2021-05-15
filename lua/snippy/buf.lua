@@ -117,6 +117,9 @@ end
 
 function M.update_state()
     local current_stop = M.stops[M.current_stop]
+    if not current_stop then
+        return
+    end
     local before = current_stop:get_before()
     M.state().before = before
 end
