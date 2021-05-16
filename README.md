@@ -2,6 +2,9 @@
 
 A Lua-based snippets plugin for Neovim **0.5.0+**.
 
+**This is a WIP plugin currently. There may be bugs (see the Known bugs
+section), and breaking changes may occur.**
+
 ## Features
 
 * Uses built-in `extmarks` feature
@@ -46,8 +49,7 @@ You can also define separate mappings to expand and jump forward. See `:help sni
 
 By default every `snippets` directory in `runtimepath` will be searched for
 snippets. Files with the `.snippet` extension contain a single snippet, while
-files with the `.snippets` extension can be used declare multiple snippets
-using the following format.
+files with the `.snippets` extension can be used to declare multiple snippets.
 
 The LSP snippet syntax is almost fully supported, while there is also full
 support for SnipMate-style snippets, including Vim evaluated pieces of code
@@ -65,7 +67,7 @@ level as snippy and run:
 TEST_FILE=../snippy/test/snippy_spec.lua make functionaltest
 ```
 
-Parser tests are run separately. Enter snippy/lua and run:
+Parser tests are run separately. Enter the `snippy/lua` directory and run:
 
 ```
 busted --exclude-pattern=snippy ../test/
@@ -80,7 +82,7 @@ These are some of the advantages of this plugin when compared with other snippet
 * No dependence on any external plugin or library.
 * Only core Neovim. No need to install Python or any other external language.
 * Because it uses the built-in `extmarks` feature, there is no insertion of markers in the text.
-* No need to edit JSON files by hand. Snippets file format is much simpler and speeds up creating snippets.
+* No need to edit JSON files by hand. Snippets file format is much simpler and may speed up the process of creating snippets.
 * No need to defined snippets in Lua or Vimscript code.
 * Simple and standard snippet syntax.
 
