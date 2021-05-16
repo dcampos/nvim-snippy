@@ -234,6 +234,11 @@ COMMANDS                                                     *snippy-commands*
 
     Opens an existing snippet file in a new split. Completion available.
 
+:SnippyReload                                                  |SnippyReload|
+
+    Invalidates current cache, allowing newly added/edited snippets to be
+    loaded.
+
 
 ==============================================================================
 LICENCE                                                       *snippy-license*
