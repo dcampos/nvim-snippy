@@ -24,7 +24,7 @@ describe("Snippy tests", function ()
 
     it("Read scopes", function ()
         command("set filetype=lua")
-        eq({_ = {}, lua = {}}, meths.execute_lua([[return snippy.snips]], {}))
+        eq({_ = {}, lua = {}}, meths.execute_lua([[return snippy.snippets]], {}))
     end)
 
     it("Read snippets", function ()
@@ -36,7 +36,7 @@ describe("Snippy tests", function ()
         }
         neq(nil, meths.execute_lua([[return require 'snippy.shared'.config.snippet_dirs]], {}))
         neq({}, meths.execute_lua([[return require 'snippy.reader.snipmate'.list_available_scopes()]], {}))
-        eq({_ = snips}, meths.execute_lua([[return snippy.snips]], {}))
+        eq({_ = snips}, meths.execute_lua([[return snippy.snippets]], {}))
     end)
 
     it("Read vim-snippets snippets", function ()
@@ -52,12 +52,12 @@ describe("Snippy tests", function ()
         local total_failed = {}
         for _, scope in ipairs(scopes) do
             command("set filetype=" ..  scope)
-            local snips = meths.execute_lua([[return snippy.snips]], {})
+            local snips = meths.execute_lua([[return snippy.snippets]], {})
             neq(nil, snips[scope])
             local failed = meths.execute_lua([[
                 local scope = vim.bo.ft
                 local failed = {}
-                for _, snip in pairs(snippy.snips[scope]) do
+                for _, snip in pairs(snippy.snippets[scope]) do
                     local text = table.concat(snip.body, '\n')
                     local ok, parsed, pos = require 'snippy.parser'.parse_snipmate(text, 1)
                     if pos ~= #text + 1 then

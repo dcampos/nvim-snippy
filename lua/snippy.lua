@@ -133,9 +133,9 @@ local function get_snippet_at_cursor()
         local scopes = shared.config.get_scopes()
         while #word > 0 do
             for _, scope in ipairs(scopes) do
-                if scope and M.snips[scope] then
-                    if M.snips[scope][word] then
-                        return word, M.snips[scope][word]
+                if scope and M.snippets[scope] then
+                    if M.snippets[scope][word] then
+                        return word, M.snippets[scope][word]
                     end
                 end
             end
@@ -200,8 +200,8 @@ function M.get_completion_items()
     local scopes = shared.config.get_scopes()
 
     for _, scope in ipairs(scopes) do
-        if scope and M.snips[scope] then
-            for _, snip in pairs(M.snips[scope]) do
+        if scope and M.snippets[scope] then
+            for _, snip in pairs(M.snippets[scope]) do
                 table.insert(items, {
                     word = snip.prefix,
                     abbr = snip.prefix,
@@ -432,7 +432,7 @@ api.nvim_exec([[
     augroup END
 ]], false)
 
-M.snips = {}
+M.snippets = {}
 M.readers = {
     snipmate_reader
 }
@@ -440,7 +440,7 @@ M.readers = {
 function M.read_snippets()
     for _, reader in ipairs(M.readers) do
         local snips = reader.read_snippets()
-        M.snips = vim.tbl_extend('force', M.snips, snips)
+        M.snippets = vim.tbl_extend('force', M.snippets, snips)
     end
 end
 
