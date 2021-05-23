@@ -282,12 +282,13 @@ function M._jump(stop)
         local startpos, endpos = value:get_range()
         local empty = startpos[1] == endpos[1] and endpos[2] == startpos[2]
         if empty or value.spec.type == 'choice' then
-            start_insert(endpos)
-            if value.spec.type == 'choice' then
-                present_choices(value, startpos)
-            end
             if stop == #stops then
                 should_finish = true
+            else
+                start_insert(endpos)
+            end
+            if value.spec.type == 'choice' then
+                present_choices(value, startpos)
             end
         else
             select_stop(startpos, endpos)
@@ -342,15 +343,15 @@ function M._check_position()
 end
 
 function M.expand_snippet(snippet, word)
+    local current_line = api.nvim_get_current_line()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     if fn.mode() ~= 'i' then
-        col = col + 1
+        col = math.min(#current_line, col + 1)
     end
     if not word then
         word = ''
     end
     col = col - #word
-    local current_line = api.nvim_get_current_line()
     local indent = current_line:match('^(%s*)')
     local text
     local ok, parsed, pos
@@ -369,7 +370,7 @@ function M.expand_snippet(snippet, word)
     end
     if not ok or pos <= #text then
         error("> Error while parsing snippet: didn't parse till end")
-        return false
+        return ''
     end
     local fixed_col = col -- fn.strchars(current_line:sub(1, col))
     local builder = Builder.new({row = row, col = fixed_col, indent = indent, word = word})
@@ -382,7 +383,7 @@ function M.expand_snippet(snippet, word)
     vim.defer_fn(function ()
         buf.setup_autocmds()
     end, 200)
-    return true
+    return ''
 end
 
 function M.expand_or_advance()
