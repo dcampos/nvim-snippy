@@ -141,7 +141,7 @@ function Builder:process_structure(structure)
                         choices = value.choices
                     })
                 elseif value.type == 'eval' then
-                    local code = value.children[1].escaped
+                    local code = value.children[1].raw
                     local ok, result = pcall(fn.eval, code)
                     if ok then
                         self:append_text(result)
