@@ -428,7 +428,7 @@ describe("Snippy tests", function ()
         -- feed("bar")
 
         screen:expect{grid=[[
-        for ($^f{1:oo} = 0; $ < ; $++) {                                                      |
+        for ($^f{1:oo} = 0; $foo < ; $foo++) {                                                |
                                                                                          |
         }                                                                                |
         {2:~                                                                                }|

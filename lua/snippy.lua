@@ -295,6 +295,7 @@ function M._jump(stop)
         end
 
         buf.activate_stop(stop)
+        mirror_stop(stop)
 
         -- Reenable autocmds after a delay
         vim.defer_fn(function ()
