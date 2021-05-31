@@ -377,7 +377,7 @@ function M.expand_snippet(snippet, word)
     local builder = Builder.new({row = row, col = fixed_col, indent = indent, word = word})
     local content, stops = builder:build_snip(parsed)
     local lines = vim.split(content, '\n', true)
-    vim.o.undolevels = vim.o.undolevels
+    api.nvim_set_option('undolevels', api.nvim_get_option('undolevels'))
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
     M.next_stop()
