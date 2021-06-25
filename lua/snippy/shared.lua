@@ -1,7 +1,7 @@
 local M = {}
 
 local function get_scopes()
-    return {'_', vim.bo.filetype}
+    return vim.tbl_flatten {'_', vim.split(vim.bo.filetype, '.', true)}
 end
 
 local default_config = {
