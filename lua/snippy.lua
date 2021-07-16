@@ -130,7 +130,7 @@ local function get_snippet_at_cursor()
     local current_line = api.nvim_get_current_line()
     local word = current_line:sub(1, col):match('(%S+)$')
     if word then
-        local scopes = shared.config.get_scopes()
+        local scopes = shared.get_scopes()
         while #word > 0 do
             for _, scope in ipairs(scopes) do
                 if scope and M.snippets[scope] then
@@ -197,7 +197,7 @@ end
 function M.get_completion_items()
     M.read_snippets()
     local items = {}
-    local scopes = shared.config.get_scopes()
+    local scopes = shared.get_scopes()
 
     for _, scope in ipairs(scopes) do
         if scope and M.snippets[scope] then
