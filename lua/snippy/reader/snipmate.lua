@@ -154,7 +154,7 @@ end
 
 function M.list_existing_files()
     local files = {}
-    local get_scopes = shared.config.get_scopes
+    local get_scopes = shared.get_scopes
     for _, scope in ipairs(get_scopes()) do
         local scope_files = list_files(scope)
         vim.list_extend(files, scope_files)
@@ -164,7 +164,7 @@ end
 
 function M.read_snippets()
     local snips = {}
-    local get_scopes = shared.config.get_scopes
+    local get_scopes = shared.get_scopes
     for _, scope in ipairs(get_scopes()) do
         if scope and scope ~= '' then
             snips[scope] = shared.cache[scope]

@@ -218,14 +218,6 @@ hl_group ~
         Type: |String|
         Default: nil
 
-get_scopes ~
-    A Lua function to return a list of scopes at the current cursor position.
-        Type: Lua function.
-        Default: >
-            function()
-                return {'_', vim.bo.filetype}
-            end
-<
 
 ==============================================================================
 COMMANDS                                                     *snippy-commands*
