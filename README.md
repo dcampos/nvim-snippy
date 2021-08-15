@@ -2,7 +2,7 @@
 
 A Lua-based snippets plugin for Neovim **0.5.0+**.
 
-**This is a WIP plugin currently. There may be bugs (see the Known bugs
+**This is a WIP plugin currently. There may be bugs (see the [Known bugs](#known-bugs)
 section), and breaking changes may occur.**
 
 ## Features
@@ -99,7 +99,7 @@ information.
 
 The LSP snippet syntax is almost fully supported. If you use a completion plugin
 like Deoplete or Compe, please install the respective integration plugin listed
-above in the Installation section.
+above in the [Installation](#installation) section.
 
 You can also expand LSP snippets present in completion items provided by Neovim's
 bult-in `vim.lsp.omnifunc`. See `:help snippy.complete_done()` for details.
