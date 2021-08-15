@@ -430,7 +430,7 @@ end
 api.nvim_exec([[
     augroup snippy
     autocmd!
-    autocmd FileType * lua snippy.read_snippets()
+    autocmd FileType * lua require 'snippy'.read_snippets()
     augroup END
 ]], false)
 
