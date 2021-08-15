@@ -38,20 +38,20 @@ some, probably.
 
 For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 >
-    imap <expr> <Tab> v:lua.snippy.can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
-    imap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<Tab>'
-    smap <expr> <Tab> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<Tab>'
-    smap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<Tab>'
+    imap <expr> <Tab> snippy#can_expand_or_next() ? '<Plug>(snippy-expand-or-next)' : '<Tab>'
+    imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
+    smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
+    smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
 <
 Of course, you can also define different mappings to expand and jump forward.
 To expand with `<C-]>`, jump forward with `<C-j>`, and jump back with `<C-k>`,
 set it up like this:
 >
-    imap <expr> <C-]> v:lua.snippy.can_expand() ? '<Plug>(snippy-expand)' : '<C-]>'
-    imap <expr> <C-j> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<C-j>'
-    imap <expr> <C-k> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<C-k>'
-    smap <expr> <C-j> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<C-j>'
-    smap <expr> <C-k> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<C-k>'
+    imap <expr> <C-]> snippy#can_expand() ? '<Plug>(snippy-expand)' : '<C-]>'
+    imap <expr> <C-j> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<C-j>'
+    imap <expr> <C-k> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<C-k>'
+    smap <expr> <C-j> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<C-j>'
+    smap <expr> <C-k> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<C-k>'
 <
 You can optionally define mappings for cutting the currently selected text, to
 be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
@@ -59,6 +59,10 @@ be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
+When mapping from Lua using |nvim_set_keymap()| set_keymap, you can use
+|snippy.can_expand()| and |snippy.can_jump()| functions. The Vimscript
+functions above are just convenience wrappings around those.
+
                                                        *snippy-usage-snippets*
 
 By default every `snippets` directory in |runtimepath| will be searched for
@@ -107,8 +111,13 @@ Javascript regex parsing. Instead we support Vim-based regular expressions and
 a simplified format, which see |snippy-snipmate-transform| below for more
 details.
 
+Note: the LSP syntax is only supported when expanding LSP provided completion
+items. When expanding snippets defined in `.snippet(s)` files, SnipMate's
+syntax is used instead.
+
+
 ------------------------------------------------------------------------------
-SnipMate Snippet Syntax                               *snippy-snipmate-syntax*
+SnipMate's Syntax                               *snippy-snipmate-syntax*
 
 SnipMate syntax is also based on the TextMate syntax and so largely compatible
 with the LSP syntax. A basic SniMate-style snippet looks like this:
@@ -159,21 +168,21 @@ snippy.can_jump({direction})                               *snippy.can_jump()*
     {direction} is a integer. You can pass `-1` or  `1` to mean backward or
     forward respectively.
 
-snippy.can_expand_or_advance()                *snippy.can_expand_or_advance()*
+snippy.can_expand_or_next()                *snippy.can_expand_or_next()*
     Checks if a snippet can be expanded or a forward jump can be performed at
     the current location.
 
 snippy.expand()                                              *snippy.expand()*
     Expands the current trigger at the current location.
 
-snippy.expand_or_advance()                        *snippy.expand_or_advance()*
+snippy.expand_or_next()                        *snippy.expand_or_next()*
     Expands the current trigger if possible. Otherwise jumps to the next
     available stop.
 
-snippy.next_stop()                                        *snippy.next_stop()*
+snippy.next()                                        *snippy.next()*
     Jumps to the next available stop.
 
-snippy.previous_stop()                                *snippy.previous_stop()*
+snippy.previous()                                *snippy.previous()*
     Jumps to the previous available stop.
 
 snippy.expand_snippet({snippet}[, {trigger}])        *snippy.expand_snippet()*
@@ -199,7 +208,21 @@ snippy.complete()                                          *snippy.complete()*
 
 snippy.complete_done()                                *snippy.complete_done()*
     To be called when the |CompleteDone| |autocmd| is fired, expanding any snippet
-    present in the |v:completed_item| variable.
+    present in the |v:completed_item| variable. Example:
+>
+    autocmd CompleteDone * require 'snippy'.complete_done()
+<
+Some Vimscript |autoload| functions are also provided for convenience,
+specially for mappings:
+
+snippy#can_expand()                                      *snippy#can_expand()*
+    See |snippy.can_expand()|.
+
+snippy#can_jump({direction})                               *snippy#can_jump()*
+    See |snippy.can_jump()|.
+
+snippy#can_expand_or_next()                *snippy#can_expand_or_next()*
+    See |snippy.can_expand_or_next()|.
 
 
 ==============================================================================

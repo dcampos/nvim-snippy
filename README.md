@@ -7,9 +7,9 @@ section), and breaking changes may occur.**
 
 ## Features
 
-* Uses built-in `extmarks` feature
+* Uses the built-in `extmarks` feature
 * Support for defining multiple snippets in a single file
-* Support for LSP-style syntax
+* Support for expanding LSP provided snippets
 * Full support for the syntax and file format used by SnipMate
 * No dependencies
 
@@ -23,10 +23,24 @@ Using vim-plug:
 Plug 'dcampos/snippy'
 ```
 
-There are no snippets installed by default. You can create your own, or install `vim-snippets`:
+There are no snippets installed by default. You can create your own, or install
+`vim-snippets`:
 
 ```vim
 Plug 'honza/vim-snippets'
+```
+
+If you want to use Snippy with [Deoplete][2] or [Compe][3], please install the
+corresponding integration plugin:
+
+```vim
+Plug 'dcampos/deoplete-snippy'
+```
+
+Or:
+
+```vim
+Plug 'dcampos/compe-snippy'
 ```
 
 ## Usage
@@ -37,10 +51,10 @@ some, probably.
 For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 
 ```vim
-imap <expr> <Tab> v:lua.snippy.can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
-imap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<S-Tab>'
-smap <expr> <Tab> v:lua.snippy.can_jump(1) ? '<Plug>(snippy-next-stop)' : '<Tab>'
-smap <expr> <S-Tab> v:lua.snippy.can_jump(-1) ? '<Plug>(snippy-previous-stop)' : '<S-Tab>'
+imap <expr> <Tab> snippy#can_expand_or_next() ? '<Plug>(snippy-expand-or-next)' : '<Tab>'
+imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
+smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
+smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
 ```
 
 You can also define separate mappings to expand and jump forward. See `:help snippy-usage`.
@@ -51,17 +65,49 @@ By default every `snippets` directory in `runtimepath` will be searched for
 snippets. Files with the `.snippet` extension contain a single snippet, while
 files with the `.snippets` extension can be used to declare multiple snippets.
 
-The LSP snippet syntax is almost fully supported, while there is also full
-support for SnipMate-style snippets, including Vim evaluated pieces of code
-inside backticks (\`\`).
+A basic `lua.snippets` file for Lua would look like this:
+
+```vim-snippet
+snippet fun
+	function ${1:name}(${2:params})
+		${0:$VISUAL}
+	end
+snippet while
+	while ${1:values} do
+		${0:$VISUAL}
+	end
+snippet loc
+	local ${1:var} = ${0:value}
+snippet fori
+	for ${1:i}, ${2:value} in ipairs(${3:table}) do
+		${0:$VISUAL}
+	end
+snippet forp
+	for ${1:key}, ${2:value} in pairs(${3:table}) do
+		${0:$VISUAL}
+	end
+```
+
+You can see example snippets by looking at the [honza/vim-snippets][4]
+repository, which, if installed, Snippy will also use automatically as a source
+of snippets .
 
 See `:help snippy-usage-snippets` and `:help snippy-snippet-syntax` for more
 information.
 
+## Expanding LSP snippets
+
+The LSP snippet syntax is almost fully supported. If you use a completion plugin
+like Deoplete or Compe, please install the respective integration plugin listed
+above in the Installation section.
+
+You can also expand LSP snippets present in completion items provided by Neovim's
+bult-in `vim.lsp.omnifunc`. See `:help snippy.complete_done()` for details.
+
 ## Running tests
 
 There are some functional tests available. Clone the Neovim master at the same
-level as snippy and run:
+level as Snippy and run:
 
 ```
 TEST_FILE=../snippy/test/snippy_spec.lua make functionaltest
@@ -91,6 +137,14 @@ These are some of the advantages of this plugin when compared with other snippet
 * There is a bug in Neovim where `extmarks` are extended to the beginning of the completed item when the `complete()` function is called and a completion menu is shown, even if the user does not select or confirm anything. See the [bug report][1] for more information.
 
 [1]: https://github.com/neovim/neovim/issues/13816
+[2]: https://github.com/Shougo/deoplete.nvim
+[3]: https://github.com/hrsh7th/nvim-compe
+[4]: https://github.com/honza/vim-snippets
+[5]: https://github.com/hrsh7th/vim-vsnip
+
+## Credits
+
+The snippet parsing code is based on the one that is part of [Vsnip][5].
 
 ## License
 

@@ -247,7 +247,7 @@ function M._mirror_stops()
     end
 end
 
-function M.previous_stop()
+function M.previous()
     local stops = buf.stops
     local stop = (buf.current_stop or 0) - 1
     while stops[stop] and not stops[stop].traversable do
@@ -256,7 +256,7 @@ function M.previous_stop()
     return M._jump(stop)
 end
 
-function M.next_stop()
+function M.next()
     local stops = buf.stops
     local stop = (buf.current_stop or 0) + 1
     while stops[stop] and not stops[stop].traversable do
@@ -380,7 +380,7 @@ function M.expand_snippet(snippet, word)
     api.nvim_set_option('undolevels', api.nvim_get_option('undolevels'))
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
-    M.next_stop()
+    M.next()
     vim.defer_fn(function ()
         buf.setup_autocmds()
     end, 200)
@@ -388,7 +388,7 @@ function M.expand_snippet(snippet, word)
 end
 
 function M.expand_or_advance()
-    return M.expand() or M.next_stop()
+    return M.expand() or M.next()
 end
 
 function M.expand()

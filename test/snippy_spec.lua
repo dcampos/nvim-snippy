@@ -16,6 +16,7 @@ describe("Snippy tests", function ()
 
         command('set rtp+=' .. alter_slashes('../snippy/'))
         command('source ' .. alter_slashes('../snippy/plugin/snippy.vim'))
+        command('lua snippy = require("snippy")')
     end)
 
     after_each(function ()
@@ -131,7 +132,7 @@ describe("Snippy tests", function ()
             [2] = {bold = true};
         }}
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
         screen:expect{grid=[[
         for  in ^ then                                                                    |
                                                                                          |
@@ -153,7 +154,7 @@ describe("Snippy tests", function ()
             [2] = {bold = true};
         }}
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
@@ -187,7 +188,7 @@ describe("Snippy tests", function ()
         }}
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
         screen:expect{grid=[[
         local var = ^                                                                     |
         {1:~                                                                                }|
@@ -243,7 +244,7 @@ describe("Snippy tests", function ()
         feed("i")
         command("lua snippy.expand_snippet([[$1, $2, $0]])")
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
         screen:expect{grid=[[
         , ^,                                                                              |
         {1:~                                                                                }|
@@ -265,7 +266,7 @@ describe("Snippy tests", function ()
             [2] = {bold = true};
         }}
         eq(true, meths.execute_lua([[return snippy.can_jump(-1)]], {}))
-        feed("<plug>(snippy-previous-stop)")
+        feed("<plug>(snippy-previous)")
         screen:expect{grid=[[
         ^, ,                                                                              |
         {1:~                                                                                }|
@@ -451,7 +452,7 @@ describe("Snippy tests", function ()
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
 
         -- screen:snapshot_util()
         screen:expect{grid=[[
@@ -477,7 +478,7 @@ describe("Snippy tests", function ()
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
 
         -- screen:snapshot_util()
         screen:expect{grid=[[
@@ -535,7 +536,7 @@ describe("Snippy tests", function ()
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
 
         -- screen:snapshot_util()
         screen:expect{grid=[[
@@ -592,7 +593,7 @@ describe("Snippy tests", function ()
 
         feed("snippy")
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
 
         -- screen:snapshot_util()
         screen:expect{grid=[[
@@ -618,7 +619,7 @@ describe("Snippy tests", function ()
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        feed("<plug>(snippy-next-stop)")
+        feed("<plug>(snippy-next)")
         -- screen:snapshot_util()
 
         screen:expect{grid=[[
