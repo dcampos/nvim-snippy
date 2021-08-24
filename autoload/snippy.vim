@@ -7,5 +7,5 @@ function! snippy#can_expand_or_advance() abort
 endfunction
 
 function! snippy#can_jump(direction) abort
-    return luaeval("require 'snippy'.can_jump(_A)", direction)
+    return luaeval("require 'snippy'.can_jump(_A)", a:direction)
 endfunction

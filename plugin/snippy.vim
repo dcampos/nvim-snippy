@@ -12,8 +12,8 @@ snoremap <silent> <plug>(snippy-next) <cmd>lua require 'snippy'.next()<cr>
 snoremap <silent> <plug>(snippy-previous) <cmd>lua require 'snippy'.previous()<cr>
 
 " Selecting/cutting text
-nnoremap <silent> <plug>(snippy-cut-text) <cmd>set operatorfunc=v:lua.snippy.cut_text<cr>g@
-xnoremap <silent> <plug>(snippy-cut-text) <cmd>call luaeval('snippy.cut_text(_A, true)', mode())<cr>
+nnoremap <silent> <plug>(snippy-cut-text) <cmd>lua vim.opt.operatorfunc=require 'snippy'.cut_text<cr>g@
+xnoremap <silent> <plug>(snippy-cut-text) <cmd>lua require 'snippy'.cut_text(vim.fn.mode(), true)<cr>
 
 " Copied from SnipMate
 augroup snippy_detect
