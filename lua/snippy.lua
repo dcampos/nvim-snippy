@@ -343,19 +343,9 @@ function M._check_position()
     buf.clear_state()
 end
 
-function M.expand_snippet(snippet, word)
-    local current_line = api.nvim_get_current_line()
-    local row, col = unpack(api.nvim_win_get_cursor(0))
-    if fn.mode() ~= 'i' then
-        col = math.min(#current_line, col + 1)
-    end
-    if not word then
-        word = ''
-    end
-    col = col - #word
-    local indent = current_line:match('^(%s*)')
-    local text
+function M.parse_snippet(snippet)
     local ok, parsed, pos
+    local text
     if type(snippet) == 'table' then
         -- Structured snippet
         text = table.concat(snippet.body, '\n')
@@ -370,9 +360,24 @@ function M.expand_snippet(snippet, word)
         ok, parsed, pos = parser.parse(text, 1)
     end
     if not ok or pos <= #text then
-        error("> Error while parsing snippet: didn't parse till end")
+        error("> Error while parsing snippet: didn't parse till the end")
         return ''
     end
+    return parsed
+end
+
+function M.expand_snippet(snippet, word)
+    local current_line = api.nvim_get_current_line()
+    local row, col = unpack(api.nvim_win_get_cursor(0))
+    if fn.mode() ~= 'i' then
+        col = math.min(#current_line, col + 1)
+    end
+    if not word then
+        word = ''
+    end
+    col = col - #word
+    local indent = current_line:match('^(%s*)')
+    local parsed = M.parse_snippet(snippet)
     local fixed_col = col -- fn.strchars(current_line:sub(1, col))
     local builder = Builder.new({row = row, col = fixed_col, indent = indent, word = word})
     local content, stops = builder:build_snip(parsed)
@@ -385,6 +390,13 @@ function M.expand_snippet(snippet, word)
         buf.setup_autocmds()
     end, 200)
     return ''
+end
+
+function M.get_repr(snippet)
+    local parsed = M.parse_snippet(snippet)
+    local builder = Builder.new({row = 0, col = 0, indent = '', word = ''})
+    local content, _ = builder:build_snip(parsed)
+    return content
 end
 
 function M.expand_or_advance()
