@@ -8,14 +8,19 @@ local sleep = helpers.sleep
 
 describe("Snippy tests", function ()
     local screen
+    local snippy_src = os.getenv('SNIPPY_PATH') or '../snippy'
+
+    local function setup_test_snippets()
+        command("lua snippy.setup({snippet_dirs = '" .. alter_slashes(snippy_src .. "/test/'})"))
+    end
 
     before_each(function()
         clear()
         screen = Screen.new(81, 15)
         screen:attach()
 
-        command('set rtp+=' .. alter_slashes('../snippy/'))
-        command('source ' .. alter_slashes('../snippy/plugin/snippy.vim'))
+        command('set rtp+=' .. alter_slashes(snippy_src))
+        command('runtime plugin/snippy.vim')
         command('lua snippy = require("snippy")')
     end)
 
@@ -29,7 +34,7 @@ describe("Snippy tests", function ()
     end)
 
     it("Read snippets", function ()
-        command("lua snippy.setup({snippet_dirs = '../snippy/test/'})")
+        setup_test_snippets()
         command("set filetype=")
         local snips = {
             test1 = {kind = 'snipmate', prefix = 'test1', body = {'This is the first test.'}},
@@ -41,13 +46,13 @@ describe("Snippy tests", function ()
     end)
 
     it("Read vim-snippets snippets", function ()
-        local snippet_dirs = '../vim-snippets/'
+        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or '../vim-snippets/'
         command(string.format([[
             lua snippy.setup({
                 snippet_dirs = '%s',
                 get_scopes = function () return {vim.bo.ft} end,
             })
-        ]], snippet_dirs))
+        ]], alter_slashes(snippet_dirs)))
         local scopes = eval([[luaeval('require "snippy.reader.snipmate".list_available_scopes()')]])
         neq({}, scopes)
         local total_failed = {}
@@ -76,7 +81,7 @@ describe("Snippy tests", function ()
     end)
 
     it("Insert basic snippet", function ()
-        command("lua snippy.setup({snippet_dirs = '../snippy/test/'})")
+        setup_test_snippets()
         command("set filetype=")
         insert("test1")
         feed("a")
@@ -105,7 +110,7 @@ describe("Snippy tests", function ()
     end)
 
     it("Insert snippet and jump", function ()
-        command("lua snippy.setup({snippet_dirs = '../snippy/test/'})")
+        setup_test_snippets()
         command("set filetype=lua")
         insert("for")
         feed("a")
@@ -159,7 +164,7 @@ describe("Snippy tests", function ()
     end)
 
     it("Expand and select placeholder", function ()
-        command("lua snippy.setup({snippet_dirs = '../snippy/test/'})")
+        setup_test_snippets()
         command("set filetype=lua")
         insert("loc")
         feed("a")

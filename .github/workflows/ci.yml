@@ -1,0 +1,71 @@
+name: CI
+on:
+  push:
+    branches: 'master'
+  pull_request:
+    branches: 'master'
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+
+      - name: Set nvim version
+        id: vars
+        run: |
+          echo "::set-output name=nvim_version::$(nvim --version | head -1 | cut -d' ' -f2)"
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        id: cache
+        with:
+          path: neovim
+          key: ${{ runner.os }}-${{ steps.vars.outputs.nvim_version }}
+
+      - uses: actions/checkout@v2
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          repository: neovim/neovim
+          path: neovim
+          ref: ${{ steps.vars.outputs.nvim_version }}
+
+      - uses: actions/checkout@v2
+        with:
+          repository: honza/vim-snippets
+          path: vim-snippets
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake build-essential cmake gcc-11 gettext gperf libtool-bin locales ninja-build pkg-config unzip
+
+      - name: Setup lua
+        uses: leafo/gh-actions-lua@v8
+        with:
+          luaVersion: "luajit"
+
+      - name: Setup luarocks
+        uses: leafo/gh-actions-luarocks@v4
+
+      - name: Setup busted
+        run: |
+          luarocks install vusted
+
+      - name: Test parsers
+        run: |
+          vusted --exclude-pattern=snippy test/
+
+      - name: Functional tests
+        env:
+          SNIPPY_PATH: ../
+          VIM_SNIPPETS_PATH: ../vim-snippets
+          TEST_FILE: ../test/snippy_spec.lua
+        run: |
+          cd neovim
+          make functionaltest
