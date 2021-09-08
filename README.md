@@ -2,8 +2,10 @@
 
 A Lua-based snippets plugin for Neovim **0.5.0+**.
 
-**This is a WIP plugin currently. There may be bugs (see the [Known bugs](#known-bugs)
-section), and breaking changes may occur.**
+## Status
+
+The plugin is mostly stable and can be used. Please open an issue if you
+find any bug. Also, see the [Known bugs](#known-bugs) section.
 
 ## Features
 
@@ -30,17 +32,17 @@ There are no snippets installed by default. You can create your own, or install
 Plug 'honza/vim-snippets'
 ```
 
-If you want to use Snippy with [Deoplete][2] or [Compe][3], please install the
+If you want to use Snippy with [deoplete.nvim][2], [nvim-compe][3] or [nvim-cmp][4], please install the
 corresponding integration plugin:
 
 ```vim
 Plug 'dcampos/deoplete-snippy'
-```
 
-Or:
-
-```vim
+" Or:
 Plug 'dcampos/compe-snippy'
+
+" Or:
+Plug 'dcampos/cmp-snippy'
 ```
 
 ## Usage
@@ -88,7 +90,7 @@ snippet forp
 	end
 ```
 
-You can see example snippets by looking at the [honza/vim-snippets][4]
+You can see example snippets by looking at the [honza/vim-snippets][5]
 repository, which, if installed, Snippy will also use automatically as a source
 of snippets .
 
@@ -139,12 +141,13 @@ These are some of the advantages of this plugin when compared with other snippet
 [1]: https://github.com/neovim/neovim/issues/13816
 [2]: https://github.com/Shougo/deoplete.nvim
 [3]: https://github.com/hrsh7th/nvim-compe
-[4]: https://github.com/honza/vim-snippets
-[5]: https://github.com/hrsh7th/vim-vsnip
+[4]: https://github.com/hrsh7th/nvim-cmp
+[5]: https://github.com/honza/vim-snippets
+[6]: https://github.com/hrsh7th/vim-vsnip
 
 ## Credits
 
-The snippet parsing code is based on the one that is part of [Vsnip][5].
+The snippet parsing code is based on the one that is part of [Vsnip][6].
 
 ## License
 
