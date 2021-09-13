@@ -92,8 +92,12 @@ local function sort_stops(stops)
         elseif s2.id == 0 then
             return true
         end
-        return s1.id < s2.id
-            or util.is_before(s1.startpos, s2.startpos)
+        if s1.id < s2.id then
+            return true
+        elseif s1.id > s2.id then
+            return false
+        end
+        return util.is_before(s1.startpos, s2.startpos)
     end)
 end
 
