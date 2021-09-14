@@ -38,7 +38,7 @@ some, probably.
 
 For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 >
-    imap <expr> <Tab> snippy#can_expand_or_next() ? '<Plug>(snippy-expand-or-next)' : '<Tab>'
+    imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-next)' : '<Tab>'
     imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
     smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
     smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
@@ -86,6 +86,12 @@ following format:
     	This is the first line.
     	This is the second line.
 <
+Note: Snippy follows the |runtimepath| order when loading snippets, which
+means snippets defined in folders coming later in the list will always
+override those loaded before. So, if you put your custom snippets in
+`after/snippets/`, they should override any snippets provided by plugins in
+case of name conflict.
+
 
 ==============================================================================
 SNIPPET SYNTAX                                         *snippy-snippet-syntax*
@@ -117,7 +123,7 @@ syntax is used instead.
 
 
 ------------------------------------------------------------------------------
-SnipMate's Syntax                               *snippy-snipmate-syntax*
+SnipMate's Syntax                                     *snippy-snipmate-syntax*
 
 SnipMate syntax is also based on the TextMate syntax and so largely compatible
 with the LSP syntax. A basic SniMate-style snippet looks like this:
@@ -168,21 +174,21 @@ snippy.can_jump({direction})                               *snippy.can_jump()*
     {direction} is a integer. You can pass `-1` or  `1` to mean backward or
     forward respectively.
 
-snippy.can_expand_or_next()                *snippy.can_expand_or_next()*
+snippy.can_expand_or_advance()                *snippy.can_expand_or_advance()*
     Checks if a snippet can be expanded or a forward jump can be performed at
     the current location.
 
 snippy.expand()                                              *snippy.expand()*
     Expands the current trigger at the current location.
 
-snippy.expand_or_next()                        *snippy.expand_or_next()*
+snippy.expand_or_next()                              *snippy.expand_or_next()*
     Expands the current trigger if possible. Otherwise jumps to the next
     available stop.
 
-snippy.next()                                        *snippy.next()*
+snippy.next()                                                  *snippy.next()*
     Jumps to the next available stop.
 
-snippy.previous()                                *snippy.previous()*
+snippy.previous()                                          *snippy.previous()*
     Jumps to the previous available stop.
 
 snippy.expand_snippet({snippet}[, {trigger}])        *snippy.expand_snippet()*
@@ -221,8 +227,8 @@ snippy#can_expand()                                      *snippy#can_expand()*
 snippy#can_jump({direction})                               *snippy#can_jump()*
     See |snippy.can_jump()|.
 
-snippy#can_expand_or_next()                *snippy#can_expand_or_next()*
-    See |snippy.can_expand_or_next()|.
+snippy#can_expand_or_advance()                *snippy#can_expand_or_advance()*
+    See |snippy.can_expand_or_advance()|.
 
 
 ==============================================================================
