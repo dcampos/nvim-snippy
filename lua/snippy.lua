@@ -447,6 +447,7 @@ api.nvim_exec([[
     augroup snippy
     autocmd!
     autocmd FileType * lua require 'snippy'.read_snippets()
+    autocmd vimrc BufWritePost *.snippet{,s} lua require 'snippy'.clear_cache() 
     augroup END
 ]], false)
 
