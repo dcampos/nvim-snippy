@@ -7,18 +7,24 @@ on:
 
 jobs:
   linux:
+    strategy:
+      matrix:
+        version: [stable, nightly]
+
     runs-on: ubuntu-latest
+
     steps:
 
       - name: Setup neovim
         uses: rhysd/action-setup-vim@v1
         with:
           neovim: true
+          version: ${{ matrix.version }}
 
       - name: Set nvim version
         id: vars
         run: |
-          echo "::set-output name=nvim_version::$(nvim --version | head -1 | cut -d' ' -f2)"
+          echo "::set-output name=nvim_ref::$(nvim --version | head -1 | cut -d' ' -f2)"
 
       - uses: actions/checkout@v2
 
@@ -26,14 +32,14 @@ jobs:
         id: cache
         with:
           path: neovim
-          key: ${{ runner.os }}-${{ steps.vars.outputs.nvim_version }}
+          key: ${{ runner.os }}-${{ steps.vars.outputs.nvim_ref }}
 
       - uses: actions/checkout@v2
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           repository: neovim/neovim
           path: neovim
-          ref: ${{ steps.vars.outputs.nvim_version }}
+          ref: ${{ matrix.version }}
 
       - uses: actions/checkout@v2
         with:
