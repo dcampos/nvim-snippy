@@ -108,20 +108,19 @@ bult-in `vim.lsp.omnifunc`. See `:help snippy.complete_done()` for details.
 
 ## Running tests
 
-There are some functional tests available. Clone the Neovim master at the same
-level as Snippy and run:
+There are some functional and unit tests available. To run them, use either:
 
 ```
-TEST_FILE=../snippy/test/snippy_spec.lua make functionaltest
+make functionaltest
 ```
 
-Parser tests are run separately. Enter the `snippy/lua` directory and run:
+Or:
 
 ```
-busted --exclude-pattern=snippy ../test/
+make unittest
 ```
 
-You need to have `busted` installed for the above command to succeed.
+You need to have [`vusted`][6] installed for the above command to succeed.
 
 ## Advantages
 
@@ -143,11 +142,12 @@ These are some of the advantages of this plugin when compared with other snippet
 [3]: https://github.com/hrsh7th/nvim-compe
 [4]: https://github.com/hrsh7th/nvim-cmp
 [5]: https://github.com/honza/vim-snippets
-[6]: https://github.com/hrsh7th/vim-vsnip
+[6]: https://github.com/notomo/vusted
+[7]: https://github.com/hrsh7th/vim-vsnip
 
 ## Credits
 
-The snippet parsing code is based on the one that is part of [Vsnip][6].
+The snippet parsing code is based on the one that is part of [vsnip][7].
 
 ## License
 

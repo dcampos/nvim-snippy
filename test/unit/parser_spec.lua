@@ -1,4 +1,4 @@
-local inspect = vim and vim.inspect or require "inspect"
+local inspect = vim.inspect -- and vim.inspect or require "inspect"
 
 local parser = require  "snippy.parser"
 

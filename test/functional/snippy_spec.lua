@@ -8,7 +8,7 @@ local sleep = helpers.sleep
 
 describe("Snippy tests", function ()
     local screen
-    local snippy_src = os.getenv('SNIPPY_PATH') or '../snippy'
+    local snippy_src = os.getenv('SNIPPY_PATH') or '.'
 
     local function setup_test_snippets()
         command("lua snippy.setup({snippet_dirs = '" .. alter_slashes(snippy_src .. "/test/'})"))
@@ -19,6 +19,7 @@ describe("Snippy tests", function ()
         screen = Screen.new(81, 15)
         screen:attach()
 
+        command('set rtp=$VIMRUNTIME')
         command('set rtp+=' .. alter_slashes(snippy_src))
         command('runtime plugin/snippy.vim')
         command('lua snippy = require("snippy")')
@@ -30,6 +31,7 @@ describe("Snippy tests", function ()
 
     it("Read scopes", function ()
         command("set filetype=lua")
+        -- eq({}, eval('&runtimepath'))
         eq({_ = {}, lua = {}}, meths.execute_lua([[return snippy.snippets]], {}))
     end)
 
@@ -46,7 +48,7 @@ describe("Snippy tests", function ()
     end)
 
     it("Read vim-snippets snippets", function ()
-        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or '../vim-snippets/'
+        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/'
         command(string.format([[
             lua snippy.setup({
                 snippet_dirs = '%s',
