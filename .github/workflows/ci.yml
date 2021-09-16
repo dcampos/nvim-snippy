@@ -32,19 +32,7 @@ jobs:
         id: cache
         with:
           path: neovim
-          key: ${{ runner.os }}-${{ steps.vars.outputs.nvim_ref }}
-
-      - uses: actions/checkout@v2
-        if: steps.cache.outputs.cache-hit != 'true'
-        with:
-          repository: neovim/neovim
-          path: neovim
-          ref: ${{ matrix.version }}
-
-      - uses: actions/checkout@v2
-        with:
-          repository: honza/vim-snippets
-          path: vim-snippets
+          key: ${{ runner.os }}-nvim-${{ steps.vars.outputs.nvim_ref }}
 
       - name: Install dependencies
         run: |
@@ -59,19 +47,16 @@ jobs:
       - name: Setup luarocks
         uses: leafo/gh-actions-luarocks@v4
 
-      - name: Setup busted
+      - name: Setup vusted
         run: |
           luarocks install vusted
 
-      - name: Test parsers
+      - name: Run unit tests
         run: |
-          vusted --exclude-pattern=snippy test/
+          make unittest
 
-      - name: Functional tests
+      - name: Run functional tests
         env:
-          SNIPPY_PATH: ../
-          VIM_SNIPPETS_PATH: ../vim-snippets
-          TEST_FILE: ../test/snippy_spec.lua
+          NEOVIM_BRANCH: ${{ matrix.version }}
         run: |
-          cd neovim
           make functionaltest
