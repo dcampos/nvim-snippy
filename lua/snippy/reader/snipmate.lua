@@ -126,7 +126,10 @@ local function load_scope(scope, stack)
 end
 
 function M.list_available_scopes()
-    local dirs = shared.config.snippet_dirs or vim.o.rtp
+    local dirs = shared.config.snippet_dirs or vim.api.nvim_list_runtime_paths()
+    if type(dirs) ~= 'string' then
+        dirs = table.concat(dirs, ',')
+    end
     local patterns = {
         '/snippets/(.-)/.-%.snippets',
         '/snippets/(.-)/.-%.snippet',

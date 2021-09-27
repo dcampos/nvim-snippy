@@ -238,9 +238,9 @@ This plugin can be configured by passing a dictionary to the lua function
 `snippy.setup(...)`. The following options are supported:
 
 snippet_dirs ~
-    A comma-separated list of directories containing snippets.
-        Type: |String|
-        Default: &|runtimepath|
+    A comma-separated (if a |String|) list of directories containing snippets.
+        Type: |String| or |List|
+        Default: vim.api.nvim_list_runtime_paths()
 
 hl_group ~
     Highlight group used for placeholders.
