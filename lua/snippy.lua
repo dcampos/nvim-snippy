@@ -153,6 +153,14 @@ local function get_snippet_at_cursor()
     return nil, nil
 end
 
+local function get_lsp_item(user_data)
+    if user_data and user_data.nvim and user_data.nvim.lsp then
+        print('found')
+        return user_data.nvim.lsp.completion_item
+    end
+    print('not found')
+end
+
 -- Autocmd handlers
 
 function M._handle_TextChanged()
@@ -191,8 +199,20 @@ function M.complete_done()
     if completed_item.user_data then
         local word = completed_item.word
         local user_data = completed_item.user_data
-        if type(user_data) == 'table' and user_data.snippy then
-            local snippet = user_data.snippy.snippet
+        local snippet
+        if type(user_data) == 'table' then
+            if user_data.snippy then
+                snippet = user_data.snippy.snippet
+            else
+                local lsp_item = get_lsp_item(user_data) or {}
+                if lsp_item.textEdit and type(lsp_item.textEdit) == 'table' then
+                    snippet = lsp_item.textEdit.newText
+                elseif lsp_item.insertTextFormat == 2 then
+                    snippet = lsp_item.insertText
+                end
+            end
+        end
+        if snippet then
             M.expand_snippet(snippet, word)
         end
     end

@@ -216,7 +216,7 @@ snippy.complete_done()                                *snippy.complete_done()*
     To be called when the |CompleteDone| |autocmd| is fired, expanding any snippet
     present in the |v:completed_item| variable. Example:
 >
-    autocmd CompleteDone * require 'snippy'.complete_done()
+    autocmd CompleteDone * lua require 'snippy'.complete_done()
 <
 Some Vimscript |autoload| functions are also provided for convenience,
 specially for mappings:
