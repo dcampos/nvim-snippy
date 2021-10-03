@@ -155,10 +155,8 @@ end
 
 local function get_lsp_item(user_data)
     if user_data and user_data.nvim and user_data.nvim.lsp then
-        print('found')
         return user_data.nvim.lsp.completion_item
     end
-    print('not found')
 end
 
 -- Autocmd handlers
