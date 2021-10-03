@@ -67,27 +67,26 @@ By default every `snippets` directory in `runtimepath` will be searched for
 snippets. Files with the `.snippet` extension contain a single snippet, while
 files with the `.snippets` extension can be used to declare multiple snippets.
 
-A basic `lua.snippets` file for Lua would look like this:
+A basic `lua.snippets` file for Lua showing off some of the plugin's features
+would look like this:
 
 ```vim-snippet
+# Comments are possible
 snippet fun
 	function ${1:name}(${2:params})
 		${0:$VISUAL}
 	end
-snippet while
-	while ${1:values} do
-		${0:$VISUAL}
-	end
-snippet loc
-	local ${1:var} = ${0:value}
-snippet fori
-	for ${1:i}, ${2:value} in ipairs(${3:table}) do
-		${0:$VISUAL}
-	end
-snippet forp
-	for ${1:key}, ${2:value} in pairs(${3:table}) do
-		${0:$VISUAL}
-	end
+snippet upcase
+	local ${1:var} = '${1/.*/\U\0/g}'
+snippet choices
+	print('My favorite language is: ${1|JavaScript,Lua,Rust|}')
+snippet date
+	Current date is `strftime('%c')`
+# Custom tabstop order
+snippet repeat
+	repeat
+		${2:what}
+	while ${1:condition}
 ```
 
 You can see example snippets by looking at the [honza/vim-snippets][5]
