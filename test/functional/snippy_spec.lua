@@ -29,13 +29,13 @@ describe("Snippy tests", function ()
         screen:detach()
     end)
 
-    it("Read scopes", function ()
+    it("can detect current scope", function ()
         command("set filetype=lua")
         -- eq({}, eval('&runtimepath'))
         eq({_ = {}, lua = {}}, meths.execute_lua([[return snippy.snippets]], {}))
     end)
 
-    it("Read snippets", function ()
+    it("can read snippets", function ()
         setup_test_snippets()
         command("set filetype=")
         local snips = {
@@ -47,7 +47,7 @@ describe("Snippy tests", function ()
         eq({_ = snips}, meths.execute_lua([[return snippy.snippets]], {}))
     end)
 
-    it("Read vim-snippets snippets", function ()
+    it("can read vim-snippets snippets", function ()
         local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/'
         command(string.format([[
             lua snippy.setup({
@@ -82,7 +82,7 @@ describe("Snippy tests", function ()
         eq({}, total_failed)
     end)
 
-    it("Insert basic snippet", function ()
+    it("can insert a basic snippet", function ()
         setup_test_snippets()
         command("set filetype=")
         insert("test1")
@@ -111,7 +111,7 @@ describe("Snippy tests", function ()
         }}
     end)
 
-    it("Insert snippet and jump", function ()
+    it("can expand a snippet and jump", function ()
         setup_test_snippets()
         command("set filetype=lua")
         insert("for")
@@ -165,7 +165,7 @@ describe("Snippy tests", function ()
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Expand and select placeholder", function ()
+    it("can expand and select placeholder", function ()
         setup_test_snippets()
         command("set filetype=lua")
         insert("loc")
@@ -219,7 +219,7 @@ describe("Snippy tests", function ()
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Expand anonymous snippet", function ()
+    it("can xpand anonymous snippet", function ()
         command("set filetype=")
         feed("i")
         command("lua snippy.expand_snippet([[local $1 = $0]])")
@@ -246,7 +246,7 @@ describe("Snippy tests", function ()
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Jump back", function ()
+    it("can jump back", function ()
         command("set filetype=")
         feed("i")
         command("lua snippy.expand_snippet([[$1, $2, $0]])")
@@ -296,7 +296,7 @@ describe("Snippy tests", function ()
         }}
     end)
 
-    it("Apply transform", function ()
+    it("applies transform", function ()
         command("set filetype=")
         feed("i")
         command("lua snippy.expand_snippet([[local ${1:var} = ${1/snip/snap/g}]])")
@@ -348,7 +348,7 @@ describe("Snippy tests", function ()
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Apply transform with escaping", function ()
+    it("applies transform with escaping", function ()
         command("set filetype=")
         feed("i")
         command("lua snippy.expand_snippet([[local ${1:var} = ${1/\\w\\+/\\U\\0/g}]])")
@@ -378,7 +378,7 @@ describe("Snippy tests", function ()
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Clear state on move", function ()
+    it("clears state on move", function ()
         command("set filetype=")
         feed("i")
         command("lua snippy.expand_snippet([[local $1 = $0]])")
@@ -428,7 +428,7 @@ describe("Snippy tests", function ()
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Jump from select to insert", function ()
+    it("can jump from select to insert mode", function ()
         -- command [[lua snippy.setup({ hl_group = 'Search' })]]
         local snip = 'for (\\$${1:foo} = 0; \\$$1 < $2; \\$$1++) {\n\t$0\n}'
         feed("i")
@@ -512,7 +512,7 @@ describe("Snippy tests", function ()
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Jump and mirror correctly", function ()
+    it("jumps and mirrors correctly", function ()
         -- command [[lua snippy.setup({ hl_group = 'Search' })]]
         local snip = '${1:var} = $0; // set $1'
         feed("i")
@@ -570,7 +570,7 @@ describe("Snippy tests", function ()
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
-    it("Jump correctly when unicode chars present", function ()
+    it("jumps correctly when unicode chars present", function ()
         local snip = 'local ${1:var} = $2 -- ▴ $0'
         feed("iç")
         command("lua snippy.expand_snippet([[" .. snip .. "]])")
@@ -653,4 +653,41 @@ describe("Snippy tests", function ()
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 
+    it("jumps in the correct order", function ()
+        local snip = '${1:var1}\n${2:var2} ${3:var3}\n$2 $3 $3 ${4:var4}\n$3 $3 $4'
+        command("lua snippy.expand_snippet([[" .. snip .. "]])")
+        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(1, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
+        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        feed("<plug>(snippy-next)")
+        eq(2, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
+        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        feed("<plug>(snippy-next)")
+        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        feed("<plug>(snippy-next)")
+
+        screen:expect{grid=[[
+        var1                                                                             |
+        var2 var3                                                                        |
+        var2 var3 var3 ^v{1:ar4}                                                              |
+        var3 var3 var4                                                                   |
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {3:-- SELECT --}                                                                     |
+        ]], attr_ids={
+            [1] = {background = Screen.colors.LightGrey};
+            [2] = {bold = true, foreground = Screen.colors.Blue};
+            [3] = {bold = true};
+        }}
+
+        eq(9, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
+    end)
 end)
