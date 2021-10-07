@@ -15,16 +15,6 @@ snoremap <silent> <plug>(snippy-previous) <cmd>lua require 'snippy'.previous()<c
 nnoremap <silent> <plug>(snippy-cut-text) <cmd>lua vim.opt.operatorfunc=require 'snippy'.cut_text<cr>g@
 xnoremap <silent> <plug>(snippy-cut-text) <cmd>lua require 'snippy'.cut_text(vim.fn.mode(), true)<cr>
 
-" Copied from SnipMate
-augroup snippy_detect
-    au BufRead,BufNewFile *.snippet,*.snippets setlocal filetype=snippets
-    au FileType snippets if expand('<afile>:e') =~# 'snippet$'
-                \ | setlocal syntax=snippet
-                \ | else
-                    \ | setlocal syntax=snippets
-                    \ | endif
-augroup END
-
 " Commands
 command! -nargs=1 -complete=customlist,s:complete_snippet_files
             \ SnippyEdit execute "split" fnameescape(<q-args>)

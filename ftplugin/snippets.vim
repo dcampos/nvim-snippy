@@ -14,7 +14,3 @@ setlocal foldmethod=expr foldexpr=getline(v:lnum)!~'^\\t\\\\|^$'?'>1':1
 
 setlocal commentstring=#\ %s
 setlocal nospell
-
-command! -buffer -range=% RetabSnip
-            \ echom "This command is deprecated. Use :retab and = instead. Doing that now."
-            \ | <line1>,<line2>retab! | <line1>,<line2>normal =

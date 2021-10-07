@@ -23,9 +23,10 @@ Snippy is a lua-based snippets plugin for Neovim.
 USAGE                                                           *snippy-usage*
 
                                                           *snippy-usage-setup*
-Snippy includes a `setup` function for you to quickly configure it according
-to your needs.  See the |snippy-options| section for information on the
-available options.
+
+Snippy includes an optional `setup` function for you to quickly configure it
+according to your needs. See the |snippy-options| section for information on
+the available options.
 >
     lua require 'snippy'.setup({
                 \     hl_group = 'Search'
