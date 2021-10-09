@@ -57,6 +57,17 @@ imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-next
 imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
 smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
 smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
+xmap <expr> <Tab> <Plug>(snippy-cut-text)
+```
+
+Using the Lua API:
+
+```lua
+vim.api.nvim_set_keymap('i', '<Tab>', "snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-next)' : '<Tab>'", { expr = true })
+vim.api.nvim_set_keymap('i', '<S-Tab>', "snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'", { expr = true })
+vim.api.nvim_set_keymap('s', '<Tab>', "snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'", { expr = true })
+vim.api.nvim_set_keymap('s', '<S-Tab>', "snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'", { expr = true })
+vim.api.nvim_set_keymap('x', '<Tab>', '<Plug>(snippy-cut-text)', {})
 ```
 
 You can also define separate mappings to expand and jump forward. See `:help snippy-usage`.

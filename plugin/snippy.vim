@@ -9,6 +9,7 @@ inoremap <silent> <plug>(snippy-expand) <cmd>lua require 'snippy'.expand()<cr>
 inoremap <silent> <plug>(snippy-next) <cmd>lua require 'snippy'.next()<cr>
 inoremap <silent> <plug>(snippy-previous) <cmd>lua require 'snippy'.previous()<cr>
 snoremap <silent> <plug>(snippy-next) <cmd>lua require 'snippy'.next()<cr>
+snoremap <silent> <plug>(snippy-expand-or-next) <cmd>lua require 'snippy'.expand_or_advance()<cr>
 snoremap <silent> <plug>(snippy-previous) <cmd>lua require 'snippy'.previous()<cr>
 
 " Selecting/cutting text
