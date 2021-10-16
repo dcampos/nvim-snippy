@@ -271,7 +271,7 @@ scopes ~
     list of scopes or a function that receives the calculated list of scopes
     for the current buffer and should return a new (possibly modified) list of
     scopes.
-        Type: ||Table|
+        Type: |Table|
         Default: nil
 
 
