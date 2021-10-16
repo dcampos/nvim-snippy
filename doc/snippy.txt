@@ -60,7 +60,7 @@ be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
-When mapping from Lua using |nvim_set_keymap()| set_keymap, you can use
+When mapping from Lua using |nvim_set_keymap()|, you can use
 |snippy.can_expand()| and |snippy.can_jump()| functions. The Vimscript
 functions above are just convenience wrappings around those.
 
@@ -163,8 +163,21 @@ TextMate/LSP syntax.
 FUNCTIONS                                                   *snippy-functions*
 
 snippy.setup({options})                                       *snippy.setup()*
-    Set initial configuration for the plugin. See |snippy-options|.
-
+    Set initial configuration for the plugin. See also |snippy-options|.
+    Example:
+>
+    require('snippy').setup({
+        snippet_dirs = '~/snippets',
+        hl_group = 'Search',
+        get_scopes = function(scopes)
+            if vim.fn.bufname(0):gmatch('_spec.lua$') then
+                -- Snippets in busted.snippets will be loaded too
+                table.insert(scopes, 'busted')
+            end
+            return scopes
+        end
+    })
+<
 snippy.can_expand()                                      *snippy.can_expand()*
     Checks if a snippet can be expanded at the current location.
 
@@ -246,6 +259,12 @@ snippet_dirs ~
 hl_group ~
     Highlight group used for placeholders.
         Type: |String|
+        Default: nil
+
+get_scopes ~
+    A function that receives the calculated list of scopes for the current
+    buffer and should return a new (possibly modified) list of scopes.
+        Type: |Function|
         Default: nil
 
 
