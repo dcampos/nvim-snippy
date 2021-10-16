@@ -179,7 +179,7 @@ FUNCTIONS                                                   *snippy-functions*
 snippy.setup({options})                                       *snippy.setup()*
     Set initial configuration for the plugin. See also |snippy-options|.
 
-snippy.setup_options({options})                               *snippy.setup()*
+snippy.setup_buffer({options})                         *snippy.setup_buffer()*
     Set configuration for the current buffer. See also
     |snippy-buffer-options|.
 
