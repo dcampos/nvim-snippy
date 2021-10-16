@@ -26,11 +26,25 @@ USAGE                                                           *snippy-usage*
 
 Snippy includes an optional `setup` function for you to quickly configure it
 according to your needs. See the |snippy-options| section for information on
-the available options.
+the available options. Below is an example showing most of the available
+options:
 >
-    lua require 'snippy'.setup({
-                \     hl_group = 'Search'
-                \ })
+    require('snippy').setup({
+        snippet_dirs = '~/snippets',
+        hl_group = 'Search',
+        scopes = {
+            _ = { },
+
+            lua = function(scopes)
+                if vim.api.nvim_buf_get_name(0):find('_spec.lua$') then
+                    table.insert(scopes, 'busted')
+                end
+                return scopes
+            end,
+
+            php = { '_', 'php', 'html', 'javascript' },
+        end
+    })
 <
                                                        *snippy-usage-mappings*
 
@@ -164,20 +178,11 @@ FUNCTIONS                                                   *snippy-functions*
 
 snippy.setup({options})                                       *snippy.setup()*
     Set initial configuration for the plugin. See also |snippy-options|.
-    Example:
->
-    require('snippy').setup({
-        snippet_dirs = '~/snippets',
-        hl_group = 'Search',
-        get_scopes = function(scopes)
-            if vim.fn.bufname(0):gmatch('_spec.lua$') then
-                -- Snippets in busted.snippets will be loaded too
-                table.insert(scopes, 'busted')
-            end
-            return scopes
-        end
-    })
-<
+
+snippy.setup_options({options})                               *snippy.setup()*
+    Set configuration for the current buffer. See also
+    |snippy-buffer-options|.
+
 snippy.can_expand()                                      *snippy.can_expand()*
     Checks if a snippet can be expanded at the current location.
 
@@ -261,10 +266,26 @@ hl_group ~
         Type: |String|
         Default: nil
 
-get_scopes ~
-    A function that receives the calculated list of scopes for the current
-    buffer and should return a new (possibly modified) list of scopes.
-        Type: |Function|
+scopes ~
+    A table with filetypes as keys. Each value must be a table containing a
+    list of scopes or a function that receives the calculated list of scopes
+    for the current buffer and should return a new (possibly modified) list of
+    scopes.
+        Type: ||Table|
+        Default: nil
+
+
+==============================================================================
+BUFFER OPTIONS                                         *snippy-buffer-options*
+
+It is also possible to set configuration specific to abuffer by calling
+`snippy.setup_buffer(...)` function. The following options are supported:
+
+scopes ~
+    Can be set to a table containing a list of scopes or a function that
+    receives the calculated list of scopes for the current buffer and should
+    return a new (possibly modified) list of scopes.
+        Type: ||Table|
         Default: nil
 
 
