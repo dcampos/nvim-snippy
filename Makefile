@@ -33,4 +33,6 @@ functionaltest: neovim vim-snippets
 	-@stty sane
 
 unittest:
-	vusted test/unit
+	VIMRUNTIME=$(PWD)/neovim/runtime/ \
+		VUSTED_NVIM=$(PWD)/neovim/build/bin/nvim \
+		vusted test/unit

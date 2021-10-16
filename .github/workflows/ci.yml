@@ -9,22 +9,16 @@ jobs:
   linux:
     strategy:
       matrix:
-        version: [stable, nightly]
+        version: [stable, master]
 
     runs-on: ubuntu-latest
 
     steps:
 
-      - name: Setup neovim
-        uses: rhysd/action-setup-vim@v1
-        with:
-          neovim: true
-          version: ${{ matrix.version }}
-
-      - name: Set nvim version
+      - name: Set current date
         id: vars
         run: |
-          echo "::set-output name=nvim_ref::$(nvim --version | head -1 | cut -d' ' -f2)"
+          echo "::set-output name=current_date::$(date +'%Y-%m-%d')"
 
       - uses: actions/checkout@v2
 
@@ -32,7 +26,7 @@ jobs:
         id: cache
         with:
           path: neovim
-          key: ${{ runner.os }}-nvim-${{ steps.vars.outputs.nvim_ref }}
+          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ steps.vars.outputs.current_date }}
 
       - name: Install dependencies
         run: |
@@ -51,12 +45,15 @@ jobs:
         run: |
           luarocks install vusted
 
-      - name: Run unit tests
-        run: |
-          make unittest
-
       - name: Run functional tests
         env:
           NEOVIM_BRANCH: ${{ matrix.version }}
         run: |
           make functionaltest
+
+      - name: Run unit tests
+        env:
+          VIMRUNTIME: ${{ github.workspace }}/neovim/runtime/
+          VUSTED_NVIM: ${{ github.workspace }}/neovim/build/bin/nvim
+        run: |
+          make unittest
