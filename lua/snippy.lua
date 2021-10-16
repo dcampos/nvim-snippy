@@ -1,4 +1,3 @@
-local parser = require 'snippy.parser'
 local snipmate_reader = require 'snippy.reader.snipmate'
 local buf = require 'snippy.buf'
 local shared = require 'snippy.shared'
@@ -368,6 +367,7 @@ end
 function M.parse_snippet(snippet)
     local ok, parsed, pos
     local text
+    local parser = require 'snippy.parser'
     if type(snippet) == 'table' then
         -- Structured snippet
         text = table.concat(snippet.body, '\n')
@@ -501,6 +501,10 @@ end
 
 function M.setup(o)
     shared.set_config(o)
+end
+
+function M.setup_buffer(bufnr, o)
+    shared.set_buffer_config(bufnr, o)
 end
 
 return M

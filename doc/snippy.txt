@@ -24,14 +24,35 @@ USAGE                                                           *snippy-usage*
 
                                                           *snippy-usage-setup*
 
-Snippy includes an optional `setup` function for you to quickly configure it
-according to your needs. See the |snippy-options| section for information on
-the available options.
+Snippy includes an optional |snippy.setup()| function for you to quickly
+configure it according to your needs. See the |snippy-options| section for
+information on the available options. Below is an example showing most of the
+available options:
 >
-    lua require 'snippy'.setup({
-                \     hl_group = 'Search'
-                \ })
+    require('snippy').setup({
+        snippet_dirs = '~/snippets',
+        hl_group = 'Search',
+        scopes = {
+            _ = { },
+
+            lua = function(scopes)
+                if vim.api.nvim_buf_get_name(0):find('_spec.lua$') then
+                    table.insert(scopes, 'busted')
+                end
+                return scopes
+            end,
+
+            php = { '_', 'php', 'html', 'javascript' },
+        end
+    })
 <
+It's also possible to define options for a specific buffer using the
+|snippy.setup_buffer()| function. Example:
+>
+    autocmd BufRead,BufNewFile *_spec.lua lua require('snippy').setup_buffer(0,
+        \ { scopes = { '_', 'lua', 'busted' } })
+<
+
                                                        *snippy-usage-mappings*
 
 Snippy comes with no mappings activated by default. So you'll want to define
@@ -60,7 +81,7 @@ be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
-When mapping from Lua using |nvim_set_keymap()| set_keymap, you can use
+When mapping from Lua using |nvim_set_keymap()|, you can use
 |snippy.can_expand()| and |snippy.can_jump()| functions. The Vimscript
 functions above are just convenience wrappings around those.
 
@@ -92,6 +113,16 @@ means snippets defined in folders coming later in the list will always
 override those loaded before. So, if you put your custom snippets in
 `after/snippets/`, they should override any snippets provided by plugins in
 case of name conflict.
+
+                                                         *snippy-usage-scopes*
+
+Scopes are the term used in Snippy to refer to a group of snippets that should
+be loaded for a filetype. They are generally named after the filetype they
+were created for. You can, however, give them any name you want, as long as
+you tell Snippy to load them for a filetype using the `scopes` setup option.
+
+The global scope is identified by `_`. Snippets in the global scope will be
+loaded for every filetype.
 
 
 ==============================================================================
@@ -163,7 +194,11 @@ TextMate/LSP syntax.
 FUNCTIONS                                                   *snippy-functions*
 
 snippy.setup({options})                                       *snippy.setup()*
-    Set initial configuration for the plugin. See |snippy-options|.
+    Set initial configuration for the plugin. See also |snippy-options|.
+
+snippy.setup_buffer({bufnr}, {options})                *snippy.setup_buffer()*
+    Set configuration for the current buffer. See also
+    |snippy-buffer-options|.
 
 snippy.can_expand()                                      *snippy.can_expand()*
     Checks if a snippet can be expanded at the current location.
@@ -246,6 +281,28 @@ snippet_dirs ~
 hl_group ~
     Highlight group used for placeholders.
         Type: |String|
+        Default: nil
+
+scopes ~
+    A table with filetypes as keys. Each value must be a table containing a
+    list of scopes or a function that receives the calculated list of scopes
+    for the current buffer and should return a new (possibly modified) list of
+    scopes.
+        Type: |Table|
+        Default: nil
+
+
+==============================================================================
+BUFFER OPTIONS                                         *snippy-buffer-options*
+
+It is also possible to set configuration specific to abuffer by calling
+`snippy.setup_buffer(...)` function. The following options are supported:
+
+scopes ~
+    Can be set to a table containing a list of scopes or a function that
+    receives the calculated list of scopes for the current buffer and should
+    return a new (possibly modified) list of scopes.
+        Type: ||Table|
         Default: nil
 
 
