@@ -91,7 +91,10 @@ end
 
 local function list_files(ftype)
     local all = {}
-    local dirs = shared.config.snippet_dirs or vim.o.rtp
+    local dirs = shared.config.snippet_dirs or vim.api.nvim_list_runtime_paths()
+    if type(dirs) ~= 'string' then
+        dirs = table.concat(dirs, ',')
+    end
     for _, expr in ipairs(exprs) do
         local e = expr:format(ftype)
         local paths = fn.globpath(dirs, e, 0, 1)
