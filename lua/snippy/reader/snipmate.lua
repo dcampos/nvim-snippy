@@ -71,7 +71,7 @@ end
 
 local function read_snippet_file(snippet_file)
     local description, prefix
-    if snippet_file:match('snippets/.-/.-/.*%.snippet$') then
+    if snippet_file:match('/snippets/.-/.-/.*%.snippet$') then
         prefix = fn.fnamemodify(snippet_file, ':h:t')
         description = fn.fnamemodify(snippet_file, ':t:r')
     else
