@@ -24,10 +24,10 @@ USAGE                                                           *snippy-usage*
 
                                                           *snippy-usage-setup*
 
-Snippy includes an optional `setup` function for you to quickly configure it
-according to your needs. See the |snippy-options| section for information on
-the available options. Below is an example showing most of the available
-options:
+Snippy includes an optional |snippy.setup()| function for you to quickly
+configure it according to your needs. See the |snippy-options| section for
+information on the available options. Below is an example showing most of the
+available options:
 >
     require('snippy').setup({
         snippet_dirs = '~/snippets',
@@ -46,6 +46,13 @@ options:
         end
     })
 <
+It's also possible to define options for a specific buffer using the
+|snippy.setup_buffer()| function. Example:
+>
+    autocmd BufRead,BufNewFile *_spec.lua lua require('snippy').setup_buffer(0,
+        \ { scopes = { '_', 'lua', 'busted' } })
+<
+
                                                        *snippy-usage-mappings*
 
 Snippy comes with no mappings activated by default. So you'll want to define
@@ -179,7 +186,7 @@ FUNCTIONS                                                   *snippy-functions*
 snippy.setup({options})                                       *snippy.setup()*
     Set initial configuration for the plugin. See also |snippy-options|.
 
-snippy.setup_buffer({options})                         *snippy.setup_buffer()*
+snippy.setup_buffer({bufnr}, {options})                *snippy.setup_buffer()*
     Set configuration for the current buffer. See also
     |snippy-buffer-options|.
 
