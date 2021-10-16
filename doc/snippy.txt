@@ -114,6 +114,16 @@ override those loaded before. So, if you put your custom snippets in
 `after/snippets/`, they should override any snippets provided by plugins in
 case of name conflict.
 
+                                                         *snippy-usage-scopes*
+
+Scopes are the term used in Snippy to refer to a group of snippets that should
+be loaded for a filetype. They are generally named after the filetype they
+were created for. You can, however, give them any name you want, as long as
+you tell Snippy to load them for a filetype using the `scopes` setup option.
+
+The global scope is identified by `_`. Snippets in the global scope will be
+loaded for every filetype.
+
 
 ==============================================================================
 SNIPPET SYNTAX                                         *snippy-snippet-syntax*
