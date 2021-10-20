@@ -89,7 +89,8 @@ local function create_parser()
 
     placeholder = map(seq(sigil, open, int, colon, inner, close),
         function (value)
-            return {type = 'placeholder', id = value[3], children = value[5]}
+            local children = #value == 6 and value[5] or {}
+            return {type = 'placeholder', id = value[3], children = children}
         end
     )
 
@@ -101,7 +102,8 @@ local function create_parser()
             return {type = 'variable', name = value[3], children = {}}
         end),
         map(seq(sigil, open, varname, colon, inner, close), function (value)
-            return {type = 'variable', name = value[3], children = value[5]}
+            local children = #value == 6 and value[5] or {}
+            return {type = 'variable', name = value[3], children = children}
         end),
         map(seq(sigil, open, varname, transform, close), function (value)
             return {type = 'variable', name = value[3], transform = value[4], children = {}}
@@ -124,7 +126,8 @@ local function create_snipmate_parser()
 
     placeholder = map(seq(sigil, open, int, colon, inner, close),
         function (value)
-            return {type = 'placeholder', id = value[3], children = value[5]}
+            local children = #value == 6 and value[5] or {}
+            return {type = 'placeholder', id = value[3], children = children}
         end
     )
 
@@ -138,7 +141,8 @@ local function create_snipmate_parser()
             return {type = 'variable', name = value[3], children = {}}
         end),
         map(seq(sigil, open, visual_token, colon, inner, close), function (value)
-            return {type = 'variable', name = value[3], children = value[5]}
+            local children = #value == 6 and value[5] or {}
+            return {type = 'variable', name = value[3], children = children}
         end)
     )
 
