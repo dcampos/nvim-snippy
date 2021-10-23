@@ -3,7 +3,6 @@ local shared = require 'snippy.shared'
 local Stop = require 'snippy.stop'
 
 local api = vim.api
-local fn = vim.fn
 local cmd = vim.cmd
 
 local M = {}
@@ -151,7 +150,7 @@ end
 
 function M.setup_autocmds()
     local bufnr = api.nvim_buf_get_number(0)
-    api.nvim_exec(
+    cmd(
         string.format([[
             augroup snippy_local
             autocmd! * <buffer=%s>
@@ -159,19 +158,17 @@ function M.setup_autocmds()
             autocmd TextChangedP <buffer=%s> lua require 'snippy'._handle_TextChangedP()
             autocmd CursorMoved,CursorMovedI <buffer=%s> lua require 'snippy'._handle_CursorMoved()
             augroup END
-        ]], bufnr, bufnr, bufnr, bufnr),
-        false)
+        ]], bufnr, bufnr, bufnr, bufnr))
 end
 
 function M.clear_autocmds()
     local bufnr = api.nvim_buf_get_number(0)
-    api.nvim_exec(
+    cmd(
         string.format([[
             augroup snippy_local
             autocmd! * <buffer=%s>
             augroup END
-        ]], bufnr),
-        false)
+        ]], bufnr))
 end
 
 return M
