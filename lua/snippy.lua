@@ -462,6 +462,14 @@ function M.is_active()
     return buf.current_stop > 0 and not vim.tbl_isempty(buf.stops)
 end
 
+M.mapping = {
+    Expand = 'expand',
+    ExpandOrAdvance = 'expand_or_advance',
+    Next = 'next',
+    Previous = 'previous',
+    CutText = 'cut_text',
+}
+
 -- Setup
 
 vim.cmd([[
@@ -504,6 +512,7 @@ end
 
 function M.setup(o)
     shared.set_config(o)
+    require('snippy.mapping').init()
 end
 
 function M.setup_buffer(bufnr, o)
