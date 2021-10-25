@@ -9,3 +9,7 @@ endfunction
 function! snippy#can_jump(direction) abort
     return luaeval("require 'snippy'.can_jump(_A)", a:direction)
 endfunction
+
+function! snippy#cut_text(...) abort
+    return luaeval('require("snippy").cut_text(_A[1], _A[2])', a:000)
+endfunction

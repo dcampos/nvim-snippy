@@ -13,8 +13,8 @@ snoremap <silent> <plug>(snippy-expand-or-next) <cmd>lua require 'snippy'.expand
 snoremap <silent> <plug>(snippy-previous) <cmd>lua require 'snippy'.previous()<cr>
 
 " Selecting/cutting text
-nnoremap <silent> <plug>(snippy-cut-text) <cmd>lua vim.opt.operatorfunc=require 'snippy'.cut_text<cr>g@
-xnoremap <silent> <plug>(snippy-cut-text) <cmd>lua require 'snippy'.cut_text(vim.fn.mode(), true)<cr>
+nnoremap <silent> <plug>(snippy-cut-text) <cmd>set operatorfunc=snippy#cut_text<cr>g@
+xnoremap <silent> <plug>(snippy-cut-text) <cmd>call snippy#cut_text(mode(), v:true)<cr>
 
 " Commands
 command! -nargs=1 -complete=customlist,s:complete_snippet_files
