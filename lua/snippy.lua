@@ -246,7 +246,7 @@ function M.cut_text(mode, visual)
     local keys
     if visual then
         keys = "gv"
-        api.nvim_exec("normal! y", false)
+        vim.cmd("normal! y")
     else
         if mode == 'line' then
             keys = "'[V']"
@@ -255,7 +255,7 @@ function M.cut_text(mode, visual)
         else
             return
         end
-        api.nvim_exec("normal! " .. keys .. "y", false)
+        vim.cmd("normal! " .. keys .. "y")
     end
     shared.set_selection(api.nvim_eval('@"'), mode)
     fn.setreg('"', tmpval, tmptype)
@@ -461,13 +461,13 @@ end
 
 -- Setup
 
-api.nvim_exec([[
+vim.cmd([[
     augroup snippy
     autocmd!
     autocmd FileType * lua require 'snippy'.read_snippets()
-    autocmd BufWritePost *.snippet{,s} lua require 'snippy'.clear_cache() 
+    autocmd BufWritePost *.snippet{,s} lua require 'snippy'.clear_cache()
     augroup END
-]], false)
+]])
 
 M.snippets = {}
 M.readers = {
