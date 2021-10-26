@@ -319,9 +319,9 @@ function M._jump(stop)
         mirror_stop(stop)
 
         -- Reenable autocmds after a delay
-        vim.defer_fn(function ()
+        vim.schedule(function ()
             buf.setup_autocmds()
-        end, 200)
+        end)
     else
         should_finish = true
     end
@@ -408,9 +408,6 @@ function M.expand_snippet(snippet, word)
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
     M.next()
-    vim.defer_fn(function ()
-        buf.setup_autocmds()
-    end, 200)
     return ''
 end
 
