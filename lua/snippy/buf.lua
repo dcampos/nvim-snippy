@@ -1,6 +1,6 @@
-local shared = require 'snippy.shared'
+local shared = require('snippy.shared')
 
-local Stop = require 'snippy.stop'
+local Stop = require('snippy.stop')
 
 local api = vim.api
 local cmd = vim.cmd
@@ -10,34 +10,34 @@ local M = {}
 M._state = {}
 
 setmetatable(M, {
-    __index = function (self, key)
-        if key == "current_stop" then
+    __index = function(self, key)
+        if key == 'current_stop' then
             return self.state().current_stop
-        elseif key == "stops" then
+        elseif key == 'stops' then
             return self.state().stops
         else
             return rawget(self, key)
         end
-    end;
-    __newindex = function (self, key, value)
-        if key == "current_stop" then
+    end,
+    __newindex = function(self, key, value)
+        if key == 'current_stop' then
             self.state().current_stop = value
-        elseif key == "stops" then
+        elseif key == 'stops' then
             self.state().stops = value
         else
             return rawset(self, key, value)
         end
-    end
+    end,
 })
 
 local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
     local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
-        id = id;
-        end_line = endrow;
-        end_col = endcol;
-        hl_group = shared.config.hl_group;
-        right_gravity = right_gravity;
-        end_right_gravity = end_right_gravity;
+        id = id,
+        end_line = endrow,
+        end_col = endcol,
+        hl_group = shared.config.hl_group,
+        right_gravity = right_gravity,
+        end_right_gravity = end_right_gravity,
     })
     return mark
 end
@@ -46,8 +46,8 @@ function M.state()
     local bufnr = api.nvim_buf_get_number(0)
     if not M._state[bufnr] then
         M._state[bufnr] = {
-            stops = {};
-            current_stop = 0;
+            stops = {},
+            current_stop = 0,
         }
     end
     return M._state[bufnr]
@@ -68,7 +68,7 @@ function M.add_stop(spec, pos)
     local endcol = spec.endpos[2]
     local stops = M.state().stops
     local smark = add_mark(nil, startrow, startcol, endrow, endcol, true, true)
-    table.insert(stops, pos, Stop.new({id=spec.id, traversable=is_traversable(), mark=smark, spec=spec}))
+    table.insert(stops, pos, Stop.new({ id = spec.id, traversable = is_traversable(), mark = smark, spec = spec }))
     M.state().stops = stops
 end
 
@@ -150,25 +150,32 @@ end
 
 function M.setup_autocmds()
     local bufnr = api.nvim_buf_get_number(0)
-    cmd(
-        string.format([[
+    cmd(string.format(
+        [[
             augroup snippy_local
             autocmd! * <buffer=%s>
             autocmd TextChanged,TextChangedI <buffer=%s> lua require 'snippy'._handle_TextChanged()
             autocmd TextChangedP <buffer=%s> lua require 'snippy'._handle_TextChangedP()
             autocmd CursorMoved,CursorMovedI <buffer=%s> lua require 'snippy'._handle_CursorMoved()
             augroup END
-        ]], bufnr, bufnr, bufnr, bufnr))
+        ]],
+        bufnr,
+        bufnr,
+        bufnr,
+        bufnr
+    ))
 end
 
 function M.clear_autocmds()
     local bufnr = api.nvim_buf_get_number(0)
-    cmd(
-        string.format([[
+    cmd(string.format(
+        [[
             augroup snippy_local
             autocmd! * <buffer=%s>
             augroup END
-        ]], bufnr))
+        ]],
+        bufnr
+    ))
 end
 
 return M

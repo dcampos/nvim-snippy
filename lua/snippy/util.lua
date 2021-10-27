@@ -4,8 +4,8 @@ local api = vim.api
 local cmd = vim.cmd
 
 local function print_error(...)
-    api.nvim_err_writeln(table.concat(vim.tbl_flatten{...}, ' '))
-    cmd 'redraw'
+    api.nvim_err_writeln(table.concat(vim.tbl_flatten({ ... }), ' '))
+    cmd('redraw')
 end
 
 local function is_after(pos1, pos2)

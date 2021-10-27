@@ -1,46 +1,108 @@
-local util = require 'snippy.util'
-local shared = require 'snippy.shared'
+local util = require('snippy.util')
+local shared = require('snippy.shared')
 local inspect = vim.inspect
 local fn = vim.fn
 
 local varmap = {
-    TM_SELECTED_TEXT = function () return shared.selected_text end,
-    VISUAL = function () return shared.selected_text end,
-    TM_CURRENT_LINE = function () return vim.api.nvim_get_current_line() end,
-    TM_CURRENT_WORD = function () return '' end,
-    TM_LINE_INDEX = function () return 0 end,
-    TM_LINE_NUMBER = function () return 1 end,
-    TM_FILENAME = function () return fn.expand('%:t') end,
-    TM_FILENAME_BASE = function () return fn.expand('%:t:r') end,
-    TM_DIRECTORY = function () return fn.expand('%:p:h:t') end,
-    TM_FILEPATH = function () return fn.expand('%:p') end,
-    CLIPBOARD = function () return '' end,
-    WORKSPACE_NAME = function () return '' end,
-    WORKSPACE_FOLDER = function () return '' end,
-    CURRENT_YEAR = function () return fn.strftime('%Y') end,
-    CURRENT_YEAR_SHORT = function () return fn.strftime('%y') end,
-    CURRENT_MONTH = function () return fn.strftime('%m') end,
-    CURRENT_MONTH_NAME = function () return fn.strftime('%B') end,
-    CURRENT_MONTH_NAME_SHORT = function () return fn.strftime('%b') end,
-    CURRENT_DATE = function () return fn.strftime('%d') end,
-    CURRENT_DAY_NAME = function () return fn.strftime('%A') end,
-    CURRENT_DAY_NAME_SHORT = function () return fn.strftime('%a') end,
-    CURRENT_HOUR = function () return fn.strftime('%H') end,
-    CURRENT_MINUTE = function () return fn.strftime('%M') end,
-    CURRENT_SECOND = function () return fn.strftime('%S') end,
-    CURRENT_SECONDS_UNIX = function () return fn.localtime() end,
-    RANDOM = function () return math.random() end,
-    RANDOM_HEX = function () return nil end,
-    UUID = function () return nil end,
-    BLOCK_COMMENT_START = function () return '/*' end,
-    BLOCK_COMMENT_END = function () return '*/' end,
-    LINE_COMMENT = function () return '//' end,
+    TM_SELECTED_TEXT = function()
+        return shared.selected_text
+    end,
+    VISUAL = function()
+        return shared.selected_text
+    end,
+    TM_CURRENT_LINE = function()
+        return vim.api.nvim_get_current_line()
+    end,
+    TM_CURRENT_WORD = function()
+        return ''
+    end,
+    TM_LINE_INDEX = function()
+        return 0
+    end,
+    TM_LINE_NUMBER = function()
+        return 1
+    end,
+    TM_FILENAME = function()
+        return fn.expand('%:t')
+    end,
+    TM_FILENAME_BASE = function()
+        return fn.expand('%:t:r')
+    end,
+    TM_DIRECTORY = function()
+        return fn.expand('%:p:h:t')
+    end,
+    TM_FILEPATH = function()
+        return fn.expand('%:p')
+    end,
+    CLIPBOARD = function()
+        return ''
+    end,
+    WORKSPACE_NAME = function()
+        return ''
+    end,
+    WORKSPACE_FOLDER = function()
+        return ''
+    end,
+    CURRENT_YEAR = function()
+        return fn.strftime('%Y')
+    end,
+    CURRENT_YEAR_SHORT = function()
+        return fn.strftime('%y')
+    end,
+    CURRENT_MONTH = function()
+        return fn.strftime('%m')
+    end,
+    CURRENT_MONTH_NAME = function()
+        return fn.strftime('%B')
+    end,
+    CURRENT_MONTH_NAME_SHORT = function()
+        return fn.strftime('%b')
+    end,
+    CURRENT_DATE = function()
+        return fn.strftime('%d')
+    end,
+    CURRENT_DAY_NAME = function()
+        return fn.strftime('%A')
+    end,
+    CURRENT_DAY_NAME_SHORT = function()
+        return fn.strftime('%a')
+    end,
+    CURRENT_HOUR = function()
+        return fn.strftime('%H')
+    end,
+    CURRENT_MINUTE = function()
+        return fn.strftime('%M')
+    end,
+    CURRENT_SECOND = function()
+        return fn.strftime('%S')
+    end,
+    CURRENT_SECONDS_UNIX = function()
+        return fn.localtime()
+    end,
+    RANDOM = function()
+        return math.random()
+    end,
+    RANDOM_HEX = function()
+        return nil
+    end,
+    UUID = function()
+        return nil
+    end,
+    BLOCK_COMMENT_START = function()
+        return '/*'
+    end,
+    BLOCK_COMMENT_END = function()
+        return '*/'
+    end,
+    LINE_COMMENT = function()
+        return '//'
+    end,
 }
 
 Builder = {}
 
 function Builder.new(o)
-    local builder = setmetatable(o, {__index = Builder})
+    local builder = setmetatable(o, { __index = Builder })
     builder.stops = {}
     builder.result = ''
     builder.level_indent = ''
@@ -111,10 +173,10 @@ function Builder:process_structure(structure)
                     table.insert(self.stops, {
                         type = value.type,
                         id = value.id,
-                        startpos = {self.row, self.col},
-                        endpos = {self.row, self.col},
+                        startpos = { self.row, self.col },
+                        endpos = { self.row, self.col },
                         placeholder = '',
-                        transform = value.transform
+                        transform = value.transform,
                     })
                 elseif value.type == 'placeholder' then
                     local startrow, startcol = self.row, self.col
@@ -122,8 +184,8 @@ function Builder:process_structure(structure)
                     table.insert(self.stops, {
                         type = value.type,
                         id = value.id,
-                        startpos = {startrow, startcol},
-                        endpos = {self.row, self.col}
+                        startpos = { startrow, startcol },
+                        endpos = { self.row, self.col },
                     })
                 elseif value.type == 'variable' then
                     local startrow, startcol = self.row, self.col
@@ -136,9 +198,9 @@ function Builder:process_structure(structure)
                     table.insert(self.stops, {
                         type = value.type,
                         id = value.id,
-                        startpos = {startrow, startcol},
-                        endpos = {self.row, self.col},
-                        choices = value.choices
+                        startpos = { startrow, startcol },
+                        endpos = { self.row, self.col },
+                        choices = value.choices,
                     })
                 elseif value.type == 'eval' then
                     local code = value.children[1].raw
@@ -146,7 +208,9 @@ function Builder:process_structure(structure)
                     if ok then
                         self:append_text(result)
                     else
-                        util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+                        util.print_error(
+                            string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result)
+                        )
                     end
                 elseif value.type == 'text' then
                     local text = value.escaped
@@ -169,7 +233,10 @@ function Builder:fix_ending()
             return
         end
     end
-    table.insert(self.stops, {type='tabstop', id=0, startpos={self.row, self.col}, endpos={self.row, self.col}})
+    table.insert(
+        self.stops,
+        { type = 'tabstop', id = 0, startpos = { self.row, self.col }, endpos = { self.row, self.col } }
+    )
 end
 
 function Builder:build_snip(structure, preview)

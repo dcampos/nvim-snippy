@@ -1,9 +1,9 @@
-local snipmate_reader = require 'snippy.reader.snipmate'
-local buf = require 'snippy.buf'
-local shared = require 'snippy.shared'
-local util = require 'snippy.util'
+local snipmate_reader = require('snippy.reader.snipmate')
+local buf = require('snippy.buf')
+local shared = require('snippy.shared')
+local util = require('snippy.util')
 
-local Builder = require 'snippy.builder'
+local Builder = require('snippy.builder')
 
 local api = vim.api
 local fn = vim.fn
@@ -15,38 +15,38 @@ local M = {}
 
 local function ensure_normal_mode()
     if fn.mode() ~= 'n' then
-        api.nvim_feedkeys(t"<Esc>", 'n', true)
+        api.nvim_feedkeys(t('<Esc>'), 'n', true)
     end
 end
 
 local function move_cursor_to(row, col)
     local line = fn.getline(row)
     col = math.max(fn.strchars(line:sub(1, col)) - 1, 0)
-    api.nvim_feedkeys(t(string.format("%sG0%s", row, string.rep("<Right>", col))), 'n', true)
+    api.nvim_feedkeys(t(string.format('%sG0%s', row, string.rep('<Right>', col))), 'n', true)
 end
 
 local function select_stop(from, to)
-    api.nvim_win_set_cursor(0, {from[1] + 1, from[2] + 1})
+    api.nvim_win_set_cursor(0, { from[1] + 1, from[2] + 1 })
     ensure_normal_mode()
     move_cursor_to(from[1] + 1, from[2] + 1)
-    api.nvim_feedkeys(t("v"), 'n', true)
+    api.nvim_feedkeys(t('v'), 'n', true)
     move_cursor_to(to[1] + 1, to[2])
-    api.nvim_feedkeys(t("o<c-g>"), 'n', true)
+    api.nvim_feedkeys(t('o<c-g>'), 'n', true)
 end
 
 local function start_insert(pos)
     -- Update cursor - so we ensure col('$') will work.
     if fn.mode() == 'i' then
-        api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2] + 1})
+        api.nvim_win_set_cursor(0, { pos[1] + 1, pos[2] + 1 })
     else
-        api.nvim_win_set_cursor(0, {pos[1] + 1, pos[2]})
+        api.nvim_win_set_cursor(0, { pos[1] + 1, pos[2] })
     end
     ensure_normal_mode()
     move_cursor_to(pos[1] + 1, pos[2] + 1)
     if pos[2] + 1 >= fn.col('$') then
-        api.nvim_feedkeys(t("a"), 'n', true)
+        api.nvim_feedkeys(t('a'), 'n', true)
     else
-        api.nvim_feedkeys(t("i"), 'n', true)
+        api.nvim_feedkeys(t('i'), 'n', true)
     end
 end
 
@@ -57,7 +57,7 @@ local function make_completion_choices(choices)
             word = value,
             abbr = value,
             menu = '[snip]',
-            kind = 'Choice'
+            kind = 'Choice',
         })
     end
     return items
@@ -65,14 +65,18 @@ end
 
 local function present_choices(stop, startpos)
     local timer = vim.loop.new_timer()
-    timer:start(500, 0, vim.schedule_wrap(function ()
-        fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
-    end))
+    timer:start(
+        500,
+        0,
+        vim.schedule_wrap(function()
+            fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
+        end)
+    )
 end
 
 local function mirror_stop(number)
     local stops = buf.stops
-    if number < 1 or number > #stops  then
+    if number < 1 or number > #stops then
         return
     end
     local value = stops[number]
@@ -85,7 +89,7 @@ local function mirror_stop(number)
 end
 
 local function sort_stops(stops)
-    table.sort(stops, function (s1, s2)
+    table.sort(stops, function(s1, s2)
         if s1.id == 0 then
             return false
         elseif s2.id == 0 then
@@ -230,9 +234,9 @@ function M.get_completion_items()
                     dup = 1,
                     user_data = {
                         snippy = {
-                            snippet = snip
-                        }
-                    }
+                            snippet = snip,
+                        },
+                    },
                 })
             end
         end
@@ -245,17 +249,17 @@ function M.cut_text(mode, visual)
     local tmpval, tmptype = fn.getreg('"'), fn.getregtype('"')
     local keys
     if visual then
-        keys = "gv"
-        vim.cmd("normal! y")
+        keys = 'gv'
+        vim.cmd('normal! y')
     else
         if mode == 'line' then
             keys = "'[V']"
         elseif mode == 'char' then
-            keys = "`[v`]"
+            keys = '`[v`]'
         else
             return
         end
-        vim.cmd("normal! " .. keys .. "y")
+        vim.cmd('normal! ' .. keys .. 'y')
     end
     shared.set_selection(api.nvim_eval('@"'), mode)
     fn.setreg('"', tmpval, tmptype)
@@ -319,7 +323,7 @@ function M._jump(stop)
         mirror_stop(stop)
 
         -- Reenable autocmds after a delay
-        vim.schedule(function ()
+        vim.schedule(function()
             buf.setup_autocmds()
         end)
     else
@@ -345,7 +349,7 @@ function M._check_position()
     local ranges = {}
     for _, stop in ipairs(stops) do
         local from, to = stop:get_range()
-        table.insert(ranges, {from, to})
+        table.insert(ranges, { from, to })
         local startrow, startcol = unpack(from)
         local endrow, endcol = unpack(to)
         if fn.mode() == 'n' then
@@ -356,8 +360,10 @@ function M._check_position()
                 endcol = endcol - 1
             end
         end
-        if (startrow < row or (startrow == row and startcol <= col))
-                and (endrow > row or (endrow == row and endcol >= col)) then
+        if
+            (startrow < row or (startrow == row and startcol <= col))
+            and (endrow > row or (endrow == row and endcol >= col))
+        then
             return
         end
     end
@@ -367,7 +373,7 @@ end
 function M.parse_snippet(snippet)
     local ok, parsed, pos
     local text
-    local parser = require 'snippy.parser'
+    local parser = require('snippy.parser')
     if type(snippet) == 'table' then
         -- Structured snippet
         text = table.concat(snippet.body, '\n')
@@ -401,7 +407,7 @@ function M.expand_snippet(snippet, word)
     local indent = current_line:match('^(%s*)')
     local parsed = M.parse_snippet(snippet)
     local fixed_col = col -- fn.strchars(current_line:sub(1, col))
-    local builder = Builder.new({row = row, col = fixed_col, indent = indent, word = word})
+    local builder = Builder.new({ row = row, col = fixed_col, indent = indent, word = word })
     local content, stops = builder:build_snip(parsed)
     local lines = vim.split(content, '\n', true)
     api.nvim_set_option('undolevels', api.nvim_get_option('undolevels'))
@@ -413,7 +419,7 @@ end
 
 function M.get_repr(snippet)
     local parsed = M.parse_snippet(snippet)
-    local builder = Builder.new({row = 0, col = 0, indent = '', word = ''})
+    local builder = Builder.new({ row = 0, col = 0, indent = '', word = '' })
     local content, _ = builder:build_snip(parsed, true)
     return content
 end
@@ -468,7 +474,7 @@ vim.cmd([[
 
 M.snippets = {}
 M.readers = {
-    snipmate_reader
+    snipmate_reader,
 }
 
 function M.read_snippets()

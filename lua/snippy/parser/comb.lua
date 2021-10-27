@@ -1,7 +1,7 @@
 -- Note: this is mostly a translation to Lua from Vimscript of the vsnip combinators.
 
 local function skip(stop, escape)
-    return function (text, apos)
+    return function(text, apos)
         local value = ''
         local pos = apos
         while pos <= #text do
@@ -19,7 +19,7 @@ local function skip(stop, escape)
             else
                 if char:match(stop) then
                     if pos ~= apos then
-                        return true, {text:sub(apos, pos - 1), value}, pos
+                        return true, { text:sub(apos, pos - 1), value }, pos
                     else
                         return false, nil, pos
                     end
@@ -29,13 +29,13 @@ local function skip(stop, escape)
                 pos = pos + 1
             end
         end
-        return true, {text:sub(apos), value}, #text + 1
+        return true, { text:sub(apos), value }, #text + 1
     end
 end
 
 local function seq(...)
-    local parsers = {...}
-    return function (text, apos)
+    local parsers = { ... }
+    return function(text, apos)
         local pos = apos
         local values = {}
         for _, parser in ipairs(parsers) do
@@ -51,7 +51,7 @@ local function seq(...)
 end
 
 local function token(value)
-    return function (text, apos)
+    return function(text, apos)
         if text:sub(apos, apos + #value - 1) == value then
             return true, value, apos + #value
         else
@@ -61,7 +61,7 @@ local function token(value)
 end
 
 local function many(parser)
-    return function (text, apos)
+    return function(text, apos)
         local pos = apos
         local values = {}
         while pos <= #text do
@@ -82,8 +82,8 @@ local function many(parser)
 end
 
 local function one(...)
-    local parsers = {...}
-    return function (text, apos)
+    local parsers = { ... }
+    return function(text, apos)
         local pos = apos
         for _, parser in ipairs(parsers) do
             local ok, value, _pos = parser(text, pos)
@@ -96,7 +96,7 @@ local function one(...)
 end
 
 local function pattern(pat)
-    return function (text, pos)
+    return function(text, pos)
         local from, to = text:find(pat, pos)
         if from then
             local s = text:sub(from, to)
@@ -107,7 +107,7 @@ local function pattern(pat)
 end
 
 local function opt(parser)
-    return function (text, pos)
+    return function(text, pos)
         local ok, value, _pos = parser(text, pos)
         if ok then
             return ok, value, _pos
@@ -117,7 +117,7 @@ local function opt(parser)
 end
 
 local function map(parser, func)
-    return function (text, pos)
+    return function(text, pos)
         local ok, value, _pos = parser(text, pos)
         if ok then
             return true, func(value), _pos
@@ -127,7 +127,7 @@ local function map(parser, func)
 end
 
 local function lazy(func)
-    return function (text, pos)
+    return function(text, pos)
         return func()(text, pos)
     end
 end
@@ -141,5 +141,5 @@ return {
     pattern = pattern,
     lazy = lazy,
     map = map,
-    opt = opt
+    opt = opt,
 }

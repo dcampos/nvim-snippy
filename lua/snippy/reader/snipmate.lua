@@ -1,5 +1,5 @@
 local fn = vim.fn
-local shared = require 'snippy.shared'
+local shared = require('snippy.shared')
 
 local M = {}
 
@@ -45,7 +45,7 @@ local function read_snippets_file(snippets_file)
             kind = 'snipmate',
             prefix = prefix,
             description = description,
-            body = body
+            body = body,
         }
     end
 
@@ -63,7 +63,7 @@ local function read_snippets_file(snippets_file)
             -- Skip empty lines or comments
             i = i + 1
         else
-            error(string.format("Invalid line in snippets file %s: %s", snippets_file, line))
+            error(string.format('Invalid line in snippets file %s: %s', snippets_file, line))
         end
     end
     return snips, extends
@@ -84,8 +84,8 @@ local function read_snippet_file(snippet_file)
             kind = 'snipmate',
             prefix = prefix,
             description = description,
-            body = body
-        }
+            body = body,
+        },
     }
 end
 
@@ -119,10 +119,14 @@ local function load_scope(scope, stack)
     end
     for _, extended in ipairs(extends) do
         if vim.tbl_contains(stack, extended) then
-            error(string.format('Recursive dependency found: %s',
-                table.concat(vim.tbl_flatten({stack, extended}), ' -> ')))
+            error(
+                string.format(
+                    'Recursive dependency found: %s',
+                    table.concat(vim.tbl_flatten({ stack, extended }), ' -> ')
+                )
+            )
         end
-        local result = load_scope(extended, vim.tbl_flatten({stack, scope}))
+        local result = load_scope(extended, vim.tbl_flatten({ stack, scope }))
         snips = vim.tbl_extend('keep', snips, result)
     end
     return snips
@@ -139,7 +143,7 @@ function M.list_available_scopes()
         '/snippets/(_).-%.snippets',
         '/snippets/(.-)_.-%.snippets',
         '/snippets/(.-)%.snippets',
-        '/snippets/(.-)%.snippet'
+        '/snippets/(.-)%.snippet',
     }
     local scopes = {}
     for _, expr in ipairs(exprs) do
