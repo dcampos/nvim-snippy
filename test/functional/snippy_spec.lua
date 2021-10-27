@@ -43,53 +43,6 @@ describe("Snippy tests", function ()
         eq({_ = {}, lua = {}}, meths.execute_lua([[return snippy.snippets]], {}))
     end)
 
-    it("can read snippets", function ()
-        setup_test_snippets()
-        command("set filetype=")
-        local snips = {
-            test1 = {kind = 'snipmate', prefix = 'test1', body = {'This is the first test.'}},
-            test2 = {kind = 'snipmate', prefix = 'test2', body = {'This is the second test.'}},
-        }
-        neq(nil, meths.execute_lua([[return require 'snippy.shared'.config.snippet_dirs]], {}))
-        neq({}, meths.execute_lua([[return require 'snippy.reader.snipmate'.list_available_scopes()]], {}))
-        eq({_ = snips}, meths.execute_lua([[return snippy.snippets]], {}))
-    end)
-
-    it("can read vim-snippets snippets", function ()
-        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/'
-        command(string.format([[
-            lua snippy.setup({
-                snippet_dirs = '%s',
-                get_scopes = function () return {vim.bo.ft} end,
-            })
-        ]], alter_slashes(snippet_dirs)))
-        local scopes = eval([[luaeval('require "snippy.reader.snipmate".list_available_scopes()')]])
-        neq({}, scopes)
-        local total_failed = {}
-        for _, scope in ipairs(scopes) do
-            command("set filetype=" ..  scope)
-            local snips = meths.execute_lua([[return snippy.snippets]], {})
-            neq(nil, snips[scope])
-            local failed = meths.execute_lua([[
-                local scope = vim.bo.ft
-                local failed = {}
-                for _, snip in pairs(snippy.snippets[scope]) do
-                    local text = table.concat(snip.body, '\n')
-                    local ok, parsed, pos = require 'snippy.parser'.parse_snipmate(text, 1)
-                    if pos ~= #text + 1 then
-                        table.insert(failed, {snip, pos, #text+1})
-                    end
-                end
-                return failed
-            ]], {})
-            if #failed > 0 then
-                total_failed[scope] = failed
-                break
-            end
-        end
-        eq({}, total_failed)
-    end)
-
     it("can insert a basic snippet", function ()
         setup_test_snippets()
         command("set filetype=")
