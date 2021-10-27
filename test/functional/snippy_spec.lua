@@ -652,9 +652,37 @@ describe("Snippy tests", function ()
         eq(9, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
     end)
 
-    it("can cut text and expand it", function ()
+    it("can cut text and expand it in normal mode", function ()
         feed("iinner line<Esc>0")
         feed("<plug>(snippy-cut-text)$")
+        command("lua snippy.expand_snippet([[first line\n${0:$VISUAL}\nsecond line]])")
+        screen:expect{grid=[[
+        first line                                                                       |
+        ^i{1:nner line}                                                                       |
+        second line                                                                      |
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {2:~                                                                                }|
+        {3:-- SELECT --}                                                                     |
+        ]], attr_ids={
+            [1] = {background = Screen.colors.LightGrey};
+            [2] = {bold = true, foreground = Screen.colors.Blue};
+            [3] = {bold = true};
+        }}
+        eq(true, exec_lua([[return snippy.is_active()]]))
+    end)
+
+    it("can cut text and expand it in visual mode", function ()
+        feed("iinner line<Esc>")
+        feed("V<plug>(snippy-cut-text)")
         command("lua snippy.expand_snippet([[first line\n${0:$VISUAL}\nsecond line]])")
         screen:expect{grid=[[
         first line                                                                       |
