@@ -414,7 +414,7 @@ end
 function M.get_repr(snippet)
     local parsed = M.parse_snippet(snippet)
     local builder = Builder.new({row = 0, col = 0, indent = '', word = ''})
-    local content, _ = builder:build_snip(parsed, false)
+    local content, _ = builder:build_snip(parsed, true)
     return content
 end
 
