@@ -18,7 +18,7 @@ function! GetSnippetIndent()
     let prev_lnum = v:lnum - 1
     let prev_line = prev_lnum != 0 ? getline(prev_lnum) : ""
 
-    if line =~# '\v^(snippet|extends|version) '
+    if line =~# '\v^(snippet|extends|version)'
         return 0
     elseif indent(v:lnum) > 0
         return indent(v:lnum)
