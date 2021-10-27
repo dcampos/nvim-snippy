@@ -172,10 +172,12 @@ function Builder:fix_ending()
     table.insert(self.stops, {type='tabstop', id=0, startpos={self.row, self.col}, endpos={self.row, self.col}})
 end
 
-function Builder:build_snip(structure)
+function Builder:build_snip(structure, preview)
     self:process_structure(structure)
     self:fix_ending()
-    shared.set_selection()
+    if not preview then
+        shared.set_selection()
+    end
     return self.result, self.stops
 end
 
