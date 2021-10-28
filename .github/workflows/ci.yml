@@ -4,6 +4,8 @@ on:
     branches: 'master'
   pull_request:
     branches: 'master'
+  schedule:
+    - cron: 0 0 * * *
 
 jobs:
   linux:
@@ -57,3 +59,9 @@ jobs:
           VUSTED_NVIM: ${{ github.workspace }}/neovim/build/bin/nvim
         run: |
           make unittest
+
+      - name: Check formatting
+        uses: JohnnyMorganz/stylua-action@1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --check lua/ test/
