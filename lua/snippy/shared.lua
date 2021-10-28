@@ -29,6 +29,7 @@ local default_config = {
     snippet_dirs = nil,
     hl_group = nil,
     scopes = nil,
+    mappings = nil,
 }
 
 M.get_scopes = get_scopes
