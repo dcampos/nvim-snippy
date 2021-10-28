@@ -66,7 +66,7 @@ end
 local function present_choices(stop, startpos)
     local timer = vim.loop.new_timer()
     timer:start(
-        500,
+        shared.config.choice_delay,
         0,
         vim.schedule_wrap(function()
             fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
