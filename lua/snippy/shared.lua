@@ -30,6 +30,7 @@ local default_config = {
     hl_group = nil,
     scopes = nil,
     mappings = nil,
+    choice_delay = 100,
 }
 
 M.get_scopes = get_scopes
