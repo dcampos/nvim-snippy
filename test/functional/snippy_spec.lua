@@ -780,11 +780,12 @@ describe('Snippy tests', function()
         eq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
-    it('can present a choice menu and select an option', function ()
+    it('can present a choice menu and select an option', function()
         command('lua snippy.expand_snippet([[${1|snip,snap,foo,bar|} = $0]])')
         sleep(100)
         feed('<Down><C-y>')
-        screen:expect{grid=[[
+        screen:expect({
+            grid = [[
         snap^ =                                                                           |
         {1:~                                                                                }|
         {1:~                                                                                }|
@@ -800,10 +801,12 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
-            ]], attr_ids={
-                [1] = {foreground = Screen.colors.Blue, bold = true};
-                [2] = {bold = true};
-            }}
+            ]],
+            attr_ids = {
+                [1] = { foreground = Screen.colors.Blue, bold = true },
+                [2] = { bold = true },
+            },
+        })
         eq(true, exec_lua([[return snippy.is_active()]]))
         exec_lua([[snippy.next()]])
         eq(false, exec_lua([[return snippy.is_active()]]))
