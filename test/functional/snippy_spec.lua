@@ -18,6 +18,11 @@ describe('Snippy tests', function()
         clear()
         screen = Screen.new(81, 15)
         screen:attach()
+        screen:set_default_attr_ids({
+            [1] = { foreground = Screen.colors.Blue1, bold = true },
+            [2] = { bold = true },
+            [3] = { background = Screen.colors.LightGrey },
+        })
 
         command('set rtp=$VIMRUNTIME')
         command('set rtp+=' .. alter_slashes(snippy_src))
@@ -39,7 +44,6 @@ describe('Snippy tests', function()
 
     it('can detect current scope', function()
         command('set filetype=lua')
-        -- eq({}, eval('&runtimepath'))
         eq({ _ = {}, lua = {} }, meths.execute_lua([[return snippy.snippets]], {}))
     end)
 
@@ -68,10 +72,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue1, bold = true },
-                [2] = { bold = true },
-            },
         })
     end)
 
@@ -100,10 +100,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue1, bold = true },
-                [2] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
         feed('<plug>(snippy-next)')
@@ -125,10 +121,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue1, bold = true },
-                [2] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
         feed('<plug>(snippy-next)')
@@ -144,27 +136,22 @@ describe('Snippy tests', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-        local ^v{1:ar} =                                                                      |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {3:-- SELECT --}                                                                     |
+        local ^v{3:ar} =                                                                      |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { background = Screen.colors.LightGrey },
-                [2] = { foreground = Screen.colors.Blue, bold = true },
-                [3] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -187,10 +174,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue, bold = true },
-                [2] = { bold = true },
-            },
         })
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
@@ -217,10 +200,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
@@ -249,10 +228,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue, bold = true },
-                [2] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.can_jump(-1)]], {}))
         feed('<plug>(snippy-previous)')
@@ -274,10 +249,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue, bold = true },
-                [2] = { bold = true },
-            },
         })
     end)
 
@@ -287,27 +258,22 @@ describe('Snippy tests', function()
         command('lua snippy.expand_snippet([[local ${1:var} = ${1/snip/snap/g}]])')
         screen:expect({
             grid = [[
-        local ^v{1:ar} = var                                                                  |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {3:-- SELECT --}                                                                     |
+        local ^v{3:ar} = var                                                                  |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { background = Screen.colors.LightGrey },
-                [2] = { bold = true, foreground = Screen.colors.Blue },
-                [3] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         feed('snipsnipsnip')
@@ -329,10 +295,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
         -- neq({current_stop = 0, stops = {}},
         --     meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
@@ -364,10 +326,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
@@ -394,10 +352,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
         feed('<left>')
@@ -419,10 +373,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
         sleep(400)
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -437,27 +387,22 @@ describe('Snippy tests', function()
 
         screen:expect({
             grid = [[
-        for ($^f{1:oo} = 0; $foo < ; $foo++) {                                                |
+        for ($^f{3:oo} = 0; $foo < ; $foo++) {                                                |
                                                                                          |
         }                                                                                |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {3:-- SELECT --}                                                                     |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { background = Screen.colors.LightGrey },
-                [2] = { bold = true, foreground = Screen.colors.Blue1 },
-                [3] = { bold = true },
-            },
         })
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -483,10 +428,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -512,10 +453,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
 
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -547,10 +484,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -576,10 +509,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { bold = true, foreground = Screen.colors.Blue },
-                [2] = { bold = true },
-            },
         })
 
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -593,27 +522,22 @@ describe('Snippy tests', function()
 
         screen:expect({
             grid = [[
-        çlocal ^v{1:ar} =  -- ▴                                                               |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {3:-- SELECT --}                                                                     |
+        çlocal ^v{3:ar} =  -- ▴                                                               |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { background = Screen.colors.LightGrey },
-                [2] = { foreground = Screen.colors.Blue1, bold = true },
-                [3] = { bold = true },
-            },
         })
 
         feed('snippy')
@@ -639,10 +563,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue1, bold = true },
-                [2] = { bold = true },
-            },
         })
 
         eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -668,10 +588,6 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue1, bold = true },
-                [2] = { bold = true },
-            },
         })
 
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
@@ -694,25 +610,20 @@ describe('Snippy tests', function()
             grid = [[
         var1                                                                             |
         var2 var3                                                                        |
-        var2 var3 var3 ^v{1:ar4}                                                              |
+        var2 var3 var3 ^v{3:ar4}                                                              |
         var3 var3 var4                                                                   |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {3:-- SELECT --}                                                                     |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { background = Screen.colors.LightGrey },
-                [2] = { bold = true, foreground = Screen.colors.Blue },
-                [3] = { bold = true },
-            },
         })
 
         eq(9, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
@@ -725,26 +636,21 @@ describe('Snippy tests', function()
         screen:expect({
             grid = [[
         first line                                                                       |
-        ^i{1:nner line}                                                                       |
+        ^i{3:nner line}                                                                       |
         second line                                                                      |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {3:-- SELECT --}                                                                     |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { background = Screen.colors.LightGrey },
-                [2] = { bold = true, foreground = Screen.colors.Blue },
-                [3] = { bold = true },
-            },
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
     end)
@@ -756,26 +662,21 @@ describe('Snippy tests', function()
         screen:expect({
             grid = [[
         first line                                                                       |
-        ^i{1:nner line}                                                                       |
+        ^i{3:nner line}                                                                       |
         second line                                                                      |
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {2:~                                                                                }|
-        {3:-- SELECT --}                                                                     |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
         ]],
-            attr_ids = {
-                [1] = { background = Screen.colors.LightGrey },
-                [2] = { bold = true, foreground = Screen.colors.Blue },
-                [3] = { bold = true },
-            },
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
     end)
@@ -801,11 +702,7 @@ describe('Snippy tests', function()
         {1:~                                                                                }|
         {1:~                                                                                }|
         {2:-- INSERT --}                                                                     |
-            ]],
-            attr_ids = {
-                [1] = { foreground = Screen.colors.Blue, bold = true },
-                [2] = { bold = true },
-            },
+        ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
         exec_lua([[snippy.next()]])
