@@ -28,14 +28,6 @@ describe('Snippy tests', function()
         command('set rtp+=' .. alter_slashes(snippy_src))
         command('runtime plugin/snippy.vim')
         command('lua snippy = require("snippy")')
-        exec_lua([[
-            local oldfn = require('snippy.buf').setup_autocmds
-            require('snippy.buf').setup_autocmds = function()
-                vim.defer_fn(function ()
-                    oldfn()
-                end, 10)
-            end
-        ]])
     end)
 
     after_each(function()
@@ -374,7 +366,6 @@ describe('Snippy tests', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        sleep(400)
         neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
     end)
 

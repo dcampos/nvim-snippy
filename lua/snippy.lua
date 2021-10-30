@@ -19,6 +19,11 @@ local function ensure_normal_mode()
     end
 end
 
+local function cursor_placed()
+    -- The autocmds must be set up only after the cursor jumps to the tab stop
+    api.nvim_feedkeys(t("<cmd>lua require('snippy.buf').setup_autocmds()<CR>"), 'n', true)
+end
+
 local function move_cursor_to(row, col)
     local line = fn.getline(row)
     col = math.max(fn.strchars(line:sub(1, col)) - 1, 0)
@@ -32,6 +37,7 @@ local function select_stop(from, to)
     api.nvim_feedkeys(t('v'), 'n', true)
     move_cursor_to(to[1] + 1, to[2])
     api.nvim_feedkeys(t('o<c-g>'), 'n', true)
+    cursor_placed()
 end
 
 local function start_insert(pos)
@@ -48,6 +54,7 @@ local function start_insert(pos)
     else
         api.nvim_feedkeys(t('i'), 'n', true)
     end
+    cursor_placed()
 end
 
 local function make_completion_choices(choices)
@@ -321,11 +328,6 @@ function M._jump(stop)
 
         buf.activate_stop(stop)
         mirror_stop(stop)
-
-        -- Reenable autocmds after a delay
-        vim.schedule(function()
-            buf.setup_autocmds()
-        end)
     else
         should_finish = true
     end
@@ -520,5 +522,3 @@ function M.setup_buffer(bufnr, o)
 end
 
 return M
-
--- vim:et ts=4 sw=4
