@@ -40,19 +40,18 @@ local function select_stop(from, to)
     cursor_placed()
 end
 
-local function start_insert(pos)
-    -- Update cursor - so we ensure col('$') will work.
-    if fn.mode() == 'i' then
-        api.nvim_win_set_cursor(0, { pos[1] + 1, pos[2] + 1 })
-    else
-        api.nvim_win_set_cursor(0, { pos[1] + 1, pos[2] })
-    end
-    ensure_normal_mode()
-    move_cursor_to(pos[1] + 1, pos[2] + 1)
-    if pos[2] + 1 >= fn.col('$') then
-        api.nvim_feedkeys(t('a'), 'n', true)
-    else
-        api.nvim_feedkeys(t('i'), 'n', true)
+local function start_insert(row, col)
+    api.nvim_win_set_cursor(0, { row, col })
+    if fn.mode() ~= 'i' then
+        if fn.mode() == 's' then
+            api.nvim_feedkeys(t('<Esc>'), 'nx', true)
+        end
+        local line = api.nvim_get_current_line()
+        if col >= #line then
+            vim.cmd('startinsert!')
+        else
+            vim.cmd('startinsert')
+        end
     end
     cursor_placed()
 end
@@ -317,7 +316,7 @@ function M._jump(stop)
             if stop == #stops then
                 should_finish = true
             else
-                start_insert(endpos)
+                start_insert(endpos[1] + 1, endpos[2])
             end
             if value.spec.type == 'choice' then
                 present_choices(value, startpos)
@@ -336,7 +335,7 @@ function M._jump(stop)
         -- Start inserting at the end of the current stop
         local value = stops[buf.current_stop]
         local _, endpos = value:get_range()
-        start_insert(endpos)
+        start_insert(endpos[1] + 1, endpos[2])
         buf.clear_state()
     end
 
