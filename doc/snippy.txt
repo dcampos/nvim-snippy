@@ -92,7 +92,8 @@ be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
 <
 When mapping from Lua using |nvim_set_keymap()|, you can use
 |snippy.can_expand()| and |snippy.can_jump()| functions. The Vimscript
-functions above are just convenience wrappings around those.
+functions above are just convenience wrappings around those. You can also map
+keys by using the `mappings` setup option (see |snippy-options|).
 
                                                        *snippy-usage-snippets*
 
