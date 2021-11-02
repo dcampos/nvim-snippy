@@ -1,6 +1,6 @@
 local parser = require('snippy.parser')
 
-describe('Parser tests', function()
+describe('Parser', function()
     it('Parse a basic snippet', function()
         local snip = 'local $1 = ${2}'
         local ok, result, pos = parser.parse(snip, 1)

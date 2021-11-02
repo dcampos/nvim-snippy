@@ -9,7 +9,7 @@ local seq = comb.seq
 local skip = comb.skip
 local token = comb.token
 
-describe('Combinator tests', function()
+describe('Combinator', function()
     it('Should parse text', function()
         local text = skip('%.', '')
         local ok, result, pos = text('this is just text.', 1)

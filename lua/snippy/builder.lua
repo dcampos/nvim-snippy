@@ -1,6 +1,5 @@
 local util = require('snippy.util')
 local shared = require('snippy.shared')
-local inspect = vim.inspect
 local fn = vim.fn
 
 local varmap = {
@@ -89,13 +88,13 @@ local varmap = {
         return nil
     end,
     BLOCK_COMMENT_START = function()
-        return '/*'
+        return util.parse_comment_string()['start']
     end,
     BLOCK_COMMENT_END = function()
-        return '*/'
+        return util.parse_comment_string()['end']
     end,
     LINE_COMMENT = function()
-        return '//'
+        return util.parse_comment_string()['line']
     end,
 }
 
