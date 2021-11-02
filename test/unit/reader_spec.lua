@@ -17,9 +17,11 @@ describe('Snippet reader', function()
         local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/'
         snippy.setup({
             snippet_dirs = snippet_dirs,
-            get_scopes = function()
-                return { vim.bo.ft }
-            end,
+            scopes = {
+                _ = function()
+                    return { vim.bo.ft }
+                end,
+            },
         })
         local scopes = require('snippy.reader.snipmate').list_available_scopes()
         assert.is_not.same({}, scopes)

@@ -3,23 +3,20 @@ local M = {}
 local function get_scopes()
     local scopes = vim.tbl_flatten({ '_', vim.split(vim.bo.filetype, '.', true) })
 
+    if M.config.scopes['_'] then
+        local global_scopes = M.config.scopes['_']
+        scopes = type(global_scopes) == 'table' and global_scopes or global_scopes(scopes)
+    end
+
     if M.config.scopes and M.config.scopes[vim.bo.filetype] then
         local ft_scopes = M.config.scopes[vim.bo.filetype]
-        if type(ft_scopes) == 'table' then
-            scopes = ft_scopes
-        elseif type(ft_scopes) == 'function' then
-            scopes = ft_scopes(scopes)
-        end
+        scopes = type(ft_scopes) == 'table' and ft_scopes or ft_scopes(scopes)
     end
 
     local buf_config = M.buffer_config[vim.fn.bufnr(0)]
     if buf_config then
         local buf_scopes = buf_config.scopes
-        if type(buf_scopes) == 'table' then
-            scopes = buf_scopes
-        elseif type(buf_scopes) == 'function' then
-            scopes = buf_scopes(scopes)
-        end
+        scopes = type(buf_scopes) == 'table' and buf_scopes or buf_scopes(scopes)
     end
 
     return scopes
@@ -28,7 +25,7 @@ end
 local default_config = {
     snippet_dirs = nil,
     hl_group = nil,
-    scopes = nil,
+    scopes = {},
     mappings = {},
     choice_delay = 100,
 }
