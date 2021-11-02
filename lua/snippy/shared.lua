@@ -29,7 +29,7 @@ local default_config = {
     snippet_dirs = nil,
     hl_group = nil,
     scopes = nil,
-    mappings = nil,
+    mappings = {},
     choice_delay = 100,
 }
 

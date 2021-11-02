@@ -43,7 +43,7 @@ available options:
             end,
 
             php = { '_', 'php', 'html', 'javascript' },
-        end,
+        },
         mappings = {
             is = {
                 ["<Tab>"] = "expand_or_advance",
@@ -61,7 +61,6 @@ It's also possible to define options for a specific buffer using the
     autocmd BufRead,BufNewFile *_spec.lua lua require('snippy').setup_buffer(0,
         \ { scopes = { '_', 'lua', 'busted' } })
 <
-
                                                        *snippy-usage-mappings*
 
 Snippy comes with no mappings activated by default. So you'll want to define
@@ -108,7 +107,7 @@ are accepted:
     - snippets/{filetype}/{trigger}/{description}.snippet
 
 Files with the `.snippet` extension contain a single snippet, while files with
-the `.snippets` extension can be used declare multiple snippets using the
+the `.snippets` extension can be used to declare multiple snippets using the
 following format:
 >
     snippet trigger1 "Description for snippet 1"
@@ -131,8 +130,8 @@ be loaded for a filetype. They are generally named after the filetype they
 were created for. You can, however, give them any name you want, as long as
 you tell Snippy to load them for a filetype using the `scopes` setup option.
 
-The global scope is identified by `_`. Snippets in the global scope will be
-loaded for every filetype.
+The global scope is identified by an underscore (`_`). Snippets in the global
+scope will be loaded for every filetype.
 
 
 ==============================================================================
@@ -229,13 +228,13 @@ snippy.expand()                                              *snippy.expand()*
 
 snippy.expand_or_next()                              *snippy.expand_or_next()*
     Expands the current trigger if possible. Otherwise jumps to the next
-    available stop.
+    available tab stop.
 
 snippy.next()                                                  *snippy.next()*
-    Jumps to the next available stop.
+    Jumps to the next available tab stop.
 
 snippy.previous()                                          *snippy.previous()*
-    Jumps to the previous available stop.
+    Jumps to the previous available tab stop.
 
 snippy.expand_snippet({snippet}[, {trigger}])        *snippy.expand_snippet()*
     Expands {snippet} with {trigger} at the current cursor position.
@@ -284,29 +283,47 @@ This plugin can be configured by passing a dictionary to the lua function
 `snippy.setup(...)`. The following options are supported:
 
 snippet_dirs ~
-    A comma-separated (if a |String|) list of directories containing snippets.
-        Type: |String| or |List|
+    A comma-separated (if a `String`) list of directories containing snippets.
+        Type: `String` or `List`
         Default: vim.api.nvim_list_runtime_paths()
 
 hl_group ~
     Highlight group used for placeholders.
-        Type: |String|
+        Type: `String`
         Default: nil
+
+choice_delay~
+    Defines the delay in milliseconds before the choice menu is displayed.
+        Type: `Number`
+        Default: 100
 
 scopes ~
     A table with filetypes as keys. Each value must be a table containing a
     list of scopes or a function that receives the calculated list of scopes
     for the current buffer and should return a new (possibly modified) list of
     scopes.
-        Type: |Table|
+        Type: `Table`
         Default: nil
+        Example: >
 
+        scopes = {
+            -- Load busted.snippets for *_spec.lua
+            lua = function(scopes)
+                if vim.api.nvim_buf_get_name(0):find('_spec.lua$') then
+                    table.insert(scopes, 'busted')
+                end
+                return scopes
+            end,
+            -- Load HTML and Javascript snippets for PHP
+            php = { '_', 'php', 'html', 'javascript' },
+        }
+<
 mappings~
     A table for easily mapping keys in Lua. Each key must be a table or a
     string with one or more mode identifier characters (see |map-listing|).
     The values should be tables mapping LHS mapping values to RHS values.
     RHS should be a string or a `snippy.mapping.*` enum value.
-        Type: |Table|
+        Type: `Table`
         Default: {}
         Example: >
 
@@ -330,11 +347,13 @@ mappings~
 <
     Valid string LHS values and corresponding enum values are the following:
 
-    - "expand_or_advance" or snippy.mapping.ExpandOrAdvance
-    - "expand" or snippy.mapping.Expand
-    - "next" or snippy.mapping.Next
-    - "previous" or snippy.mapping.Previous
-    - "cut_text" or snippy.mapping.CutText
+    | String              | Enum                             | ~
+    +---------------------+----------------------------------+ ~
+    | expand_or_advance   | snippy.mapping.ExpandOrAdvance   |
+    | expand              | snippy.mapping.Expand            |
+    | next                | snippy.mapping.Next              |
+    | previous            | snippy.mapping.Previous          |
+    | cut_text            | snippy.mapping.CutText           |
 
 
 ==============================================================================
