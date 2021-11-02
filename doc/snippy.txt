@@ -43,7 +43,16 @@ available options:
             end,
 
             php = { '_', 'php', 'html', 'javascript' },
-        end
+        end,
+        mappings = {
+            is = {
+                ["<Tab>"] = "expand_or_advance",
+                ["<S-Tab>"] = "previous",
+            },
+            nx = {
+                ["<leader>x"] = "cut_text",
+            },
+        },
     })
 <
 It's also possible to define options for a specific buffer using the
@@ -243,7 +252,7 @@ snippy.is_active()                                        *snippy.is_active()*
     Checks whether there is an active snippet.
 
 snippy.get_completion_items()                  *snippy.get_completion_items()*
-    Returns a list of completion all items available in the current scope.
+    Returns a list of all completion items available in the current scope.
 
 snippy.complete()                                          *snippy.complete()*
     Shows a basic completion menu at the current location.
@@ -291,11 +300,46 @@ scopes ~
         Type: |Table|
         Default: nil
 
+mappings~
+    A table for easily mapping keys in Lua. Each key must be a table or a
+    string with one or more mode identifier characters (see |map-listing|).
+    The values should be tables mapping LHS mapping values to RHS values.
+    RHS should be a string or a `snippy.mapping.*` enum value.
+        Type: |Table|
+        Default: {}
+        Example: >
+
+        mappings = {
+            -- Mappings for insert and select mode
+            [{ 'i', 's' }] = {
+                ["<Tab>"] = "expand_or_advance",
+                ...
+            }
+            -- Same, with string as identifier for modes 
+            is = {
+                ["<Tab>"] = "expand_or_advance",
+                ...
+            }
+            -- With enum value as RHS:
+            x = {
+                ["<Tab>"] = snippy.mapping.CutText,
+                ...
+            }
+        }
+<
+    Valid string LHS values and corresponding enum values are the following:
+
+    - "expand_or_advance" or snippy.mapping.ExpandOrAdvance
+    - "expand" or snippy.mapping.Expand
+    - "next" or snippy.mapping.Next
+    - "previous" or snippy.mapping.Previous
+    - "cut_text" or snippy.mapping.CutText
+
 
 ==============================================================================
 BUFFER OPTIONS                                         *snippy-buffer-options*
 
-It is also possible to set configuration specific to abuffer by calling
+It is also possible to set configuration specific to a buffer by calling
 `snippy.setup_buffer(...)` function. The following options are supported:
 
 scopes ~
