@@ -41,6 +41,10 @@ local function select_stop(from, to)
 end
 
 local function start_insert(row, col)
+    if fn.pumvisible() == 1 then
+        -- Close choice (completion) menu if open
+        fn.complete(col, {})
+    end
     api.nvim_win_set_cursor(0, { row, col })
     if fn.mode() ~= 'i' then
         if fn.mode() == 's' then

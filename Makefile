@@ -36,3 +36,9 @@ unittest:
 	VIMRUNTIME=$(PWD)/neovim/runtime/ \
 		VUSTED_NVIM=$(PWD)/neovim/build/bin/nvim \
 		vusted test/unit
+
+stylua-check:
+	stylua -c lua/ test/
+
+stylua-format:
+	stylua lua/ test/
