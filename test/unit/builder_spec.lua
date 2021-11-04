@@ -2,6 +2,8 @@ local Builder = require('snippy.builder')
 
 describe('Builder', function()
     it('resolves comment vars', function()
+        -- Reset commentstring to default value
+        vim.cmd([[set commentstring&]])
         local builder = Builder.new({ row = 0, col = 0, indent = '', word = '' })
         builder:evaluate_variable({ name = 'BLOCK_COMMENT_START' })
         assert.are.equal('/*', builder.result)

@@ -66,7 +66,7 @@ local function make_completion_choices(choices)
         table.insert(items, {
             word = value,
             abbr = value,
-            menu = '[snip]',
+            menu = '[Snippy]',
             kind = 'Choice',
         })
     end
@@ -499,6 +499,7 @@ end
 
 function M.clear_cache()
     shared.cache = {}
+    M.snippets = {}
 end
 
 function M.complete_snippet_files(prefix)

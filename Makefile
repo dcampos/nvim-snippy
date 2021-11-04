@@ -19,6 +19,7 @@ functionaltest: neovim vim-snippets
 	$(INIT_LUAROCKS) VIMRUNTIME=$(PWD)/neovim/runtime \
 		neovim/.deps/usr/bin/busted \
 		-v \
+		--shuffle \
 		--lazy \
 		--helper=$(PWD)/test/functional/preload.lua \
 		--output test.busted.outputHandlers.nvim \
@@ -35,7 +36,9 @@ functionaltest: neovim vim-snippets
 unittest:
 	VIMRUNTIME=$(PWD)/neovim/runtime/ \
 		VUSTED_NVIM=$(PWD)/neovim/build/bin/nvim \
-		vusted test/unit
+		vusted --shuffle test/unit
+
+test: functionaltest unittest
 
 stylua-check:
 	stylua -c lua/ test/

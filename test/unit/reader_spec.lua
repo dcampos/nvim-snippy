@@ -1,6 +1,10 @@
 local snippy = require('snippy')
 
 describe('Snippet reader', function()
+    before_each(function()
+        snippy.clear_cache()
+    end)
+
     it('can read snippets', function()
         snippy.setup({ snippet_dirs = './test/' })
         vim.cmd('set filetype=')
@@ -19,7 +23,7 @@ describe('Snippet reader', function()
             snippet_dirs = snippet_dirs,
             scopes = {
                 _ = function()
-                    return { vim.bo.ft }
+                    return { #vim.bo.ft > 0 and vim.bo.ft or '_' }
                 end,
             },
         })
