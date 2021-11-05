@@ -11,7 +11,13 @@ describe('Snippy tests', function()
     local snippy_src = os.getenv('SNIPPY_PATH') or '.'
 
     local function setup_test_snippets()
-        command("lua snippy.setup({snippet_dirs = '" .. alter_slashes(snippy_src .. "/test/'})"))
+        exec_lua(string.format(
+            [[
+            snippy.setup({
+                snippet_dirs = '%s',
+            })]],
+            alter_slashes(snippy_src .. '/test/')
+        ))
     end
 
     before_each(function()
@@ -28,6 +34,7 @@ describe('Snippy tests', function()
         command('set rtp+=' .. alter_slashes(snippy_src))
         command('runtime plugin/snippy.vim')
         command('lua snippy = require("snippy")')
+        exec_lua([[snippy.setup({ choice_delay = 0 })]])
     end)
 
     after_each(function()
@@ -697,6 +704,19 @@ describe('Snippy tests', function()
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
         exec_lua([[snippy.next()]])
+        eq(false, exec_lua([[return snippy.is_active()]]))
+    end)
+
+    it('hides choice menu when jumping', function()
+        exec_lua('snippy.expand_snippet([[${1|choice1,choice2,choice3|}\n$0]])')
+        eq(1, eval('pumvisible()'))
+        exec_lua('snippy.next()')
+        eq(0, eval('pumvisible()'))
+        eq(false, exec_lua([[return snippy.is_active()]]))
+        exec_lua('snippy.expand_snippet([[${1|choice1,choice2,choice3|} $0]])')
+        eq(1, eval('pumvisible()'))
+        exec_lua('snippy.next()')
+        eq(0, eval('pumvisible()'))
         eq(false, exec_lua([[return snippy.is_active()]]))
     end)
 end)
