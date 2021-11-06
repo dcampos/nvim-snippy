@@ -45,6 +45,13 @@ local function start_insert(row, col)
         -- Close choice (completion) menu if open
         fn.complete(fn.col('.'), {})
     end
+    -- Close custom completion menu of cmp
+    local ok, cmp = pcall(require, 'cmp')
+    if ok then
+        if cmp.visible() then
+            cmp.close()
+        end
+    end
     api.nvim_win_set_cursor(0, { row, col })
     if fn.mode() ~= 'i' then
         if fn.mode() == 's' then
