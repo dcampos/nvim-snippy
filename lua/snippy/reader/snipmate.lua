@@ -29,12 +29,21 @@ local function read_snippets_file(snippets_file)
         assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
         local description = line:match('%s*"(.+)"%s*$')
         local body = {}
+        local indent = nil
         i = i + 1
         while i <= #lines do
             line = lines[i]
-            if line:sub(1, 1) == '\t' or line == '' then
-                -- print('> line =', line)
-                line = line:sub(2)
+            if line:find('^%s+') then
+                if not indent and line ~= '' then
+                    indent = line:match('%s+')
+                end
+                line = line:sub(#indent + 1)
+                line = line:gsub('^' .. indent .. '+', function(m)
+                    return string.rep('\t', #m / #indent)
+                end)
+                table.insert(body, line)
+                i = i + 1
+            elseif line == '' then
                 table.insert(body, line)
                 i = i + 1
             else
@@ -52,10 +61,8 @@ local function read_snippets_file(snippets_file)
     while i <= #lines do
         local line = lines[i]
         if line:sub(1, 7) == 'snippet' then
-            -- print('> parsing snippet - line:', line)
             parse_snippet()
         elseif line:sub(1, 7) == 'extends' then
-            -- print('> extends found', i, line)
             local scopes = vim.split(vim.trim(line:sub(8)), '%s+')
             vim.list_extend(extends, scopes)
             i = i + 1

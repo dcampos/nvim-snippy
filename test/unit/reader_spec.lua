@@ -17,6 +17,25 @@ describe('Snippet reader', function()
         assert.is_same({ _ = snips }, snippy.snippets)
     end)
 
+    it('can read snippets with custom indent', function()
+        snippy.setup({ snippet_dirs = './test/' })
+        vim.cmd('set filetype=custom')
+        local snips = {
+            trigger = {
+                kind = 'snipmate',
+                prefix = 'trigger',
+                body = {
+                    'This is indented with two spaces.',
+                    '\tThis is indented with four spaces.',
+                    '\t\tThis is indented with eight spaces.',
+                },
+            },
+        }
+        assert.is_truthy(require('snippy.shared').config.snippet_dirs)
+        assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
+        assert.is_same(snips, snippy.snippets.custom)
+    end)
+
     it('can read vim-snippets snippets', function()
         local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/'
         snippy.setup({
