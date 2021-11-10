@@ -13,8 +13,8 @@ syn match snipKeyword '^(snippet|extends|version)'me=s+8 contained
 syn match snipError "^[^#vse\t].*$"
 
 syn region choice start='\${\d\+|' end='|}' contains=choiceOptions
-syn match choiceOptions '|\zs\(\k\+,\?\)\+\ze|' contained contains=choiceSep
-syn match choiceSep ',' contained
+syn region choiceOptions start='|' end='|' contained contains=choiceValue
+syn match choiceValue '[^,|]\+' contained
 
 hi link snippet       Identifier
 hi link snipComment   Comment
@@ -23,8 +23,8 @@ hi link snipKeyword   Keyword
 hi link snipEscape    SpecialChar
 hi link placeHolder   Special
 hi link choice        Special
-hi link choiceOptions Keyword
-hi link choiceSep     Special
+hi link choiceOptions Special
+hi link choiceValue   Keyword
 hi link tabStop       Special
 hi link snipCommand   String
 hi link snipError     Error
