@@ -162,8 +162,13 @@ local function get_snippet_at_cursor()
 end
 
 local function get_lsp_item(user_data)
-    if user_data and user_data.nvim and user_data.nvim.lsp then
-        return user_data.nvim.lsp.completion_item
+    if user_data then
+        if user_data.nvim and user_data.nvim.lsp then
+            return user_data.nvim.lsp.completion_item
+        elseif user_data.lspitem then
+            local lspitem = user_data.lspitem
+            return type(lspitem) == 'string' and vim.fn.json_decode(lspitem) or lspitem
+        end
     end
 end
 
