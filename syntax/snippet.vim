@@ -5,14 +5,15 @@ syn match tabStop '\$\d\+'
 syn match snipEscape '\\\\\|\\`'
 syn match snipCommand '\%(\\\@<!\%(\\\\\)*\)\@<=`.\{-}\%(\\\@<!\%(\\\\\)*\)\@<=`'
 
-syn region choice start='\${\d\+|' end='|}' contains=choiceOptions
-syn region choiceOptions start='|' end='|' contained contains=choiceValue
-syn match choiceValue '[^,|]\+' contained
+syn region choice start='\${\d\+|' end='|}' contains=choiceValue
+syn match choiceValue '[|,]\zs[^,|]\+\ze[|,]' contained
+
+syn match transform '\${\d\+/.\{-}/.\{-}/\=}'
 
 hi link placeHolder   Special
 hi link tabStop       Special
 hi link snipEscape    SpecialChar
 hi link snipCommand   String
 hi link choice        Special
-hi link choiceOptions Special
 hi link choiceValue   Keyword
+hi link transform     Special
