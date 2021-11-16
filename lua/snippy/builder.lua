@@ -125,7 +125,7 @@ function Builder:indent_lines(lines, ident_level)
             line = line:gsub('\t', string.rep(' ', vim.bo.shiftwidth))
         end
         new_level = line:match('^%s*')
-        if i > 1 and self.indent then
+        if i > 1 and self.indent and line ~= '' then
             if ident_level then
                 line = self.level_indent .. line
             end
