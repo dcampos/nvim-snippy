@@ -121,6 +121,11 @@ local function make_unique_ids(stops)
             stop.id = max_id
         end
     end
+    for _, stop in ipairs(stops) do
+        if stop.parent then
+            stop.parent = id_map[stop.parent]
+        end
+    end
     M.max_id = max_id
 end
 

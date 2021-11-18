@@ -164,7 +164,7 @@ function Builder:evaluate_variable(variable)
     end
 end
 
-function Builder:process_structure(structure)
+function Builder:process_structure(structure, parent)
     if type(structure) == 'table' then
         for _, value in ipairs(structure) do
             if type(value) == 'table' then
@@ -176,10 +176,11 @@ function Builder:process_structure(structure)
                         endpos = { self.row, self.col },
                         placeholder = '',
                         transform = value.transform,
+                        parent = parent,
                     })
                 elseif value.type == 'placeholder' then
                     local startrow, startcol = self.row, self.col
-                    self:process_structure(value.children)
+                    self:process_structure(value.children, value.id)
                     table.insert(self.stops, {
                         type = value.type,
                         id = value.id,

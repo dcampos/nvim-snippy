@@ -6,7 +6,7 @@ local insert = helpers.insert
 local eq, neq, ok = helpers.eq, helpers.neq, helpers.ok
 local sleep, exec_lua = helpers.sleep, helpers.exec_lua
 
-describe('Snippy tests', function()
+describe('Snippy', function()
     local screen
     local snippy_src = os.getenv('SNIPPY_PATH') or '.'
 
@@ -510,6 +510,56 @@ describe('Snippy tests', function()
         })
 
         eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
+    end)
+
+    it('mirrors nested tab stops', function()
+        local snip = 'local ${1:module} = require("${2:$1}")'
+        command('lua snippy.expand_snippet([[' .. snip .. ']])')
+        feed('util')
+        -- sleep(10)
+        feed('<plug>(snippy-next)')
+        screen:expect({
+            grid = [[
+        local util = require("^u{3:til}")                                                     |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- SELECT --}                                                                     |
+        ]],
+        })
+        feed('snippy.util')
+        -- sleep(10)
+        feed('<plug>(snippy-next)')
+        screen:expect({
+            grid = [[
+        local util = require("snippy.util")^                                              |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        neq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('jumps correctly when unicode chars present', function()
