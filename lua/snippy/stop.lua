@@ -3,8 +3,6 @@ local shared = require('snippy.shared')
 local api = vim.api
 local fn = vim.fn
 
-local inspect = (vim and vim.inspect) or require('inspect')
-
 local Stop = {}
 
 function Stop.new(o)

@@ -115,7 +115,7 @@ local function load_scope(scope, stack)
     local extends = {}
     for _, file in ipairs(list_files(scope)) do
         local result = {}
-        local extended = {}
+        local extended
         if file:match('.snippets$') then
             result, extended = read_snippets_file(file)
             extends = vim.list_extend(extends, extended)

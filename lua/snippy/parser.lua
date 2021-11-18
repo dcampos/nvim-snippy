@@ -11,8 +11,6 @@ local pattern = comb.pattern
 local opt = comb.opt
 local lazy = comb.lazy
 
-local inspect = vim and vim.inspect or require('inspect')
-
 local trim = (vim and vim.trim) or function(s)
     return string.gsub(s, '^%s*(.-)%s*$', '%1')
 end

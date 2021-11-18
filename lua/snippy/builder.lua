@@ -98,7 +98,7 @@ local varmap = {
     end,
 }
 
-Builder = {}
+local Builder = {}
 
 function Builder.new(o)
     local builder = setmetatable(o, { __index = Builder })
@@ -187,9 +187,7 @@ function Builder:process_structure(structure)
                         endpos = { self.row, self.col },
                     })
                 elseif value.type == 'variable' then
-                    local startrow, startcol = self.row, self.col
                     self:evaluate_variable(value)
-                    -- table.insert(self.stops, {type=value.type, id=value.id, startpos={startrow, startcol}, endpos={self.row, self.col}, tranform=value.transform})
                 elseif value.type == 'choice' then
                     local choice = value.children[1]
                     local startrow, startcol = self.row, self.col
