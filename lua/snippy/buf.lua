@@ -42,6 +42,39 @@ local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, e
     return mark
 end
 
+local function get_parents(number)
+    local value = M.state().stops[number]
+    if not value.spec.parent then
+        return {}
+    end
+    for n, stop in ipairs(M.state().stops) do
+        if stop.id == value.spec.parent and stop.spec.type == 'placeholder' then
+            return vim.list_extend({ n }, get_parents(n))
+        end
+    end
+    return {}
+end
+
+local function activate_parents(number)
+    local parents = get_parents(number)
+    for _, n in ipairs(parents) do
+        local stop = M.state().stops[n]
+        local from, to = stop:get_range()
+        local mark_id = stop.mark
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+    end
+end
+
+local function deactivate_parents(number)
+    local parents = get_parents(number)
+    for _, n in ipairs(parents) do
+        local stop = M.state().stops[n]
+        local from, to = stop:get_range()
+        local mark_id = stop.mark
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+    end
+end
+
 function M.state()
     local bufnr = api.nvim_buf_get_number(0)
     if not M._state[bufnr] then
@@ -75,11 +108,12 @@ end
 -- Change the extmarks to expand on change
 function M.activate_stop(number)
     local value = M.state().stops[number]
-    for _, stop in ipairs(M.state().stops) do
+    for n, stop in ipairs(M.state().stops) do
         if stop.id == value.id then
             local from, to = stop:get_range()
             local mark_id = stop.mark
             local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+            activate_parents(n)
         end
     end
     M.state().current_stop = number
@@ -89,11 +123,12 @@ end
 -- Change the extmarks NOT to expand on change
 function M.deactivate_stop(number)
     local value = M.state().stops[number]
-    for _, stop in ipairs(M.state().stops) do
+    for n, stop in ipairs(M.state().stops) do
         if stop.id == value.id then
             local from, to = stop:get_range()
             local mark_id = stop.mark
             local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+            deactivate_parents(n)
         end
     end
 end
