@@ -6,7 +6,7 @@ describe('Snippet reader', function()
     end)
 
     it('can read snippets', function()
-        snippy.setup({ snippet_dirs = './test/' })
+        snippy.setup({ snippet_dirs = './test/snippets/' })
         vim.cmd('set filetype=')
         local snips = {
             test1 = { kind = 'snipmate', prefix = 'test1', body = { 'This is the first test.' } },
@@ -17,8 +17,32 @@ describe('Snippet reader', function()
         assert.is_same({ _ = snips }, snippy.snippets)
     end)
 
+    it('can read *.snippet files', function()
+        snippy.setup({ snippet_dirs = './test/snippets/' })
+        vim.cmd('set filetype=php')
+        local snips = {
+            no_description = {
+                kind = 'snipmate',
+                prefix = 'no_description',
+                body = {
+                    'This is a *.snippet file with no description.',
+                },
+            },
+            trigger = {
+                kind = 'snipmate',
+                prefix = 'trigger',
+                description = 'description',
+                body = {
+                    'This is a *.snippet file with a description.',
+                },
+            },
+        }
+        assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
+        assert.is_same(snips, snippy.snippets.php)
+    end)
+
     it('can read snippets with custom indent', function()
-        snippy.setup({ snippet_dirs = './test/' })
+        snippy.setup({ snippet_dirs = './test/snippets/' })
         vim.cmd('set filetype=custom')
         local snips = {
             trigger = {
@@ -37,7 +61,7 @@ describe('Snippet reader', function()
     end)
 
     it('can read vim-snippets snippets', function()
-        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/'
+        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/snippets/'
         snippy.setup({
             snippet_dirs = snippet_dirs,
             scopes = {

@@ -4,11 +4,11 @@ local shared = require('snippy.shared')
 local M = {}
 
 local exprs = {
-    'snippets/%s.snippets',
-    'snippets/%s_*.snippets',
-    'snippets/%s/*.snippets',
-    'snippets/%s/*.snippet',
-    'snippets/%s/*/*.snippet',
+    '%s.snippets',
+    '%s_*.snippets',
+    '%s/*.snippets',
+    '%s/*.snippet',
+    '%s/*/*.snippet',
 }
 
 -- Loading
@@ -76,9 +76,9 @@ local function read_snippets_file(snippets_file)
     return snips, extends
 end
 
-local function read_snippet_file(snippet_file)
+local function read_snippet_file(snippet_file, scope)
     local description, prefix
-    if snippet_file:match('/snippets/.-/.-/.*%.snippet$') then
+    if snippet_file:match('/' .. scope .. '/.-/.*%.snippet$') then
         prefix = fn.fnamemodify(snippet_file, ':h:t')
         description = fn.fnamemodify(snippet_file, ':t:r')
     else
@@ -86,6 +86,9 @@ local function read_snippet_file(snippet_file)
     end
     local file = io.open(snippet_file)
     local body = vim.split(file:read('*a'), '\n')
+    if body[#body] == '' then
+        body = vim.list_slice(body, 1, #body - 1)
+    end
     return {
         [prefix] = {
             kind = 'snipmate',
@@ -96,12 +99,21 @@ local function read_snippet_file(snippet_file)
     }
 end
 
-local function list_files(ftype)
-    local all = {}
-    local dirs = shared.config.snippet_dirs or vim.api.nvim_list_runtime_paths()
+local function list_dirs()
+    local dirs = shared.config.snippet_dirs
+    if not dirs then
+        local rtp = table.concat(vim.api.nvim_list_runtime_paths(), ',')
+        dirs = vim.fn.globpath(rtp, 'snippets/', 0, 1)
+    end
     if type(dirs) ~= 'string' then
         dirs = table.concat(dirs, ',')
     end
+    return dirs
+end
+
+local function list_files(ftype)
+    local all = {}
+    local dirs = list_dirs()
     for _, expr in ipairs(exprs) do
         local e = expr:format(ftype)
         local paths = fn.globpath(dirs, e, 0, 1)
@@ -120,7 +132,7 @@ local function load_scope(scope, stack)
             result, extended = read_snippets_file(file)
             extends = vim.list_extend(extends, extended)
         elseif file:match('.snippet$') then
-            result = read_snippet_file(file)
+            result = read_snippet_file(file, scope)
         end
         snips = vim.tbl_extend('force', snips, result)
     end
@@ -140,17 +152,14 @@ local function load_scope(scope, stack)
 end
 
 function M.list_available_scopes()
-    local dirs = shared.config.snippet_dirs or vim.api.nvim_list_runtime_paths()
-    if type(dirs) ~= 'string' then
-        dirs = table.concat(dirs, ',')
-    end
+    local dirs = list_dirs()
     local patterns = {
-        '/snippets/(.-)/.-%.snippets',
-        '/snippets/(.-)/.-%.snippet',
-        '/snippets/(_).-%.snippets',
-        '/snippets/(.-)_.-%.snippets',
-        '/snippets/(.-)%.snippets',
-        '/snippets/(.-)%.snippet',
+        '/(.-)/.-%.snippets',
+        '/(.-)/.-%.snippet',
+        '/(_).-%.snippets',
+        '/(.-)_.-%.snippets',
+        '/(.-)%.snippets',
+        '/(.-)%.snippet',
     }
     local scopes = {}
     for _, expr in ipairs(exprs) do
