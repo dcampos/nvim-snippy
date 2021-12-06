@@ -117,6 +117,21 @@ following format:
     	This is the first line.
     	This is the second line.
 <
+                                                      *snippy-usage-indenting*
+
+Make sure each line in the snippet definition is indented with spaces or tabs
+in order to be recognized as such. By default, indenting is done with tabs,
+but it is also possible to indent with spaces, as long as it is consistent and
+there is no mixing of tabs and spaces. If you want Neovim to indent your
+custom snippets with two spaces, for example, create a file
+`after/ftplugin/snippets.vim` and add the following: >
+
+    setlocal expandtab tabstop=2 sw=2 
+<
+This could also be achieved with an |autocmd|. Identing with spaces is a
+Snippy feature and might not be compatible with other snippet plugins like
+SnipMate.
+
 Note: Snippy follows the |runtimepath| order when loading snippets, which
 means snippets defined in folders coming later in the list will always
 override those loaded before. So, if you put your custom snippets in
@@ -284,6 +299,8 @@ This plugin can be configured by passing a dictionary to the lua function
 
 snippet_dirs ~
     A comma-separated (if a `String`) list of directories containing snippets.
+    Snippets must be placed in the top-level directory, with no nested
+    `snippets/` subfolder.
         Type: `String` or `List`
         Default: vim.api.nvim_list_runtime_paths()
 

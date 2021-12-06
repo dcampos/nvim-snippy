@@ -10,7 +10,7 @@ syn match snippet '^extends.*' contains=snipKeyword
 syn match snippet '^version.*' contains=snipKeyword
 syn match multiSnipText '\S\+ \zs.*' contained
 syn match snipKeyword '^(snippet|extends|version)'me=s+8 contained
-syn match snipError "^[^#vse\t].*$"
+syn match snipError "^[^#vse\t ].*$"
 
 syn region choice start='\${\d\+|' end='|}' contains=choiceValue
 syn match choiceValue '[|,]\zs[^,|]\+\ze[|,]' contained
