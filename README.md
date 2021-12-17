@@ -1,11 +1,11 @@
 # Snippy
 
-A Lua-based snippets plugin for Neovim **0.5.0+**.
+A snippets plugin for Neovim **0.5.0+** written in Lua.
 
 ## Status
 
-The plugin is mostly stable and can be used. Please open an issue if you
-find any bug. Also, see the [Known bugs](#known-bugs) section.
+The plugin is mostly stable and feature complete as a minimal and simple snippets manager.
+Also, see the [FAQ](#faq) section.
 
 ## Features
 
@@ -121,7 +121,7 @@ like Deoplete or Compe, please install the respective integration plugin listed
 above in the [Installation](#installation) section.
 
 You can also expand LSP snippets present in completion items provided by Neovim's
-bult-in `vim.lsp.omnifunc`. See `:help snippy.complete_done()` for details.
+built-in `vim.lsp.omnifunc`. See `:help snippy.complete_done()` for details.
 
 ## Running tests
 
@@ -150,6 +150,17 @@ These are some of the advantages of this plugin when compared with other snippet
 * No need to defined snippets in Lua or Vimscript code.
 * Simple and standard snippet syntax.
 
+## FAQ
+
+#### Is UltiSnips's feature X available?
+
+This is so far the most frequently asked question and the answer to it is
+generally no. UltiSnips is a great snippets manager for those wanting to use
+advanced snippet features, like Python evaluation, but that comes at a price of
+being heavyweight and complicated, whereas Snippy strives to be minimal and
+simple. That said, UltiSnips has some nice features like auto-trigger that may
+be added to Snippy in the future to improve usability.
+
 ## Known bugs
 
 * There is a bug in Neovim where `extmarks` are extended to the beginning of the completed item when the `complete()` function is called and a completion menu is shown, even if the user does not select or confirm anything. See the [bug report][1] for more information.
@@ -164,7 +175,7 @@ These are some of the advantages of this plugin when compared with other snippet
 
 ## Credits
 
-The snippet parsing code is based on the one that is part of [vsnip][7].
+The snippet parsing code is based on [vsnip][7].
 
 ## License
 
