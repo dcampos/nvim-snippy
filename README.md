@@ -32,16 +32,10 @@ There are no snippets installed by default. You can create your own, or install
 Plug 'honza/vim-snippets'
 ```
 
-If you want to use Snippy with [deoplete.nvim][2], [nvim-compe][3] or [nvim-cmp][4], please install the
-corresponding integration plugin:
+If you want to use Snippy with [nvim-cmp][2], please install the corresponding
+integration plugin:
 
 ```vim
-Plug 'dcampos/deoplete-snippy'
-
-" Or:
-Plug 'dcampos/compe-snippy'
-
-" Or:
 Plug 'dcampos/cmp-snippy'
 ```
 
@@ -107,7 +101,7 @@ snippet repeat
 	while ${1:condition}
 ```
 
-You can see example snippets by looking at the [honza/vim-snippets][5]
+You can see example snippets by looking at the [honza/vim-snippets][3]
 repository, which, if installed, Snippy will also use automatically as a source
 of snippets .
 
@@ -117,7 +111,7 @@ information.
 ## Expanding LSP snippets
 
 The LSP snippet syntax is almost fully supported. If you use a completion plugin
-like Deoplete or Compe, please install the respective integration plugin listed
+like nvim-cmp, please install the respective integration plugin listed
 above in the [Installation](#installation) section.
 
 You can also expand LSP snippets present in completion items provided by Neovim's
@@ -137,7 +131,7 @@ Or:
 make unittest
 ```
 
-You need to have [`vusted`][6] installed for the above command to succeed.
+You need to have [`vusted`][4] installed for the above command to succeed.
 
 ## Advantages
 
@@ -165,18 +159,16 @@ be added to Snippy in the future to improve usability.
 
 * There is a bug in Neovim where `extmarks` are extended to the beginning of the completed item when the `complete()` function is called and a completion menu is shown, even if the user does not select or confirm anything. See the [bug report][1] for more information.
 
-[1]: https://github.com/neovim/neovim/issues/13816
-[2]: https://github.com/Shougo/deoplete.nvim
-[3]: https://github.com/hrsh7th/nvim-compe
-[4]: https://github.com/hrsh7th/nvim-cmp
-[5]: https://github.com/honza/vim-snippets
-[6]: https://github.com/notomo/vusted
-[7]: https://github.com/hrsh7th/vim-vsnip
-
 ## Credits
 
-The snippet parsing code is based on [vsnip][7].
+The snippet parsing code is based on [vsnip][5].
 
 ## License
 
 MIT license.
+
+[1]: https://github.com/neovim/neovim/issues/13816
+[2]: https://github.com/hrsh7th/nvim-cmp
+[3]: https://github.com/honza/vim-snippets
+[4]: https://github.com/notomo/vusted
+[5]: https://github.com/hrsh7th/vim-vsnip
