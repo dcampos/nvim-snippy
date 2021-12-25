@@ -122,7 +122,7 @@ function Builder:indent_lines(lines, ident_level)
     local new_level
     for i, line in ipairs(lines) do
         if vim.bo.expandtab then
-            line = line:gsub('\t', string.rep(' ', vim.bo.shiftwidth))
+            line = line:gsub('\t', string.rep(' ', vim.fn.shiftwidth()))
         end
         new_level = line:match('^%s*')
         if i > 1 and self.indent and line ~= '' then
