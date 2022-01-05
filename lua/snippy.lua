@@ -91,6 +91,11 @@ local function mirror_stop(number)
             stop:set_text(text)
         end
     end
+    if value.spec.type == 'placeholder' then
+        if text ~= value.placeholder then
+            buf.clear_children(number)
+        end
+    end
 end
 
 local function sort_stops(stops)

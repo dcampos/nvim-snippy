@@ -42,6 +42,16 @@ local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, e
     return mark
 end
 
+local function get_children(number)
+    local value = M.state().stops[number]
+    for n, stop in ipairs(M.state().stops) do
+        if value.id == stop.spec.parent then
+            return vim.list_extend({ n }, get_children(n))
+        end
+    end
+    return {}
+end
+
 local function get_parents(number)
     local value = M.state().stops[number]
     if not value.spec.parent then
@@ -72,6 +82,14 @@ local function deactivate_parents(number)
         local from, to = stop:get_range()
         local mark_id = stop.mark
         local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+    end
+end
+
+function M.clear_children(stop_num)
+    local children = get_children(stop_num)
+    table.sort(children)
+    for i = #children, 1, -1 do
+        table.remove(M.state().stops, children[i])
     end
 end
 
@@ -115,6 +133,9 @@ function M.activate_stop(number)
             local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
             activate_parents(n)
         end
+    end
+    if value.spec.type == 'placeholder' then
+        value.placeholder = value:get_text()
     end
     M.state().current_stop = number
     M.update_state()

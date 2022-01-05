@@ -483,4 +483,41 @@ describe('Snippy', function()
         eq(0, eval('pumvisible()'))
         eq(false, exec_lua([[return snippy.is_active()]]))
     end)
+
+    it('removes children from changed placeholder', function()
+        exec_lua('snippy.expand_snippet([[class MyClass ${1:extends ${2:Super} } {\n\t$0\n}]])')
+        screen:expect({
+            grid = [[
+          class MyClass ^e{3:xtends Super } {                                                   |
+                                                                                           |
+          }                                                                                |
+          {1:~                                                                                }|
+          {2:-- SELECT --}                                                                     |
+        ]],
+        })
+        exec_lua([[snippy.next()]])
+        screen:expect({
+            grid = [[
+          class MyClass extends ^S{3:uper}  {                                                   |
+                                                                                           |
+          }                                                                                |
+          {1:~                                                                                }|
+          {2:-- SELECT --}                                                                     |
+        ]],
+        })
+        exec_lua([[snippy.previous()]])
+        -- Change parent placeholder
+        feed('<BS>')
+        exec_lua([[snippy.next()]])
+        screen:expect({
+            grid = [[
+          class MyClass  {                                                                 |
+                  ^                                                                         |
+          }                                                                                |
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        eq(false, exec_lua([[return snippy.is_active()]]))
+    end)
 end)

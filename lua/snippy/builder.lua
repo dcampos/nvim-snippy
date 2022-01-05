@@ -174,7 +174,6 @@ function Builder:process_structure(structure, parent)
                         id = value.id,
                         startpos = { self.row, self.col },
                         endpos = { self.row, self.col },
-                        placeholder = '',
                         transform = value.transform,
                         parent = parent,
                     })
@@ -186,6 +185,7 @@ function Builder:process_structure(structure, parent)
                         id = value.id,
                         startpos = { startrow, startcol },
                         endpos = { self.row, self.col },
+                        parent = parent,
                     })
                 elseif value.type == 'variable' then
                     self:evaluate_variable(value)
@@ -199,6 +199,7 @@ function Builder:process_structure(structure, parent)
                         startpos = { startrow, startcol },
                         endpos = { self.row, self.col },
                         choices = value.choices,
+                        parent = parent,
                     })
                 elseif value.type == 'eval' then
                     local code = value.children[1].raw
