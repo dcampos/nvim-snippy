@@ -9,8 +9,8 @@ describe('Snippet reader', function()
         snippy.setup({ snippet_dirs = './test/snippets/' })
         vim.cmd('set filetype=')
         local snips = {
-            test1 = { kind = 'snipmate', prefix = 'test1', body = { 'This is the first test.' } },
-            test2 = { kind = 'snipmate', prefix = 'test2', body = { 'This is the second test.' } },
+            test1 = { kind = 'snipmate', prefix = 'test1', option = '', body = { 'This is the first test.' } },
+            test2 = { kind = 'snipmate', prefix = 'test2', option = '', body = { 'This is the second test.' } },
         }
         assert.is_truthy(require('snippy.shared').config.snippet_dirs)
         assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
@@ -24,6 +24,7 @@ describe('Snippet reader', function()
             no_description = {
                 kind = 'snipmate',
                 prefix = 'no_description',
+                option = '',
                 body = {
                     'This is a *.snippet file with no description.',
                 },
@@ -31,6 +32,7 @@ describe('Snippet reader', function()
             trigger = {
                 kind = 'snipmate',
                 prefix = 'trigger',
+                option = '',
                 description = 'description',
                 body = {
                     'This is a *.snippet file with a description.',
@@ -48,6 +50,7 @@ describe('Snippet reader', function()
             trigger = {
                 kind = 'snipmate',
                 prefix = 'trigger',
+                option = '',
                 body = {
                     'This is indented with two spaces.',
                     '\tThis is indented with four spaces.',
