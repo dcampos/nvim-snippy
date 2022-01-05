@@ -145,7 +145,7 @@ local function get_snippet_at_cursor()
     M.read_snippets()
     local _, col = unpack(api.nvim_win_get_cursor(0))
 
-    -- remove leading whitespace for current_line_to_col
+    -- Remove leading whitespace for current_line_to_col
     local current_line_to_col =
         api.nvim_get_current_line():sub(1, col):match('(%S+)$')
 
