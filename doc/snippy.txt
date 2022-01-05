@@ -110,13 +110,22 @@ Files with the `.snippet` extension contain a single snippet, while files with
 the `.snippets` extension can be used to declare multiple snippets using the
 following format:
 >
-    snippet trigger1 "Description for snippet 1"
+    snippet trigger1 "Description for snippet 1" [option]
     	This is the first line.
     	This is the second line.
-    snippet trigger2 "Description for snippet 2"
+    snippet trigger2 "Description for snippet 2" [option]
     	This is the first line.
     	This is the second line.
 <
+The `option`s control the behavior of the expansion of the snippet and are
+optional. Currently supported are the following:
+    - `w` Word boundary - The word expands only when the trigger is on a word
+        boundary. This is the default behavior.
+    - `i` In-word expansion - The snippet gets expanded even if the trigger is
+        only part of the word, up to the cursor.
+    - `b` Beginning of line - The snippet is only expanded if its trigger is
+        the first word on the line, only preceeded by whitespace.
+
                                                       *snippy-usage-indenting*
 
 Make sure each line in the snippet definition is indented with spaces or tabs
