@@ -158,23 +158,23 @@ local function get_snippet_at_cursor()
                 if scope and M.snippets[scope] then
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
-                        if snippet.modifier == "i" then
+                        if snippet.option == "i" then
                             -- match inside word
                             return word, snippet
-                        elseif snippet.modifier == "b" then
+                        elseif snippet.option == "b" then
                             -- match if word is first on line
                             if word == current_line_to_col then
                                 return word, snippet
                             end
-                        elseif snippet.modifier == "w" or snippet.modifier == "" then
+                        elseif snippet.option == "w" or snippet.option == "" then
                             if word_bound then
                                 -- by default only match on word boundary
                                 return word, snippet
                             end
                         else
                             error( string.format(
-                                "Unkown modifier %s in snippet %s",
-                                snippet.modifier, snippet.prefix))
+                                "Unknown option %s in snippet %s",
+                                snippet.option, snippet.prefix))
                         end
                     end
                 end
