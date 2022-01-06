@@ -1,7 +1,7 @@
 local helpers = require('test.functional.helpers')(after_each)
 local Screen = require('test.functional.ui.screen')
 local clear, command, eval = helpers.clear, helpers.command, helpers.eval
-local feed, alter_slashes, meths = helpers.feed, helpers.alter_slashes, helpers.meths
+local feed, alter_slashes = helpers.feed, helpers.alter_slashes
 local insert = helpers.insert
 local eq, neq, ok = helpers.eq, helpers.neq, helpers.ok
 local sleep, exec_lua = helpers.sleep, helpers.exec_lua
@@ -43,7 +43,7 @@ describe('Snippy', function()
 
     it('can detect current scope', function()
         command('set filetype=lua')
-        eq({ _ = {}, lua = {} }, meths.execute_lua([[return snippy.snippets]], {}))
+        eq({ _ = {}, lua = {} }, exec_lua([[return snippy.snippets]]))
     end)
 
     it('can insert a basic snippet', function()
@@ -52,7 +52,6 @@ describe('Snippy', function()
         insert('test1')
         feed('a')
         feed('<plug>(snippy-expand)')
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         This is the first test.^                                                          |
@@ -69,7 +68,7 @@ describe('Snippy', function()
         command('set filetype=lua')
         insert('for')
         feed('a')
-        eq(true, meths.execute_lua([[return snippy.can_expand()]], {}))
+        eq(true, exec_lua([[return snippy.can_expand()]]))
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
@@ -80,7 +79,7 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
@@ -91,9 +90,9 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
-        neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        neq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('can expand and select placeholder', function()
@@ -101,7 +100,7 @@ describe('Snippy', function()
         command('set filetype=lua')
         insert('loc')
         feed('a')
-        eq(true, meths.execute_lua([[return snippy.can_expand()]], {}))
+        eq(true, exec_lua([[return snippy.can_expand()]]))
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
@@ -112,8 +111,8 @@ describe('Snippy', function()
         {2:-- SELECT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
+        eq(true, exec_lua([[return snippy.is_active()]]))
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
@@ -124,7 +123,7 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        neq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('can expand anonymous snippet', function()
@@ -140,14 +139,14 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('can jump back', function()
         command('set filetype=')
         feed('i')
         command('lua snippy.expand_snippet([[$1, $2, $0]])')
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
@@ -158,7 +157,7 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.can_jump(-1)]], {}))
+        eq(true, exec_lua([[return snippy.can_jump(-1)]]))
         feed('<plug>(snippy-previous)')
         screen:expect({
             grid = [[
@@ -184,7 +183,7 @@ describe('Snippy', function()
         {2:-- SELECT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
         feed('snipsnipsnip')
         screen:expect({
             grid = [[
@@ -195,17 +194,14 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        -- neq({current_stop = 0, stops = {}},
-        --     meths.execute_lua([[return require 'snippy.buf'.state()]], {}))
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('applies transform with escaping', function()
         command('set filetype=')
         feed('i')
         command('lua snippy.expand_snippet([[local ${1:var} = ${1/\\w\\+/\\U\\0/g}]])')
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        -- screen:snapshot_util()
+        eq(true, exec_lua([[return snippy.is_active()]]))
         feed('snippy')
         screen:expect({
             grid = [[
@@ -216,7 +212,7 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('clears state on move', function()
@@ -232,7 +228,7 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
         feed('<left>')
         screen:expect({
             grid = [[
@@ -243,15 +239,13 @@ describe('Snippy', function()
         {2:-- INSERT --}                                                                     |
         ]],
         })
-        neq(true, meths.execute_lua([[return snippy.is_active()]], {}))
+        neq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('can jump from select to insert mode', function()
-        -- command [[lua snippy.setup({ hl_group = 'Search' })]]
         local snip = 'for (\\$${1:foo} = 0; \\$$1 < $2; \\$$1++) {\n\t$0\n}'
         feed('i')
         command('lua snippy.expand_snippet([[' .. snip .. ']])')
-        -- feed("bar")
 
         screen:expect({
             grid = [[
@@ -263,11 +257,10 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
+        ok(exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
 
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         for ($foo = 0; $foo < ^; $foo++) {                                                |
@@ -278,11 +271,10 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
+        ok(exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
 
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         for ($foo = 0; $foo < ; $foo++) {                                                |
@@ -293,17 +285,15 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(false, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('jumps and mirrors correctly', function()
-        -- command [[lua snippy.setup({ hl_group = 'Search' })]]
         local snip = '${1:var} = $0; // set $1'
         feed('i')
         command('lua snippy.expand_snippet([[' .. snip .. ']])')
         feed('$foo')
 
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         $foo^ = ; // set $foo                                                             |
@@ -314,11 +304,10 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        ok(meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
+        ok(exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
 
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         $foo = ^; // set $foo                                                             |
@@ -329,14 +318,13 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(false, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('mirrors nested tab stops', function()
         local snip = 'local ${1:module} = require("${2:$1}")'
         command('lua snippy.expand_snippet([[' .. snip .. ']])')
         feed('util')
-        -- sleep(10)
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
@@ -348,7 +336,6 @@ describe('Snippy', function()
         ]],
         })
         feed('snippy.util')
-        -- sleep(10)
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
@@ -366,7 +353,6 @@ describe('Snippy', function()
         local snip = 'local ${1:var} = $2 -- ▴ $0'
         feed('iç')
         command('lua snippy.expand_snippet([[' .. snip .. ']])')
-        -- screen:snapshot_util()
 
         screen:expect({
             grid = [[
@@ -379,10 +365,9 @@ describe('Snippy', function()
         })
 
         feed('snippy')
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
 
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         çlocal snippy = ^ -- ▴                                                            |
@@ -393,10 +378,9 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
-        -- screen:snapshot_util()
 
         screen:expect({
             grid = [[
@@ -408,20 +392,20 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(false, meths.execute_lua([[return snippy.is_active()]], {}))
+        eq(false, exec_lua([[return snippy.is_active()]]))
     end)
 
     it('jumps in the correct order', function()
         local snip = '${1:var1}\n${2:var2} ${3:var3}\n$2 $3 $3 ${4:var4}\n$3 $3 $4'
         command('lua snippy.expand_snippet([[' .. snip .. ']])')
-        eq(true, meths.execute_lua([[return snippy.is_active()]], {}))
-        eq(1, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.is_active()]]))
+        eq(1, exec_lua([[return require 'snippy.buf'.current_stop]]))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
-        eq(2, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(2, exec_lua([[return require 'snippy.buf'.current_stop]]))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
-        eq(true, meths.execute_lua([[return snippy.can_jump(1)]], {}))
+        eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
 
         screen:expect({
@@ -434,7 +418,7 @@ describe('Snippy', function()
         ]],
         })
 
-        eq(9, meths.execute_lua([[return require 'snippy.buf'.current_stop]], {}))
+        eq(9, exec_lua([[return require 'snippy.buf'.current_stop]]))
     end)
 
     it('can cut text and expand it in normal mode', function()
