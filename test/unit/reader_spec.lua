@@ -24,7 +24,6 @@ describe('Snippet reader', function()
             no_description = {
                 kind = 'snipmate',
                 prefix = 'no_description',
-                option = '',
                 body = {
                     'This is a *.snippet file with no description.',
                 },
@@ -32,7 +31,6 @@ describe('Snippet reader', function()
             trigger = {
                 kind = 'snipmate',
                 prefix = 'trigger',
-                option = '',
                 description = 'description',
                 body = {
                     'This is a *.snippet file with a description.',
