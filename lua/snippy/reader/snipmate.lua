@@ -28,7 +28,7 @@ local function read_snippets_file(snippets_file)
         local prefix = line:match('%s+(%S+)%s*')
         assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
         local description = line:match('%s*"(.+)"%s*')
-        local option = line:match('[bwi]?$') -- allow at most one option
+        local option = line:match('[bwi]?$') -- Allow at most one option
         local body = {}
         local indent = nil
         i = i + 1

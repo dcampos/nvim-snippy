@@ -149,7 +149,7 @@ local function get_snippet_at_cursor()
     local current_line_to_col = api.nvim_get_current_line():sub(1, col):match('(%S+)$')
 
     if current_line_to_col then
-        word = current_line_to_col:match('(%S+)$') -- remove leading whitespace
+        local word = current_line_to_col:match('(%S+)$') -- Remove leading whitespace
         local word_bound = true
         local scopes = shared.get_scopes()
         while #word > 0 do
@@ -158,16 +158,16 @@ local function get_snippet_at_cursor()
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
                         if snippet.option == 'i' then
-                            -- match inside word
+                            -- Match inside word
                             return word, snippet
                         elseif snippet.option == 'b' then
-                            -- match if word is first on line
+                            -- Match if word is first on line
                             if word == current_line_to_col then
                                 return word, snippet
                             end
                         elseif snippet.option == 'w' or snippet.option == '' then
                             if word_bound then
-                                -- by default only match on word boundary
+                                -- By default only match on word boundary
                                 return word, snippet
                             end
                         else
