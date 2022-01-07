@@ -144,23 +144,40 @@ end
 local function get_snippet_at_cursor()
     M.read_snippets()
     local _, col = unpack(api.nvim_win_get_cursor(0))
-    local current_line = api.nvim_get_current_line()
-    local word = current_line:sub(1, col):match('(%S+)$')
-    if word then
+
+    -- Remove leading whitespace for current_line_to_col
+    local current_line_to_col = api.nvim_get_current_line():sub(1, col):match('(%S+)$')
+
+    if current_line_to_col then
+        word = current_line_to_col:match('(%S+)$') -- remove leading whitespace
+        local word_bound = true
         local scopes = shared.get_scopes()
         while #word > 0 do
             for _, scope in ipairs(scopes) do
                 if scope and M.snippets[scope] then
                     if M.snippets[scope][word] then
-                        return word, M.snippets[scope][word]
+                        local snippet = M.snippets[scope][word]
+                        if snippet.option == 'i' then
+                            -- match inside word
+                            return word, snippet
+                        elseif snippet.option == 'b' then
+                            -- match if word is first on line
+                            if word == current_line_to_col then
+                                return word, snippet
+                            end
+                        elseif snippet.option == 'w' or snippet.option == '' then
+                            if word_bound then
+                                -- by default only match on word boundary
+                                return word, snippet
+                            end
+                        else
+                            error(string.format('Unknown option %s in snippet %s', snippet.option, snippet.prefix))
+                        end
                     end
                 end
             end
-            if word:match('^%w') then
-                word = word:gsub('^%w+', '')
-            else
-                word = word:sub(2)
-            end
+            word = word:sub(2)
+            word_bound = false
         end
     end
     return nil, nil
