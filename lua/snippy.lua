@@ -146,8 +146,7 @@ local function get_snippet_at_cursor()
     local _, col = unpack(api.nvim_win_get_cursor(0))
 
     -- Remove leading whitespace for current_line_to_col
-    local current_line_to_col =
-        api.nvim_get_current_line():sub(1, col):match('(%S+)$')
+    local current_line_to_col = api.nvim_get_current_line():sub(1, col):match('(%S+)$')
 
     if current_line_to_col then
         word = current_line_to_col:match('(%S+)$') -- remove leading whitespace
@@ -158,23 +157,21 @@ local function get_snippet_at_cursor()
                 if scope and M.snippets[scope] then
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
-                        if snippet.option == "i" then
+                        if snippet.option == 'i' then
                             -- match inside word
                             return word, snippet
-                        elseif snippet.option == "b" then
+                        elseif snippet.option == 'b' then
                             -- match if word is first on line
                             if word == current_line_to_col then
                                 return word, snippet
                             end
-                        elseif snippet.option == "w" or snippet.option == "" then
+                        elseif snippet.option == 'w' or snippet.option == '' then
                             if word_bound then
                                 -- by default only match on word boundary
                                 return word, snippet
                             end
                         else
-                            error( string.format(
-                                "Unknown option %s in snippet %s",
-                                snippet.option, snippet.prefix))
+                            error(string.format('Unknown option %s in snippet %s', snippet.option, snippet.prefix))
                         end
                     end
                 end
