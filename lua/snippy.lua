@@ -146,7 +146,7 @@ end
 
 -- Snippet management
 
-local function get_snippet_at_cursor()
+local function get_snippet_at_cursor(auto_trigger)
     M.read_snippets()
     local _, col = unpack(api.nvim_win_get_cursor(0))
 
@@ -162,21 +162,22 @@ local function get_snippet_at_cursor()
                 if scope and M.snippets[scope] then
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
-                        if snippet.option == 'i' then
-                            -- Match inside word
-                            return word, snippet
-                        elseif snippet.option == 'b' then
-                            -- Match if word is first on line
-                            if word == current_line_to_col then
+                        print(vim.inspect(snippet))
+                        if not auto_trigger or snippet.option.auto_trigger then
+                            if snippet.option.inword then
+                                -- Match inside word
                                 return word, snippet
+                            elseif snippet.option.beginning then
+                                -- Match if word is first on line
+                                if word == current_line_to_col then
+                                    return word, snippet
+                                end
+                            else
+                                if word_bound then
+                                    -- By default only match on word boundary
+                                    return word, snippet
+                                end
                             end
-                        elseif snippet.option == 'w' or snippet.option == '' then
-                            if word_bound then
-                                -- By default only match on word boundary
-                                return word, snippet
-                            end
-                        else
-                            error(string.format('Unknown option %s in snippet %s', snippet.option, snippet.prefix))
                         end
                     end
                 end
@@ -468,16 +469,16 @@ function M.expand_or_advance()
     return M.expand() or M.next()
 end
 
-function M.expand()
-    local word, snippet = get_snippet_at_cursor()
+function M.expand(auto)
+    local word, snippet = get_snippet_at_cursor(auto)
     if word and snippet then
         return M.expand_snippet(snippet, word)
     end
     return false
 end
 
-function M.can_expand()
-    local word, snip = get_snippet_at_cursor()
+function M.can_expand(auto)
+    local word, snip = get_snippet_at_cursor(auto)
     if word and snip then
         return true
     else
@@ -517,6 +518,7 @@ vim.cmd([[
     autocmd!
     autocmd FileType * lua require 'snippy'.read_snippets()
     autocmd BufWritePost *.snippet{,s} lua require 'snippy'.clear_cache()
+    autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
     augroup END
 ]])
 
