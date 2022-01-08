@@ -133,22 +133,6 @@ function M.deactivate_stop(number)
     end
 end
 
--- function M.stops()
---     return M.state().stops
--- end
-
--- function M.set_stops(stops)
---     M.state().stops = stops
--- end
-
--- function M.current_stop()
---     return M.state().current_stop
--- end
-
--- function M.set_current_stop(number)
---     M.state().current_stop = number
--- end
-
 function M.update_state()
     local current_stop = M.stops[M.current_stop]
     if not current_stop then

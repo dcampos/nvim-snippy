@@ -35,7 +35,6 @@ end
 function Stop:set_text(text)
     local startpos, endpos = self:get_range()
     if self.spec.transform then
-        -- print('transforming text for', vim.inspect(self))
         local transform = self.spec.transform
         text = fn.substitute(text, transform.regex.raw, transform.format.raw, transform.flags)
     end
