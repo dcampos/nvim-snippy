@@ -210,6 +210,10 @@ function M._handle_CursorMoved()
     M._check_position()
 end
 
+function M._handle_BufWritePost()
+    M._check_position()
+end
+
 -- Public functions
 
 function M.complete()
@@ -373,10 +377,9 @@ function M._check_position()
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
-    local ranges = {}
+    local max_row = vim.api.nvim_buf_line_count(0) - 1
     for _, stop in ipairs(stops) do
         local from, to = stop:get_range()
-        table.insert(ranges, { from, to })
         local startrow, startcol = unpack(from)
         local endrow, endcol = unpack(to)
         if fn.mode() == 'n' then
@@ -387,6 +390,11 @@ function M._check_position()
                 endcol = endcol - 1
             end
         end
+
+        if startrow > max_row or endrow > max_row then
+            break
+        end
+
         if
             (startrow < row or (startrow == row and startcol <= col))
             and (endrow > row or (endrow == row and endcol >= col))
