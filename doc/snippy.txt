@@ -106,9 +106,9 @@ are accepted:
     - snippets/{filetype}/{trigger}.snippet
     - snippets/{filetype}/{trigger}/{description}.snippet
 
-Files with the `.snippet` extension contain a single snippet, while files with
-the `.snippets` extension can be used to declare multiple snippets using the
-following format:
+Files with the `.snippet` extension contain a single snippet each, whereas
+files with the `.snippets` extension can be used to declare multiple snippets
+using the following format:
 >
     snippet trigger1 "Description for snippet 1" [option]
     	This is the first line.
@@ -165,8 +165,8 @@ Snippy should be compatible with the full LSP snippet syntax, which in turn is
 based on the original TextMate syntax. Additionally, the SnipMate syntax is
 supported for compatibility.
 
-Currently the parser for a particular snippet is chosen based on the the
-source the snippet was loaded from. If it was loaded from a SnipMate file, the
+Currently the parser for a particular snippet is chosen based on the source
+the snippet was loaded from. If it was loaded from a SnipMate file, the
 SnipMate-style parser will be used. The default behavior is to parse using the
 LSP syntax parser.
 
