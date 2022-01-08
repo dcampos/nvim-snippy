@@ -176,8 +176,10 @@ function M.setup_autocmds()
             autocmd TextChanged,TextChangedI <buffer=%s> lua require 'snippy'._handle_TextChanged()
             autocmd TextChangedP <buffer=%s> lua require 'snippy'._handle_TextChangedP()
             autocmd CursorMoved,CursorMovedI <buffer=%s> lua require 'snippy'._handle_CursorMoved()
+            autocmd BufWritePost <buffer=%s> lua require 'snippy'._handle_BufWritePost()
             augroup END
         ]],
+        bufnr,
         bufnr,
         bufnr,
         bufnr,
