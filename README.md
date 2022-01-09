@@ -41,31 +41,31 @@ Plug 'dcampos/cmp-snippy'
 
 ## Usage
 
-Snippy comes with no mappings activated by default. So you'll have to define
-some, probably.
+Snippy comes with no mappings activated by default, so you need to define
+some.
 
 For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 
 ```vim
-imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-next)' : '<Tab>'
+imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
 imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
 smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
 smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<Tab>'
 xmap <Tab> <Plug>(snippy-cut-text)
 ```
 
-Using the Lua API:
+When using Lua, you can wrap the above block in a `vim.cmd([[...]])` call, or
+call the `snippy.setup()` function passing your mapping options:
 
 ```lua
-local snippy = require("snippy")
-snippy.setup({
+require('snippy').setup({
     mappings = {
         is = {
-            ["<Tab>"] = "expand_or_advance",
-            ["<S-Tab>"] = "previous",
+            ['<Tab>'] = 'expand_or_advance',
+            ['<S-Tab>'] = 'previous',
         },
         nx = {
-            ["<leader>x"] = "cut_text",
+            ['<leader>x'] = 'cut_text',
         },
     },
 })
