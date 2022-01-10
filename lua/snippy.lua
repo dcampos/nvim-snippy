@@ -151,10 +151,10 @@ local function get_snippet_at_cursor(auto_trigger)
     local _, col = unpack(api.nvim_win_get_cursor(0))
 
     -- Remove leading whitespace for current_line_to_col
-    local current_line_to_col = api.nvim_get_current_line():sub(1, col):match('(%S+)$')
+    local current_line_to_col = api.nvim_get_current_line():sub(1, col):gsub('^%s*', '')
 
     if current_line_to_col then
-        local word = current_line_to_col:match('(%S+)$') -- Remove leading whitespace
+        local word = current_line_to_col:match('(%S*)$') -- Remove leading whitespace
         local word_bound = true
         local scopes = shared.get_scopes()
         while #word > 0 do
@@ -516,9 +516,8 @@ M.mapping = {
 vim.cmd([[
     augroup snippy
     autocmd!
-    autocmd FileType * lua require 'snippy'.read_snippets()
+    autocmd FileType,InsertEnter * lua require 'snippy'.read_snippets()
     autocmd BufWritePost *.snippet{,s} lua require 'snippy'.clear_cache()
-    autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
     augroup END
 ]])
 
@@ -531,6 +530,14 @@ function M.read_snippets()
     for _, reader in ipairs(M.readers) do
         local snips = reader.read_snippets()
         M.snippets = vim.tbl_extend('force', M.snippets, snips)
+        if shared.enable_auto then
+            vim.cmd([[
+                augroup snippy_auto
+                autocmd!
+                autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
+                augroup END
+            ]])
+        end
     end
 end
 

@@ -59,6 +59,9 @@ local function read_snippets_file(snippets_file)
         assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
         local description = line:match('%s*"(.+)"%s*')
         local option = description and parse_options(prefix, line) or {}
+        if option.auto_trigger then
+            shared.enable_auto = true
+        end
         local body = {}
         local indent = nil
         i = i + 1
