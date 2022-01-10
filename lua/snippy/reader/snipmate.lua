@@ -14,27 +14,22 @@ local exprs = {
 -- Loading
 
 local function parse_options(prefix, line)
-    local opt = line:match(' [bwiA]+$') or ''
-    opt = opt:gsub('^%s+', '')
-    local chars = vim.split(opt, '')
-    local word, inword, beginning, auto
-    for _, option in ipairs(chars) do
-        if option == 'w' then
-            word = true
-        elseif option == 'i' then
-            inword = true
-        elseif option == 'b' then
-            beginning = true
-        elseif option == 'A' then
-            auto = true
-        else
-            error(string.format('Unknown option %s in snippet %s', option, prefix))
-        end
+    local opt = line:match(' (%w+)$') or ''
+    local word = opt:find('w') and true
+    local inword = opt:find('i') and true
+    local beginning = opt:find('b') and true
+    local auto = opt:find('A') and true
+
+    local invalid = opt:match('[^bwiA]')
+    if invalid then
+        error(string.format('Unknown option %s in snippet %s', invalid, prefix))
     end
+
     assert(
         not ((word and inword) or (word and beginning) or (inword and beginning)),
         'Options [w, i, b] cannot be combined'
     )
+
     return {
         word = word,
         inword = inword,
