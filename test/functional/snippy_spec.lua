@@ -158,13 +158,15 @@ describe('Snippy', function()
         command('set filetype=java')
         feed('ipsvm')
         eq(true, exec_lua([[return snippy.is_active()]]))
-        screen:expect{grid=[[
+        screen:expect({
+            grid = [[
           public static void main(String[] ^a{3:rgs}) {                                         |
                                                                                            |
           }                                                                                |
           {1:~                                                                                }|
           {2:-- SELECT --}                                                                     |
-        ]]}
+        ]],
+        })
     end)
 
     it('can jump back', function()
