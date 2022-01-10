@@ -125,6 +125,9 @@ optional. Currently supported are the following:
         only part of the word, up to the cursor.
     - `b` Beginning of line - The snippet is only expanded if its trigger is
         the first word on the line, only preceeded by whitespace.
+    - `A` Autotrigger - The snippet is expanded automatically when the trigger
+        is typed. Note that this feature may degrade the performance of your
+        editor when used.
 
                                                       *snippy-usage-indenting*
 
