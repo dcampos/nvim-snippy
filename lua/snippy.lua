@@ -527,6 +527,7 @@ M.readers = {
 }
 
 function M.read_snippets()
+    shared.enable_auto = false
     for _, reader in ipairs(M.readers) do
         local snips = reader.read_snippets()
         M.snippets = vim.tbl_extend('force', M.snippets, snips)
