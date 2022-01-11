@@ -48,7 +48,7 @@ describe('Snippet reader', function()
             trigger = {
                 kind = 'snipmate',
                 prefix = 'trigger',
-                option = { auto_trigger = true },
+                option = {},
                 description = 'description',
                 body = {
                     'This is indented with two spaces.',
@@ -60,6 +60,15 @@ describe('Snippet reader', function()
         assert.is_truthy(require('snippy.shared').config.snippet_dirs)
         assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
         assert.is_same(snips, snippy.snippets.custom)
+    end)
+
+    it('can read snippets with otions', function()
+        snippy.setup({ snippet_dirs = './test/snippets/' })
+        vim.cmd('set filetype=java')
+        assert.is_truthy(require('snippy.shared').config.snippet_dirs)
+        assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
+        assert.is_same({ beginning = true }, snippy.snippets.java.cls.option)
+        assert.is_same({ auto_trigger = true }, snippy.snippets.java.psvm.option)
     end)
 
     it('can read vim-snippets snippets', function()
