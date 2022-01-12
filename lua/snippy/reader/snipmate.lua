@@ -13,6 +13,31 @@ local exprs = {
 
 -- Loading
 
+local function parse_options(prefix, line)
+    local opt = line:match(' (%w+)$') or ''
+    local word = opt:find('w') and true
+    local inword = opt:find('i') and true
+    local beginning = opt:find('b') and true
+    local auto = opt:find('A') and true
+
+    local invalid = opt:match('[^bwiA]')
+    if invalid then
+        error(string.format('Unknown option %s in snippet %s', invalid, prefix))
+    end
+
+    assert(
+        not ((word and inword) or (word and beginning) or (inword and beginning)),
+        'Options [w, i, b] cannot be combined'
+    )
+
+    return {
+        word = word,
+        inword = inword,
+        beginning = beginning,
+        auto_trigger = auto,
+    }
+end
+
 local function read_snippets_file(snippets_file)
     local snips = {}
     local extends = {}
@@ -28,7 +53,10 @@ local function read_snippets_file(snippets_file)
         local prefix = line:match('%s+(%S+)%s*')
         assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
         local description = line:match('%s*"(.+)"%s*')
-        local option = line:match('[bwi]?$') -- Allow at most one option
+        local option = description and parse_options(prefix, line) or {}
+        if option.auto_trigger then
+            shared.enable_auto = true
+        end
         local body = {}
         local indent = nil
         i = i + 1

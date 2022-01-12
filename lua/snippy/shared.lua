@@ -35,6 +35,7 @@ M.selected_text = ''
 M.namespace = vim.api.nvim_create_namespace('snippy')
 M.config = vim.tbl_extend('force', {}, default_config)
 M.buffer_config = {}
+M.enable_auto = false
 
 function M.set_selection(value, mode)
     if mode == 'V' or mode == 'line' then
