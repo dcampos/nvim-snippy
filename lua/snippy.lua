@@ -540,7 +540,7 @@ function M.read_snippets()
             vim.cmd([[
                 augroup snippy_auto
                 autocmd!
-                autocmd TextChangedI * lua require 'snippy'.expand(true)
+                autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
                 autocmd InsertCharPre * lua Snippy_last_char = vim.v.char
                 augroup END
             ]])
