@@ -154,6 +154,10 @@ local function get_snippet_at_cursor(auto_trigger)
     local current_line_to_col = api.nvim_get_current_line():sub(1, col):gsub('^%s*', '')
 
     if current_line_to_col then
+        if auto_trigger and not (Snippy_last_char and vim.endswith(current_line_to_col, Snippy_last_char)) then
+            return nil, nil
+        end
+
         local word = current_line_to_col:match('(%S*)$') -- Remove leading whitespace
         local word_bound = true
         local scopes = shared.get_scopes()
@@ -471,6 +475,7 @@ end
 
 function M.expand(auto)
     local word, snippet = get_snippet_at_cursor(auto)
+    Snippy_last_char = nil
     if word and snippet then
         return M.expand_snippet(snippet, word)
     end
@@ -535,7 +540,8 @@ function M.read_snippets()
             vim.cmd([[
                 augroup snippy_auto
                 autocmd!
-                autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
+                autocmd TextChangedI * lua require 'snippy'.expand(true)
+                autocmd InsertCharPre * lua Snippy_last_char = vim.v.char
                 augroup END
             ]])
         end
