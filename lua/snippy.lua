@@ -154,8 +154,10 @@ local function get_snippet_at_cursor(auto_trigger)
     local current_line_to_col = api.nvim_get_current_line():sub(1, col):gsub('^%s*', '')
 
     if current_line_to_col then
-        if auto_trigger and not (Snippy_last_char and vim.endswith(current_line_to_col, Snippy_last_char)) then
-            return nil, nil
+        if auto_trigger then
+            if not Snippy_last_char or not vim.endswith(current_line_to_col, Snippy_last_char) then
+                return nil, nil
+            end
         end
 
         local word = current_line_to_col:match('(%S*)$') -- Remove leading whitespace
@@ -166,8 +168,10 @@ local function get_snippet_at_cursor(auto_trigger)
                 if scope and M.snippets[scope] then
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
-                        print(vim.inspect(snippet))
-                        if not auto_trigger or snippet.option.auto_trigger then
+                        if
+                            auto_trigger and snippet.option.auto_trigger
+                            or not auto_trigger and not snippet.option.auto_trigger
+                        then
                             if snippet.option.inword then
                                 -- Match inside word
                                 return word, snippet
