@@ -152,8 +152,8 @@ This is so far the most frequently asked question and the answer to it is
 generally no. UltiSnips is a great snippets manager for those wanting to use
 advanced snippet features, like Python evaluation, but that comes at a price of
 being heavyweight and complicated, whereas Snippy strives to be minimal and
-simple. That said, UltiSnips has some nice features like auto-trigger that may
-be added to Snippy in the future to improve usability.
+simple. That said, UltiSnips has some nice features like auto-trigger that ~may
+be added~ has been added to Snippy to improve usability.
 
 ## Known bugs
 
