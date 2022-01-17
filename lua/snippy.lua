@@ -84,15 +84,19 @@ local function mirror_stop(number)
     if number < 1 or number > #stops then
         return
     end
-    local value = stops[number]
-    local text = value:get_text()
+    local cur_stop = stops[number]
+    local text = cur_stop:get_text()
+    if cur_stop.prev_text == text then
+        return
+    end
+    cur_stop.prev_text = text
     for i, stop in ipairs(stops) do
-        if i > number and stop.id == value.id then
+        if i > number and stop.id == cur_stop.id then
             stop:set_text(text)
         end
     end
-    if value.spec.type == 'placeholder' then
-        if text ~= value.placeholder then
+    if cur_stop.spec.type == 'placeholder' then
+        if text ~= cur_stop.placeholder then
             buf.clear_children(number)
         end
     end

@@ -547,4 +547,29 @@ describe('Snippy', function()
         })
         eq(false, exec_lua([[return snippy.is_active()]]))
     end)
+
+    it('should undo changes to mirrored stops', function()
+        exec_lua('snippy.expand_snippet([[local ${1:var} = $1]])')
+        feed('undo_this')
+        screen:expect({
+            grid = [[
+          local undo_this^ = undo_this                                                      |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        feed('<Esc>u<C-l>')
+        screen:expect({
+            grid = [[
+          local ^var = var                                                                  |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+                                                                                           |
+        ]],
+        })
+        eq(true, exec_lua([[return snippy.is_active()]]))
+    end)
 end)
