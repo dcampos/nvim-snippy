@@ -14,7 +14,7 @@ end
 
 execute 'set runtimepath+=' . s:plug_dir
 call plug#begin(s:plug_dir)
-Plug '~/sandbox/snippy/nvim-snippy'
+Plug 'dcampos/nvim-snippy'
 Plug 'honza/vim-snippets'
 call plug#end()
 PlugInstall | quit
