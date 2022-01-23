@@ -363,6 +363,7 @@ describe('Snippy', function()
         ]],
         })
         feed('snippy.util')
+        eq(true, exec_lua([[return snippy.is_active()]]))
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[

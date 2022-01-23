@@ -86,10 +86,18 @@ local function deactivate_parents(number)
 end
 
 function M.clear_children(stop_num)
+    local current_stop = M.stops[M.current_stop]
     local children = get_children(stop_num)
     table.sort(children)
     for i = #children, 1, -1 do
         table.remove(M.state().stops, children[i])
+    end
+    -- Reset current stop index
+    for i, stop in ipairs(M.state().stops) do
+        if stop.id == current_stop.id and #children > 0 then
+            M.current_stop = i
+            break
+        end
     end
 end
 
