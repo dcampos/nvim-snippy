@@ -19,16 +19,15 @@ Plug 'honza/vim-snippets'
 call plug#end()
 PlugInstall | quit
 
-imap <expr> <Tab> snippy#expand_or_advance('<Tab>')
-imap <expr> <S-Tab> snippy#previous('<S-Tab>')
-smap <expr> <Tab> snippy#next('<Tab>')
-smap <expr> <S-Tab> snippy#previous('<Tab>')
+imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
+imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
+smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
+smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
 xmap <Tab> <Plug>(snippy-cut-text)
 
 lua << EOF
     require('snippy').setup({
         hl_group = 'Search',
-        -- Change this
-        snippet_dirs = '',
+        -- snippet_dirs = '',
     })
 EOF
