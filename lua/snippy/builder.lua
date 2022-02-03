@@ -105,7 +105,7 @@ function Builder.new(o)
     builder.stops = {}
     builder.result = ''
     builder.indent = o.indent or ''
-    builder.level_indent = ''
+    builder.extra_indent = ''
     return builder
 end
 
@@ -115,11 +115,10 @@ end
 
 --- Indents a list of lines.
 ---
---@param lines (list) A table containing lines.
---@param indent_lines (bool) Whether the lines should idented per level.
---@returns (string) The lines, indented.
-function Builder:indent_lines(lines, ident_level)
-    local result = {}
+--@param lines table: unindented lines
+--@param is_expansion boolean: true during eval/variable expansion
+--@returns table: indented lines
+function Builder:indent_lines(lines, is_expansion)
     local new_level
     for i, line in ipairs(lines) do
         if vim.bo.expandtab then
@@ -127,23 +126,24 @@ function Builder:indent_lines(lines, ident_level)
         end
         new_level = line:match('^%s*')
         if i > 1 then
-            if ident_level and line ~= '' then
-                line = self.level_indent .. line
+            if is_expansion and line ~= '' then
+                line = self.extra_indent .. line
             end
             line = self.indent .. line
         end
-        table.insert(result, line)
+        lines[i] = line
     end
-    self.level_indent = new_level
-    return result
+    self.extra_indent = new_level
+    return lines
 end
 
 --- Appends a sequence of characters to the result.
 ---
---@param text (string) Text to be appended.
-function Builder:append_text(text, ident_level)
-    local lines = vim.split(text, '\n', true)
-    lines = self:indent_lines(lines, ident_level)
+--@param is_expansion boolean: true during eval/variable expansion
+--@param text any: text to be appended
+function Builder:append_text(text, is_expansion)
+    local lines = type(text) == 'string' and vim.split(text, '\n', true) or text
+    lines = self:indent_lines(lines, is_expansion)
     self.row = self.row + #lines - 1
     if #lines > 1 then
         self.col = #lines[#lines] -- fn.strchars(lines[#lines])
