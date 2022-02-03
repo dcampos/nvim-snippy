@@ -104,6 +104,7 @@ function Builder.new(o)
     local builder = setmetatable(o, { __index = Builder })
     builder.stops = {}
     builder.result = ''
+    builder.indent = o.indent or ''
     builder.level_indent = ''
     return builder
 end
@@ -125,8 +126,8 @@ function Builder:indent_lines(lines, ident_level)
             line = line:gsub('\t', string.rep(' ', vim.fn.shiftwidth()))
         end
         new_level = line:match('^%s*')
-        if i > 1 and self.indent and line ~= '' then
-            if ident_level then
+        if i > 1 then
+            if ident_level and line ~= '' then
                 line = self.level_indent .. line
             end
             line = self.indent .. line
@@ -205,7 +206,7 @@ function Builder:process_structure(structure, parent)
                     local code = value.children[1].raw
                     local ok, result = pcall(fn.eval, code)
                     if ok then
-                        self:append_text(result)
+                        self:append_text(result, true)
                     else
                         util.print_error(
                             string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result)
