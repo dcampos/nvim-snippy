@@ -104,7 +104,8 @@ function Builder.new(o)
     local builder = setmetatable(o, { __index = Builder })
     builder.stops = {}
     builder.result = ''
-    builder.level_indent = ''
+    builder.indent = o.indent or ''
+    builder.extra_indent = ''
     return builder
 end
 
@@ -114,35 +115,35 @@ end
 
 --- Indents a list of lines.
 ---
---@param lines (list) A table containing lines.
---@param indent_lines (bool) Whether the lines should idented per level.
---@returns (string) The lines, indented.
-function Builder:indent_lines(lines, ident_level)
-    local result = {}
+--@param lines table: unindented lines
+--@param is_expansion boolean: true during eval/variable expansion
+--@returns table: indented lines
+function Builder:indent_lines(lines, is_expansion)
     local new_level
     for i, line in ipairs(lines) do
         if vim.bo.expandtab then
             line = line:gsub('\t', string.rep(' ', vim.fn.shiftwidth()))
         end
         new_level = line:match('^%s*')
-        if i > 1 and self.indent and line ~= '' then
-            if ident_level then
-                line = self.level_indent .. line
+        if i > 1 then
+            if is_expansion and line ~= '' then
+                line = self.extra_indent .. line
             end
             line = self.indent .. line
         end
-        table.insert(result, line)
+        lines[i] = line
     end
-    self.level_indent = new_level
-    return result
+    self.extra_indent = new_level
+    return lines
 end
 
 --- Appends a sequence of characters to the result.
 ---
---@param text (string) Text to be appended.
-function Builder:append_text(text, ident_level)
-    local lines = vim.split(text, '\n', true)
-    lines = self:indent_lines(lines, ident_level)
+--@param is_expansion boolean: true during eval/variable expansion
+--@param text any: text to be appended
+function Builder:append_text(text, is_expansion)
+    local lines = type(text) == 'string' and vim.split(text, '\n', true) or text
+    lines = self:indent_lines(lines, is_expansion)
     self.row = self.row + #lines - 1
     if #lines > 1 then
         self.col = #lines[#lines] -- fn.strchars(lines[#lines])
@@ -205,7 +206,10 @@ function Builder:process_structure(structure, parent)
                     local code = value.children[1].raw
                     local ok, result = pcall(fn.eval, code)
                     if ok then
-                        self:append_text(result)
+                        if type(result) == 'number' then
+                            result = tostring(result)
+                        end
+                        self:append_text(result, true)
                     else
                         util.print_error(
                             string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result)
