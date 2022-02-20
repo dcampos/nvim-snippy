@@ -577,23 +577,27 @@ describe('Snippy', function()
     it('should clear state if current line is deleted', function()
         exec_lua('snippy.expand_snippet([[${1:snip}\n${2:snap}]])')
         exec_lua([[snippy.next()]])
-        screen:expect{grid=[[
+        screen:expect({
+            grid = [[
           snip                                                                             |
           ^s{3:nap}                                                                             |
           {1:~                                                                                }|
           {1:~                                                                                }|
           {2:-- SELECT --}                                                                     |
-        ]]}
+        ]],
+        })
         eq(true, exec_lua([[return snippy.is_active()]]))
         feed('<Esc>')
         -- screen:snapshot_util()
-        screen:expect{grid=[[
+        screen:expect({
+            grid = [[
           snip                                                                             |
           ^snap                                                                             |
           {1:~                                                                                }|
           {1:~                                                                                }|
                                                                                            |
-        ]]}
+        ]],
+        })
         feed('dd')
         eq(false, exec_lua([[return snippy.is_active()]]))
     end)
