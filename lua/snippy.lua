@@ -85,6 +85,11 @@ local function mirror_stop(number)
         return
     end
     local cur_stop = stops[number]
+    local startpos, _ = cur_stop:get_range()
+    if startpos and startpos[1] + 1 > vim.fn.line('$') then
+        buf.clear_state()
+        return
+    end
     local text = cur_stop:get_text()
     if cur_stop.prev_text == text then
         return
