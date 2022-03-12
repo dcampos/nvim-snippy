@@ -601,4 +601,114 @@ describe('Snippy', function()
         feed('dd')
         eq(false, exec_lua([[return snippy.is_active()]]))
     end)
+
+    it('should expand with beginning option', function()
+        setup_test_snippets()
+        command('set filetype=python')
+        insert('begin')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          Expand only if in the beginning of the line!^                                     |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        feed('<Esc>:%d<CR>')
+        insert('foo begin')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        -- screen:snapshot_util()
+        screen:expect({
+            grid = [[
+          foo begin^                                                                        |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+    end)
+
+    it('should expand inside word', function()
+        setup_test_snippets()
+        command('set filetype=python')
+        insert('fooinword')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          fooExpand this inside a word!^                                                    |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+    end)
+
+    it('should expand with word option', function()
+        setup_test_snippets()
+        command('set filetype=python')
+        insert('@@@word')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          @@@Expand this if it is keyword based!^                                           |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        -- Don't expand this
+        feed('<Esc>:%d<CR>')
+        insert('fooword')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          fooword^                                                                          |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+    end)
+
+    it('should expand with default options', function()
+        setup_test_snippets()
+        command('set filetype=python')
+        insert('foo default')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          foo Expand only if space-delimited word present!^                                 |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        -- Don't expand this
+        feed('<Esc>:%d<CR>')
+        insert('@@@default')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          @@@default^                                                                       |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+    end)
 end)
