@@ -15,6 +15,7 @@ describe('Snippy', function()
             [[
             snippy.setup({
                 snippet_dirs = '%s',
+                enable_auto = true,
             })]],
             alter_slashes(snippy_src .. '/test/snippets/')
         ))

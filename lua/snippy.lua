@@ -554,15 +554,6 @@ function M.read_snippets()
     for _, reader in ipairs(M.readers) do
         local snips = reader.read_snippets()
         M.snippets = vim.tbl_extend('force', M.snippets, snips)
-        if shared.enable_auto then
-            vim.cmd([[
-                augroup snippy_auto
-                autocmd!
-                autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
-                autocmd InsertCharPre * lua Snippy_last_char = vim.v.char
-                augroup END
-            ]])
-        end
     end
 end
 

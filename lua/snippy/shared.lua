@@ -28,6 +28,7 @@ local default_config = {
     scopes = {},
     mappings = {},
     choice_delay = 100,
+    enable_auto = false,
 }
 
 M.get_scopes = get_scopes
@@ -70,6 +71,15 @@ function M.set_config(params)
                 }, true, {})
             end
         end
+    end
+    if params.enable_auto then
+        vim.cmd([[
+            augroup snippy_auto
+            autocmd!
+            autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
+            autocmd InsertCharPre * lua Snippy_last_char = vim.v.char
+            augroup END
+        ]])
     end
     M.config = vim.tbl_extend('force', M.config, params)
 end

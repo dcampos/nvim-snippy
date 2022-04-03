@@ -32,6 +32,7 @@ available options:
     require('snippy').setup({
         snippet_dirs = '~/snippets',
         hl_group = 'Search',
+        enable_auto = false,
         scopes = {
             _ = { },
 
@@ -117,6 +118,8 @@ using the following format:
     	This is the first line.
     	This is the second line.
 <
+                                                      *snippy-snippet-options*
+
 The `option`s control the behavior of the expansion of the snippet and are
 optional. Currently supported are the following:
     - `w` Word boundary - The word expands only when the trigger is on a word
@@ -126,8 +129,9 @@ optional. Currently supported are the following:
     - `b` Beginning of line - The snippet is only expanded if its trigger is
         the first word on the line, only preceeded by whitespace.
     - `A` Autotrigger - The snippet is expanded automatically when the trigger
-        is typed. Note that this feature may degrade the performance of your
-        editor when used.
+        is typed. Requires the `enable_auto` option to be `true`. Note that
+        this feature, because it checks every key pressed, may theoretically
+        affect the performance of your editor when used.
 
                                                       *snippy-usage-indenting*
 
@@ -140,7 +144,7 @@ custom snippets with two spaces, for example, create a file
 
     setlocal expandtab tabstop=2 sw=2 
 <
-This could also be achieved with an |autocmd|. Identing with spaces is a
+This could also be achieved with an |autocmd|. Indenting with spaces is a
 Snippy feature and might not be compatible with other snippet plugins like
 SnipMate.
 
@@ -325,6 +329,12 @@ choice_delay~
     Defines the delay in milliseconds before the choice menu is displayed.
         Type: `Number`
         Default: 100
+
+enable_auto~
+    Enables snippets with the `A` option to be automatically triggered. See
+    |snippy-snippet-options|.
+        Type: `Boolean`
+        Default: false
 
 scopes ~
     A table with filetypes as keys. Each value must be a table containing a
