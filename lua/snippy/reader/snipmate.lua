@@ -42,6 +42,7 @@ end
 local function read_snippets_file(snippets_file)
     local snips = {}
     local extends = {}
+    local priority = 0
     local file = io.open(snippets_file)
     local lines = vim.split(file:read('*a'), '\n')
     if lines[#lines] == '' then
@@ -83,13 +84,16 @@ local function read_snippets_file(snippets_file)
                 break
             end
         end
-        snips[prefix] = {
-            kind = 'snipmate',
-            prefix = prefix,
-            description = description,
-            option = option,
-            body = body,
-        }
+        if not snips[prefix] or snips[prefix].priority <= priority then
+            snips[prefix] = {
+                kind = 'snipmate',
+                prefix = prefix,
+                priority = priority,
+                description = description,
+                option = option,
+                body = body,
+            }
+        end
     end
 
     while i <= #lines do
@@ -100,11 +104,18 @@ local function read_snippets_file(snippets_file)
             local scopes = vim.split(vim.trim(line:sub(8)), '%s+')
             vim.list_extend(extends, scopes)
             i = i + 1
+        elseif line:sub(1, 8) == 'priority' then
+            local prio = vim.trim(line:sub(9))
+            if not prio or not prio:match('-%d+') or not prio:match('+?%d+') then
+                error(string.format('Invalid priority in file %s, at line %s: %s', snippets_file, i, prio))
+            end
+            priority = tonumber(prio)
+            i = i + 1
         elseif line:sub(1, 1) == '#' or vim.trim(line) == '' then
             -- Skip empty lines or comments
             i = i + 1
         else
-            error(string.format('Invalid line in snippets file %s: %s', snippets_file, line))
+            error(string.format('Unrecognized syntax in snippets file %s, at line %s: %s', snippets_file, i, line))
         end
     end
     return snips, extends
@@ -128,6 +139,8 @@ local function read_snippet_file(snippet_file, scope)
             kind = 'snipmate',
             prefix = prefix,
             description = description,
+            -- Priority for .snippet is always 0
+            priority = 0,
             body = body,
         },
     }
@@ -156,6 +169,22 @@ local function list_files(ftype)
     return all
 end
 
+local function merge_snippets(current, added)
+    local result = vim.deepcopy(current)
+    for key, val in pairs(added) do
+        if current[key] then
+            local cur_snip = current[key]
+            local new_snip = added[key]
+            if new_snip.priority >= cur_snip.priority then
+                result[key] = val
+            end
+        else
+            result[key] = val
+        end
+    end
+    return result
+end
+
 local function load_scope(scope, stack)
     local snips = {}
     local extends = {}
@@ -168,7 +197,7 @@ local function load_scope(scope, stack)
         elseif file:match('.snippet$') then
             result = read_snippet_file(file, scope)
         end
-        snips = vim.tbl_extend('force', snips, result)
+        snips = merge_snippets(snips, result)
     end
     for _, extended in ipairs(extends) do
         if vim.tbl_contains(stack, extended) then
@@ -180,7 +209,7 @@ local function load_scope(scope, stack)
             )
         end
         local result = load_scope(extended, vim.tbl_flatten({ stack, scope }))
-        snips = vim.tbl_extend('keep', snips, result)
+        snips = merge_snippets(snips, result)
     end
     return snips
 end
