@@ -78,7 +78,7 @@ describe('Snippet reader', function()
     end)
 
     it('can read snippets with otions', function()
-        snippy.setup({ snippet_dirs = './test/snippets/' })
+        snippy.setup({ snippet_dirs = './test/snippets/', enable_auto = true })
         vim.cmd('set filetype=java')
         assert.is_truthy(require('snippy.shared').config.snippet_dirs)
         assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
