@@ -58,7 +58,7 @@ local function read_snippets_file(snippets_file)
         local option = description and parse_options(prefix, line) or {}
         if option.auto_trigger and not shared.config.enable_auto then
             local msg = [[[Snippy] Warning: you seem to have autotriggered snippets,]]
-                .. [[ but the autotrigger feature isn\'t enabled in your config.]]
+                .. [[ but the autotrigger feature isn't enabled in your config.]]
                 .. [[ See :help snippy-snippet-options for details.]]
             api.nvim_echo({ { msg, 'WarningMsg' } }, true, {})
         end
