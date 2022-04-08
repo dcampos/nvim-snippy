@@ -8,7 +8,7 @@ CONTENTS                                                     *snippy-contents*
     INTRODUCTION.........................|snippy-introduction|
     USAGE................................|snippy-usage|
     FUNCTIONS............................|snippy-functions|
-    OPTIONS..............................|snippy-options|
+    SETUP OPTIONS........................|snippy-setup-options|
     COMMANDS.............................|snippy-commands|
     LICENSE..............................|snippy-license|
 
@@ -16,7 +16,7 @@ CONTENTS                                                     *snippy-contents*
 ==============================================================================
 INTRODUCTION                                             *snippy-introduction*
 
-Snippy is a lua-based snippets plugin for Neovim.
+Snippy is a snippets plugin for Neovim written in Lua.
 
 
 ==============================================================================
@@ -25,9 +25,9 @@ USAGE                                                           *snippy-usage*
                                                           *snippy-usage-setup*
 
 Snippy includes an optional |snippy.setup()| function for you to quickly
-configure it according to your needs. See the |snippy-options| section for
-information on the available options. Below is an example showing most of the
-available options:
+configure it according to your needs. See the |snippy-setup-options| section
+for information on the available options. Below is an example showing most of
+the available options:
 >
     require('snippy').setup({
         snippet_dirs = '~/snippets',
@@ -93,7 +93,7 @@ be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
 When mapping from Lua using |nvim_set_keymap()|, you can use
 |snippy.can_expand()| and |snippy.can_jump()| functions. The Vimscript
 functions above are just convenience wrappings around those. You can also map
-keys by using the `mappings` setup option (see |snippy-options|).
+keys by using the `mappings` setup option (see |snippy-setup-options|).
 
                                                        *snippy-usage-snippets*
 
@@ -148,12 +148,26 @@ This could also be achieved with an |autocmd|. Indenting with spaces is a
 Snippy feature and might not be compatible with other snippet plugins like
 SnipMate.
 
-Note: Snippy follows the |runtimepath| order when loading snippets, which
+                                                       *snippy-usage-priority*
+
+Snippy follows the |runtimepath| order when loading snippets, which
 means snippets defined in folders coming later in the list will always
 override those loaded before. So, if you put your custom snippets in
 `after/snippets/`, they should override any snippets provided by plugins in
 case of name conflict.
 
+Another way to determine which snippets should be loaded first is to use the
+`priority` directive, currently only possible in `.snippets` files. The
+default priority is 0, so you can set your own snippets' priority to a higher
+value, like 100, for them to override lower priority snippets. The priority
+directive affects all snippets listed after it:
+>
+    priority 100
+    snippet trigger1
+    	...
+    snippet trigger2
+    	...
+<
                                                          *snippy-usage-scopes*
 
 Scopes are the term used in Snippy to refer to a group of snippets that should
@@ -234,7 +248,7 @@ TextMate/LSP syntax.
 FUNCTIONS                                                   *snippy-functions*
 
 snippy.setup({options})                                       *snippy.setup()*
-    Set initial configuration for the plugin. See also |snippy-options|.
+    Set initial configuration for the plugin. See also |snippy-setup-options|.
 
 snippy.setup_buffer({bufnr}, {options})                *snippy.setup_buffer()*
     Set configuration for the current buffer. See also
@@ -308,9 +322,9 @@ snippy#can_expand_or_advance()                *snippy#can_expand_or_advance()*
 
 
 ==============================================================================
-OPTIONS                                                       *snippy-options*
+SETUP OPTIONS                                           *snippy-setup-options*
 
-This plugin can be configured by passing a dictionary to the lua function
+This plugin can be configured by passing a dictionary to the Lua function
 `snippy.setup(...)`. The following options are supported:
 
 snippet_dirs ~
