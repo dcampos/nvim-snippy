@@ -188,8 +188,8 @@ supported for compatibility.
 
 Currently the parser for a particular snippet is chosen based on the source
 the snippet was loaded from. If it was loaded from a SnipMate file, the
-SnipMate-style parser will be used. The default behavior is to parse using the
-LSP syntax parser.
+SnipMate-style parser will be used. When expanding LSP snippets from
+completion items, the behavior is to parse using the LSP syntax parser.
 
 ------------------------------------------------------------------------------
 LSP Snippet Syntax                                         *snippy-lsp-syntax*
@@ -242,6 +242,10 @@ The special variable `$VISUAL` holds text previously selected and stored using
 the `snippy.cut_text()` function or the `<plug>(snippy-cut-text)` mapping.
 This is equivalent to the `$TM_SELECTED_TEXT` variable defined by the
 TextMate/LSP syntax.
+
+Note: the SnipMate parser currently doesn't expand any LSP variables
+(`$TM_SELECTED_TEXT`, etc.). Only `$VISUAL` is supported. This may change in
+the future.
 
 
 ==============================================================================
@@ -413,13 +417,14 @@ mappings~
 BUFFER OPTIONS                                         *snippy-buffer-options*
 
 It is also possible to set configuration specific to a buffer by calling
-`snippy.setup_buffer(...)` function. The following options are supported:
+`snippy.setup_buffer(...)` function. The following buffer-specific options are
+supported:
 
 scopes ~
     Can be set to a table containing a list of scopes or a function that
     receives the calculated list of scopes for the current buffer and should
     return a new (possibly modified) list of scopes.
-        Type: ||Table|
+        Type: |Table|
         Default: nil
 
 
