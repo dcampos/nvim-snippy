@@ -71,7 +71,8 @@ require('snippy').setup({
 })
 ```
 
-You can also define separate mappings to expand and jump forward. See `:help snippy-usage`.
+You can also define separate mappings to expand and jump forward. See `:help snippy-usage`
+and also the [mapping examples](../../wiki/Mappings) on the Wiki.
 
 ## Adding snippets
 
