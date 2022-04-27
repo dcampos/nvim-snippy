@@ -306,11 +306,17 @@ snippy.get_completion_items()                  *snippy.get_completion_items()*
 snippy.complete()                                          *snippy.complete()*
     Shows a basic completion menu at the current location.
 
+    Suggested mapping:
+>
+    inoremap <c-r><tab> <cmd>lua require'snippy'.complete()<CR>
+<
+    It is also necessary to set up an |autocmd| to call |snippy.complete_done()|.
+
 snippy.complete_done()                                *snippy.complete_done()*
     To be called when the |CompleteDone| |autocmd| is fired, expanding any snippet
     present in the |v:completed_item| variable. Example:
 >
-    autocmd CompleteDone * lua require 'snippy'.complete_done()
+    autocmd snip_comp_done CompleteDone * lua require 'snippy'.complete_done()
 <
 Some Vimscript |autoload| functions are also provided for convenience,
 specially for mappings:
