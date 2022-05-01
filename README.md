@@ -156,6 +156,8 @@ being heavyweight and complicated, whereas Snippy strives to be minimal and
 simple. That said, UltiSnips has some nice features like auto-trigger that ~may
 be added~ has been added to Snippy to improve usability.
 
+**See also:** issues with label [![label: question][~question]](https://github.com/dcampos/nvim-snippy/issues?q=label%3Aquestion).
+
 ## Known bugs
 
 * There is a bug in Neovim where `extmarks` are extended to the beginning of the completed item when the `complete()` function is called and a completion menu is shown, even if the user does not select or confirm anything. See the [bug report][1] for more information.
@@ -173,3 +175,4 @@ MIT license.
 [3]: https://github.com/honza/vim-snippets
 [4]: https://github.com/notomo/vusted
 [5]: https://github.com/hrsh7th/vim-vsnip
+[~question]: https://img.shields.io/github/labels/dcampos/nvim-snippy/question
