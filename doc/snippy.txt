@@ -98,8 +98,10 @@ keys by using the `mappings` setup option (see |snippy-setup-options|).
                                                        *snippy-usage-snippets*
 
 By default every `snippets` directory in |runtimepath| will be searched for
-snippets. Snippy uses the same format as SnipMate, so the following patterns
-are accepted:
+snippets. Snippy uses a file format based on SnipMate's, with some
+modifications (which are covered below). So the following patterns are
+accepted:
+
     - snippets/{filetype}.snippets
     - snippets/{filetype}_{name}.snippets
     - snippets/{filetype}/{name}.snippets
@@ -204,15 +206,16 @@ a simplified format, which see |snippy-snipmate-transform| below for more
 details.
 
 Note: the LSP syntax is only supported when expanding LSP provided completion
-items. When expanding snippets defined in `.snippet(s)` files, SnipMate's
-syntax is used instead.
+items. This prevents incorrect expansion of eval blocks, for example. When
+expanding snippets defined in `.snippet(s)` files, SnipMate's syntax is used
+instead.
 
 
 ------------------------------------------------------------------------------
 SnipMate's Syntax                                     *snippy-snipmate-syntax*
 
 SnipMate syntax is also based on the TextMate syntax and so largely compatible
-with the LSP syntax. A basic SniMate-style snippet looks like this:
+with the LSP syntax. A basic SniMate-style snippet body looks like this:
 >
     for (${1:i} = 0; $1 < ${2:limit}; $1++) {
     	System.out.println($1);
@@ -243,9 +246,9 @@ the `snippy.cut_text()` function or the `<plug>(snippy-cut-text)` mapping.
 This is equivalent to the `$TM_SELECTED_TEXT` variable defined by the
 TextMate/LSP syntax.
 
-Note: the SnipMate parser currently doesn't expand any LSP variables
-(`$TM_SELECTED_TEXT`, etc.). Only `$VISUAL` is supported. This may change in
-the future.
+Note: for convenience, the SnipMate parser does expand any LSP variables
+(`$TM_SELECTED_TEXT`, etc.) present in the snippet body, in addition to
+`$VISUAL`.
 
 
 ==============================================================================
