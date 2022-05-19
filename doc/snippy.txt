@@ -231,7 +231,7 @@ This syntax also allows Vim code to be evaluated inside backticks (``):
 
 Transformations are supported for tabstops and variables, with the caveat that
 Vim regular expressions are to be used instead of Javascript ones. The
-`format` part is also a Vim regular substitution pattern. For instance:
+`format` (replacement) part is also a Vim regular substitution pattern. For instance:
 >
     This ${1:word} will be changed to uppercase: ${1/.*/\U\0/g}
 <
@@ -239,6 +239,12 @@ Will result in:
 >
     This word will be changed to uppercase: WORD
 <
+The transformation has the following syntax:
+>
+    ${<stop or variable>/<replacement>/<flags>}
+<
+The `replacement` and `flags` parts may be empty.
+
                                                       *snippy-snipmate-visual*
 
 The special variable `$VISUAL` holds text previously selected and stored using
