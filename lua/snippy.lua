@@ -541,6 +541,7 @@ vim.cmd([[
     autocmd!
     autocmd FileType,InsertEnter * lua require 'snippy'.read_snippets()
     autocmd BufWritePost *.snippet{,s} lua require 'snippy'.clear_cache()
+    autocmd OptionSet *runtimepath* lua require 'snippy'.clear_cache()
     augroup END
 ]])
 
