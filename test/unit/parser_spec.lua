@@ -56,8 +56,8 @@ describe('Parser', function()
             transform = {
                 type = 'transform',
                 flags = 'ig',
-                regex = { type = 'text', raw = 'foo', escaped = 'foo' },
-                format = { type = 'text', raw = 'bar', escaped = 'bar' },
+                regex = 'foo',
+                format = 'bar',
             },
         }, result[#result])
     end)
@@ -73,10 +73,20 @@ describe('Parser', function()
             transform = {
                 type = 'transform',
                 flags = '',
-                regex = { type = 'text', raw = 'foo', escaped = 'foo' },
-                format = { type = 'text', raw = 'bar', escaped = 'bar' },
+                regex = 'foo',
+                format = 'bar',
             },
         }, result[#result])
+    end)
+    it('Parse a transform with empty replacement', function()
+        local snip = 'local ${1} = ${2/foo//g}'
+        local ok, result, pos = parser.parse(snip, 1)
+        assert.is_true(ok)
+        assert.is_same(pos, #snip + 1)
+        local t = result[#result]
+        assert.is_same('foo', t.transform.regex)
+        assert.is_same('', t.transform.format)
+        assert.is_same('g', t.transform.flags)
     end)
     it('Parse variables', function()
         local snip = 'local ${1} = ${TM_CURRENT_YEAR}'
