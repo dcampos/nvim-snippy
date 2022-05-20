@@ -1,5 +1,12 @@
 -- Note: this is mostly a translation to Lua from Vimscript of the vsnip parser.
 
+local parser = {}
+
+parser.EvalLang = {
+    Vimscript = 1,
+    Lua = 2,
+}
+
 local comb = require('snippy.parser.comb')
 local skip = comb.skip
 local seq = comb.seq
@@ -24,6 +31,8 @@ local slash = token('/')
 local comma = token(',')
 local bar = token('|')
 local backtick = token('`')
+local bang = token('!')
+local space = token(' ')
 local empty = token('')
 
 local varname = pattern('^[_a-zA-Z][_a-zA-Z0-9]*')
@@ -33,7 +42,7 @@ local int = map(pattern('^[0-9]+'), function(v)
 end)
 
 local text = function(stop, escape)
-    return map(skip(stop, escape), function(value)
+    return map(skip(stop, escape or ''), function(value)
         return { type = 'text', raw = value[1], escaped = value[2] }
     end)
 end
@@ -111,7 +120,7 @@ end
 --  SnipMate parser
 
 local function create_snipmate_parser()
-    local eval, variable, placeholder
+    local eval, variable, placeholder, lang
 
     local any = lazy(function()
         return one(tabstop, placeholder, variable, choice, eval, sigil)
@@ -140,17 +149,26 @@ local function create_snipmate_parser()
         end)
     )
 
-    eval = map(seq(backtick, text('`', ''), backtick), function(value)
-        return { type = 'eval', children = { value[2] } }
+    lang = map(seq(bang, one(token('vim'), token('lua'), token('v'), token('l')), space), function(value)
+        if value[2] == 'l' or value[2] == 'lua' then
+            return parser.EvalLang.Lua
+        else
+            return parser.EvalLang.Vimscript
+        end
+    end)
+
+    eval = map(seq(backtick, one(lang, empty), text('`'), backtick), function(value)
+        return {
+            type = 'eval',
+            children = { value[3] },
+            lang = value[2] ~= '' and value[2] or parser.EvalLang.Vimscript,
+        }
     end)
 
     return many(one(any, text('[%$`]', '}')))
 end
 
-local parse = create_parser()
-local parse_snipmate = create_snipmate_parser()
+parser.parse = create_parser()
+parser.parse_snipmate = create_snipmate_parser()
 
-return {
-    parse = parse,
-    parse_snipmate = parse_snipmate,
-}
+return parser

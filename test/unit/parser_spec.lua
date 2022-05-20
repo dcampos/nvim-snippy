@@ -113,14 +113,24 @@ describe('Parser', function()
         assert.is_same(pos, #snip + 1)
         assert.is_same({ type = 'text', raw = '"', escaped = '"' }, result[#result])
     end)
-    it('Parse SnipMate eval', function()
+    it('Parse Vimscript eval', function()
         local snip = 'local ${1} = `g:snips_author`'
         local ok, result, pos = parser.parse_snipmate(snip, 1)
         assert.is_true(ok)
         assert.is_same(pos, #snip + 1)
-        assert.is_same({
-            type = 'eval',
-            children = { [1] = { type = 'text', raw = 'g:snips_author', escaped = 'g:snips_author' } },
-        }, result[#result])
+        local eval = result[#result]
+        assert.is_same(parser.EvalLang.Vimscript, eval.lang)
+        assert.is_same('eval', eval.type)
+        assert.is_same({ [1] = { type = 'text', raw = 'g:snips_author', escaped = 'g:snips_author' } }, eval.children)
+    end)
+    it('Parse Lua eval', function()
+        local snip = 'local ${1} = `!lua 40+2`'
+        local ok, result, pos = parser.parse_snipmate(snip, 1)
+        assert.is_true(ok)
+        assert.is_same(pos, #snip + 1)
+        local eval = result[#result]
+        assert.is_same(parser.EvalLang.Lua, eval.lang)
+        assert.is_same('eval', eval.type)
+        assert.is_same('40+2', eval.children[1].raw)
     end)
 end)
