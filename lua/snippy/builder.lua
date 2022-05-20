@@ -1,5 +1,6 @@
 local util = require('snippy.util')
 local shared = require('snippy.shared')
+local parser = require('snippy.parser')
 local fn = vim.fn
 
 local varmap = {
@@ -113,6 +114,36 @@ function Builder:add(content)
     self.result = self.result .. content
 end
 
+function Builder:eval_vim(code)
+    local ok, result = pcall(fn.eval, code)
+    if ok then
+        local tp = type(result)
+        if tp == 'number' then
+            result = tostring(result)
+        elseif tp ~= 'table' and tp ~= 'string' then
+            result = ''
+        end
+        return result
+    else
+        util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+    end
+end
+
+function Builder:eval_lua(code)
+    local ok, result = pcall(fn.luaeval, code)
+    if ok then
+        local tp = type(result)
+        if tp == 'number' then
+            result = tostring(result)
+        elseif tp ~= 'table' and tp ~= 'string' then
+            result = ''
+        end
+        return result
+    else
+        util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+    end
+end
+
 --- Indents a list of lines.
 ---
 --@param lines table: unindented lines
@@ -157,7 +188,11 @@ end
 ---
 --@param variable (string) Variable name.
 function Builder:evaluate_variable(variable)
-    local result = varmap[variable.name] and varmap[variable.name]()
+    if not varmap[variable.name] then
+        self:append_text(string.format('$%s', variable.name))
+        return
+    end
+    local result = varmap[variable.name] and varmap[variable.name](variable.children)
     if not result then
         self:process_structure(variable.children)
     else
@@ -204,20 +239,14 @@ function Builder:process_structure(structure, parent)
                     })
                 elseif value.type == 'eval' then
                     local code = value.children[1].raw
-                    local ok, result = pcall(fn.eval, code)
-                    if ok then
-                        local tp = type(result)
-                        if tp == 'number' then
-                            result = tostring(result)
-                        elseif tp ~= 'table' and tp ~= 'string' then
-                            result = ''
-                        end
-                        self:append_text(result, true)
+                    local lang = value.lang
+                    local result
+                    if lang == parser.EvalLang.Vimscript then
+                        result = self:eval_vim(code)
                     else
-                        util.print_error(
-                            string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result)
-                        )
+                        result = self:eval_lua(code)
                     end
+                    self:append_text(result, true)
                 elseif value.type == 'text' then
                     local text = value.escaped
                     self:append_text(text)

@@ -227,6 +227,14 @@ This syntax also allows Vim code to be evaluated inside backticks (``):
 >
     Current date is `strftime('%c')`
 <
+By default, Vimscript is assumed, but you can also have Lua code by starting
+the block with `!lua` or `!l` separated from the actual code with a blank space:
+>
+    Today is `!lua os.date('%Y-%m-%d')`
+<
+It is also possible to write `!vim` or `!v` to explicitly mean Vimscript,
+which is the default when no language is indicated.
+
                                                    *snippy-snipmate-transform*
 
 Transformations are supported for tabstops and variables, with the caveat that
