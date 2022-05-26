@@ -106,7 +106,7 @@ local function read_snippets_file(snippets_file)
             i = i + 1
         elseif line:sub(1, 8) == 'priority' then
             local prio = vim.trim(line:sub(9))
-            if not prio or not prio:match('-%d+') or not prio:match('+?%d+') then
+            if not prio or not prio:match('%-?%d+') or not prio:match('+?%d+') then
                 error(string.format('Invalid priority in file %s, at line %s: %s', snippets_file, i, prio))
             end
             priority = tonumber(prio)
