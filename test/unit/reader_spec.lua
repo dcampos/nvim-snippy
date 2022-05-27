@@ -13,14 +13,14 @@ describe('Snippet reader', function()
                 kind = 'snipmate',
                 prefix = 'test1',
                 option = {},
-                priority = 0,
+                priority = 100,
                 body = { 'This is the first test.' },
             },
             test2 = {
                 kind = 'snipmate',
                 prefix = 'test2',
                 option = {},
-                priority = 0,
+                priority = -200,
                 body = { 'This is the second test.' },
             },
         }
