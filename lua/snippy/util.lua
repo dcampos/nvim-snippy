@@ -41,4 +41,20 @@ function M.parse_comment_string()
     return defaults
 end
 
+function M.merge_snippets(current, added)
+    local result = vim.deepcopy(current)
+    for key, val in pairs(added) do
+        if current[key] then
+            local cur_snip = current[key]
+            local new_snip = added[key]
+            if new_snip.priority >= cur_snip.priority then
+                result[key] = val
+            end
+        else
+            result[key] = val
+        end
+    end
+    return result
+end
+
 return M

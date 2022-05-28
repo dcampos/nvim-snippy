@@ -551,10 +551,15 @@ M.readers = {
 }
 
 function M.read_snippets()
-    shared.enable_auto = false
-    for _, reader in ipairs(M.readers) do
-        local snips = reader.read_snippets()
-        M.snippets = vim.tbl_extend('force', M.snippets, snips)
+    local scopes = shared.get_scopes()
+    for _, scope in ipairs(scopes) do
+        if scope and scope ~= '' and not shared.cache[scope] then
+            for _, reader in ipairs(M.readers) do
+                local snips = reader.read_snippets(scope)
+                M.snippets[scope] = util.merge_snippets(M.snippets[scope] or {}, snips)
+            end
+            shared.cache[scope] = true
+        end
     end
 end
 

@@ -1,6 +1,7 @@
 local fn = vim.fn
 local api = vim.api
 local shared = require('snippy.shared')
+local util = require('snippy.util')
 
 local M = {}
 
@@ -169,22 +170,6 @@ local function list_files(ftype)
     return all
 end
 
-local function merge_snippets(current, added)
-    local result = vim.deepcopy(current)
-    for key, val in pairs(added) do
-        if current[key] then
-            local cur_snip = current[key]
-            local new_snip = added[key]
-            if new_snip.priority >= cur_snip.priority then
-                result[key] = val
-            end
-        else
-            result[key] = val
-        end
-    end
-    return result
-end
-
 local function load_scope(scope, stack)
     local snips = {}
     local extends = {}
@@ -197,7 +182,7 @@ local function load_scope(scope, stack)
         elseif file:match('.snippet$') then
             result = read_snippet_file(file, scope)
         end
-        snips = merge_snippets(snips, result)
+        snips = util.merge_snippets(snips, result)
     end
     for _, extended in ipairs(extends) do
         if vim.tbl_contains(stack, extended) then
@@ -209,7 +194,7 @@ local function load_scope(scope, stack)
             )
         end
         local result = load_scope(extended, vim.tbl_flatten({ stack, scope }))
-        snips = merge_snippets(snips, result)
+        snips = util.merge_snippets(snips, result)
     end
     return snips
 end
@@ -251,18 +236,8 @@ function M.list_existing_files()
     return files
 end
 
-function M.read_snippets()
-    local snips = {}
-    local get_scopes = shared.get_scopes
-    for _, scope in ipairs(get_scopes()) do
-        if scope and scope ~= '' then
-            snips[scope] = shared.cache[scope]
-            if not snips[scope] then
-                snips[scope] = load_scope(scope, {})
-                shared.cache[scope] = snips[scope]
-            end
-        end
-    end
+function M.read_snippets(scope)
+    local snips = load_scope(scope, {})
     return snips
 end
 
