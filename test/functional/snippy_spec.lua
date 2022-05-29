@@ -450,6 +450,23 @@ describe('Snippy', function()
         eq(9, exec_lua([[return require 'snippy.buf'.current_stop]]))
     end)
 
+    -- See: https://github.com/dcampos/nvim-snippy/issues/66
+    it('transforms and jumps correctly', function()
+        local snip = [[scanf("%d${1/[^,]*,[^,]*/%d/g}", ${1:&n});]]
+        exec_lua('snippy.expand_snippet([[' .. snip .. ']])')
+        feed('&a, $b, $c')
+        screen:expect({
+            grid = [[
+        scanf("%d%d%d", &a, $b, $c^);                                                     |
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {1:~                                                                                }|
+        {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        eq(true, exec_lua([[return snippy.is_active()]]))
+    end)
+
     it('can cut text and expand it in normal mode', function()
         feed('iinner line<Esc>0')
         feed('<plug>(snippy-cut-text)$')
