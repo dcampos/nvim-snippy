@@ -119,6 +119,11 @@ local function sort_stops(stops)
         elseif s1.id > s2.id then
             return false
         end
+        if s1.transform then
+            return false
+        elseif s2.transform then
+            return true
+        end
         return util.is_before(s1.startpos, s2.startpos)
     end)
 end
