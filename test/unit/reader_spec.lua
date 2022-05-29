@@ -23,6 +23,14 @@ describe('Snippet reader', function()
                 priority = -200,
                 body = { 'This is the second test.' },
             },
+            test3 = {
+                kind = 'snipmate',
+                prefix = 'test3',
+                option = {},
+                priority = -200,
+                description = 'Snippet description',
+                body = { 'This is the third test.' },
+            },
         }
         assert.is_truthy(require('snippy.shared').config.snippet_dirs)
         assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())

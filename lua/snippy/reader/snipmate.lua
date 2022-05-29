@@ -40,6 +40,19 @@ local function parse_options(prefix, line)
     }
 end
 
+local function parser_header(line)
+    local parts = vim.split(line, '%s+')
+    local prefix = parts[2]
+    assert(parts[1] == 'snippet')
+    local option = {}
+    local description = #parts > 2 and table.concat(vim.list_slice(parts, 3), ' ') or nil
+    if description and description:sub(1, 1) == '"' then
+        option = description and parse_options(prefix, line) or {}
+        description = description:match('^"(.+)"')
+    end
+    return prefix, description, option
+end
+
 local function read_snippets_file(snippets_file)
     local snips = {}
     local extends = {}
@@ -53,10 +66,8 @@ local function read_snippets_file(snippets_file)
 
     local function parse_snippet()
         local line = lines[i]
-        local prefix = line:match('%s+(%S+)%s*')
+        local prefix, description, option = parser_header(line)
         assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
-        local description = line:match('%s*"(.+)"%s*')
-        local option = description and parse_options(prefix, line) or {}
         if option.auto_trigger and not shared.config.enable_auto then
             local msg = [[[Snippy] Warning: you seem to have autotriggered snippets,]]
                 .. [[ but the autotrigger feature isn't enabled in your config.]]

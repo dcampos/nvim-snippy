@@ -120,6 +120,16 @@ using the following format:
     	This is the first line.
     	This is the second line.
 <
+While it is recommend to enclose the description in double quotes, Snippy also
+supports a legacy syntax by which everything that comes after the trigger is
+part of the description:
+>
+    snippet trigger3 Description for snippet 3
+    	This is the first line.
+    	This is the second line.
+<
+Please be aware that the legacy syntax doesn't support snippet options.
+
                                                       *snippy-snippet-options*
 
 The `option`s control the behavior of the expansion of the snippet and are
@@ -129,7 +139,7 @@ optional. Currently supported are the following:
     - `i` In-word expansion - The snippet gets expanded even if the trigger is
         only part of the word, up to the cursor.
     - `b` Beginning of line - The snippet is only expanded if its trigger is
-        the first word on the line, only preceeded by whitespace.
+        the first word on the line, only preceded by whitespace.
     - `A` Autotrigger - The snippet is expanded automatically when the trigger
         is typed. Requires the `enable_auto` option to be `true`. Note that
         this feature, because it checks every key pressed, may theoretically
