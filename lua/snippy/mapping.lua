@@ -11,47 +11,69 @@ local function feedkey(key)
     end
 end
 
-local fallback = {}
+local fnmap = {}
 
-M.expand = function(idx)
-    if snippy.can_expand() then
-        snippy.expand()
-    else
-        feedkey(fallback[idx])
+M.expand = function(fallback)
+    return function()
+        if snippy.can_expand() then
+            snippy.expand()
+        else
+            feedkey(fallback)
+        end
     end
 end
 
-M.expand_or_advance = function(idx)
-    if snippy.can_expand_or_advance() then
-        snippy.expand_or_advance()
-    else
-        feedkey(fallback[idx])
+M.expand_or_advance = function(fallback)
+    return function()
+        if snippy.can_expand_or_advance() then
+            snippy.expand_or_advance()
+        else
+            feedkey(fallback)
+        end
     end
 end
 
-M.next = function(idx)
-    if snippy.can_jump(1) then
-        snippy.next()
-    else
-        feedkey(fallback[idx])
+M.next = function(fallback)
+    return function()
+        if snippy.can_jump(1) then
+            snippy.next()
+        else
+            feedkey(fallback)
+        end
     end
 end
 
-M.previous = function(idx)
-    if snippy.can_jump(-1) then
-        snippy.previous()
-    else
-        feedkey(fallback[idx])
+M.previous = function(fallback)
+    return function()
+        if snippy.can_jump(-1) then
+            snippy.previous()
+        else
+            feedkey(fallback)
+        end
     end
 end
 
 M.cut_text = '<Plug>(snippy-cut-text)'
 
+M._run = function(id)
+    local fun = fnmap[id]
+    if fun then
+        fun()
+    else
+        error(string.format('[snippy] No function with id %s', id))
+    end
+end
+
 local function create_rhs(rhs, lhs)
     if type(M[rhs]) == 'function' then
-        local idx = #fallback + 1
-        fallback[idx] = lhs
-        return '<cmd>lua require("snippy.mapping").' .. rhs .. '(' .. idx .. ')<cr>', { noremap = true }
+        if vim.version().api_level > 8 then
+            return '', { callback = M[rhs](lhs), desc = string.format('snippy.%s()', rhs) }
+        else
+            -- Legacy solution for nvim < 0.7.0
+            local id = string.format('%p', M[rhs])
+            fnmap[id] = M[rhs](lhs)
+            return '<cmd>lua require("snippy.mapping")._run("' .. id .. '")<cr>', { noremap = true }
+        end
     elseif type(M[rhs]) == 'string' then
         return M[rhs], {}
     end

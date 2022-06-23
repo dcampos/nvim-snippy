@@ -729,4 +729,36 @@ describe('Snippy', function()
         ]],
         })
     end)
+
+    it('mappings', function()
+        setup_test_snippets()
+        command('set filetype=lua')
+        exec_lua([[snippy.setup({
+            mappings = {
+                i = { ['jj'] = 'expand_or_advance' },
+                s = { ['kk'] = 'next' }
+            }
+        })]])
+        feed('ilocjj')
+        screen:expect({
+            grid = [[
+          local ^v{3:ar} =                                                                      |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- SELECT --}                                                                     |
+        ]],
+        })
+        feed('kk')
+        screen:expect({
+            grid = [[
+          local var = ^                                                                     |
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {1:~                                                                                }|
+          {2:-- INSERT --}                                                                     |
+        ]],
+        })
+        neq(true, exec_lua([[return snippy.is_active()]]))
+    end)
 end)
