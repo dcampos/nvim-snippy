@@ -1,0 +1,40 @@
+name: Bug report
+description: Report a problem with Snippy
+labels: [bug]
+body:
+  - type: textarea
+    attributes:
+      label: Description
+      description: A concise description of the problem you are reporting.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce the bug
+      placeholder: |-
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Result
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Minimal config, GIF, videos, etc.
+    validations:
+      required: false
