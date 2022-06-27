@@ -27,3 +27,10 @@ command! SnippyReload lua require 'snippy'.clear_cache()
 function! s:complete_snippet_files(lead, line, curpos) abort
     return luaeval('require("snippy").complete_snippet_files(_A)', a:lead)
 endfunction
+
+augroup Snippy
+    autocmd!
+    autocmd FileType,InsertEnter * lua require 'snippy.main'.read_snippets()
+    autocmd BufWritePost *.snippet{,s} lua require 'snippy.main'.clear_cache()
+    autocmd OptionSet *runtimepath* lua require 'snippy.main'.clear_cache()
+augroup END

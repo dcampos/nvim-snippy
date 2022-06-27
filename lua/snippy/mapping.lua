@@ -13,6 +13,12 @@ end
 
 local fnmap = {}
 
+M.Expand = 'expand'
+M.ExpandOrAdvance = 'expand_or_advance'
+M.Next = 'next'
+M.Previous = 'previous'
+M.CutText = 'cut_text'
+
 M.expand = function(fallback)
     return function()
         if snippy.can_expand() then
