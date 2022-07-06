@@ -11,13 +11,7 @@ M._state = {}
 
 setmetatable(M, {
     __index = function(self, key)
-        if key == 'current_stop' then
-            return self.state().current_stop
-        elseif key == 'stops' then
-            return self.state().stops
-        else
-            return rawget(self, key)
-        end
+        return self.state()[key] or rawget(self, key)
     end,
     __newindex = function(self, key, value)
         if key == 'current_stop' then
@@ -106,6 +100,7 @@ function M.state()
     if not M._state[bufnr] then
         M._state[bufnr] = {
             stops = {},
+            mirrored = {},
             current_stop = 0,
         }
     end
@@ -171,6 +166,35 @@ function M.update_state()
     M.state().before = before
 end
 
+function M.mirror_stop(number)
+    local stops = M.stops
+    if number < 1 or number > #stops then
+        return
+    end
+    local cur_stop = stops[number]
+    local startpos, _ = cur_stop:get_range()
+    if startpos and startpos[1] + 1 > vim.fn.line('$') then
+        M.clear_state()
+        return
+    end
+    local text = cur_stop:get_text()
+    if cur_stop.prev_text == text then
+        return
+    end
+    cur_stop.prev_text = text
+    for i, stop in ipairs(stops) do
+        if i > number and stop.id == cur_stop.id then
+            M.mirrored[number] = true
+            stop:set_text(text)
+        end
+    end
+    if cur_stop.spec.type == 'placeholder' then
+        if text ~= cur_stop.placeholder then
+            M.clear_children(number)
+        end
+    end
+end
+
 function M.fix_current_stop()
     local current_stop = M.stops[M.current_stop]
     if not current_stop then
@@ -187,11 +211,15 @@ function M.fix_current_stop()
 end
 
 function M.clear_state()
+    for n, _ in pairs(M.mirrored) do
+        M.mirror_stop(n)
+    end
     for _, stop in pairs(M.state().stops) do
         api.nvim_buf_del_extmark(0, shared.namespace, stop.mark)
     end
     M.state().current_stop = 0
     M.state().stops = {}
+    M.state().mirrored = {}
     M.state().before = nil
     M.clear_autocmds()
 end
