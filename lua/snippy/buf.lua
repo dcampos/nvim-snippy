@@ -166,7 +166,7 @@ function M.update_state()
     M.state().before = before
 end
 
-function M.mirror_stop(number)
+function M.mirror_stop(number, expanding)
     local stops = M.stops
     if number < 1 or number > #stops then
         return
@@ -185,7 +185,7 @@ function M.mirror_stop(number)
     for i, stop in ipairs(stops) do
         if i > number and stop.id == cur_stop.id then
             M.mirrored[number] = cur_stop.id
-            stop:set_text(text)
+            stop:set_text(expanding and '[?]' or text)
         end
     end
     if cur_stop.spec.type == 'placeholder' then

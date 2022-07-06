@@ -322,7 +322,7 @@ function M.previous()
     return M._jump(stop)
 end
 
-function M.next()
+function M.next(expanding)
     local stops = buf.stops
     local stop = (buf.current_stop or 0) + 1
     local skipped = {}
@@ -339,16 +339,16 @@ function M.next()
             end
         end
     end
-    return M._jump(stop)
+    return M._jump(stop, expanding)
 end
 
-function M._jump(stop)
+function M._jump(stop, expanding)
     local stops = buf.stops
     if not stops or #stops == 0 then
         return false
     end
     if buf.current_stop ~= 0 then
-        buf.mirror_stop(buf.current_stop)
+        buf.mirror_stop(buf.current_stop, expanding)
         buf.deactivate_stop(buf.current_stop)
     end
     local should_finish = false
@@ -466,7 +466,7 @@ function M.expand_snippet(snippet, word)
     api.nvim_set_option('undolevels', api.nvim_get_option('undolevels'))
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
-    M.next()
+    M.next(true)
     return ''
 end
 
