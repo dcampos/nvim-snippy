@@ -184,7 +184,7 @@ function M.mirror_stop(number)
     cur_stop.prev_text = text
     for i, stop in ipairs(stops) do
         if i > number and stop.id == cur_stop.id then
-            M.mirrored[number] = true
+            M.mirrored[number] = cur_stop.id
             stop:set_text(text)
         end
     end
@@ -211,9 +211,6 @@ function M.fix_current_stop()
 end
 
 function M.clear_state()
-    for n, _ in pairs(M.mirrored) do
-        M.mirror_stop(n)
-    end
     for _, stop in pairs(M.state().stops) do
         api.nvim_buf_del_extmark(0, shared.namespace, stop.mark)
     end

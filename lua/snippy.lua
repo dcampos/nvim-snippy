@@ -325,8 +325,19 @@ end
 function M.next()
     local stops = buf.stops
     local stop = (buf.current_stop or 0) + 1
+    local skipped = {}
     while stops[stop] and not stops[stop].traversable do
+        skipped[stops[stop].id] = true
         stop = stop + 1
+    end
+    for n, mid in pairs(buf.mirrored) do
+        for sid, _ in pairs(skipped) do
+            if mid == sid then
+                buf.mirror_stop(n)
+                buf.mirrored[n] = nil
+                break
+            end
+        end
     end
     return M._jump(stop)
 end
