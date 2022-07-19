@@ -153,6 +153,7 @@ local function read_snippet_file(snippet_file, scope)
             description = description,
             -- Priority for .snippet is always 0
             priority = 0,
+            option = {},
             body = body,
         },
     }
