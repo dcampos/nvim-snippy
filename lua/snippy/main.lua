@@ -85,7 +85,7 @@ local function mirror_stop(number)
         return
     end
     local cur_stop = stops[number]
-    local startpos, _ = cur_stop:get_range()
+    local startpos, endpos = cur_stop:get_range()
     if startpos and startpos[1] + 1 > vim.fn.line('$') then
         buf.clear_state()
         return
@@ -96,13 +96,26 @@ local function mirror_stop(number)
     end
     cur_stop.prev_text = text
     for i, stop in ipairs(stops) do
-        if i > number and stop.id == cur_stop.id then
+        local is_inside = cur_stop:is_inside(stop)
+        if not is_inside and i > number and stop.id == cur_stop.id then
+            --print('setting text of', i, 'to the value of', number)
             stop:set_text(text)
         end
     end
     if cur_stop.spec.type == 'placeholder' then
-        if text ~= cur_stop.placeholder then
+        local real_cur_stop = buf.stops[buf.current_stop]
+        local is_inside = number ~= buf.current_stop and real_cur_stop:is_inside(cur_stop)
+        if not is_inside and text ~= cur_stop.placeholder then
+            --print('clearing children of', number)
             buf.clear_children(number)
+        end
+    end
+    if cur_stop.spec.parent then
+        for i, stop in ipairs(stops) do
+            if stop.id == cur_stop.spec.parent then
+                --print('mirroring stop', i, 'current stop is', buf.current_stop)
+                mirror_stop(i)
+            end
         end
     end
 end
@@ -148,11 +161,16 @@ local function make_unique_ids(stops)
     M.max_id = max_id
 end
 
-local function place_stops(stops)
-    sort_stops(stops)
-    make_unique_ids(stops)
+local function place_stops(specs)
+    sort_stops(specs)
+    make_unique_ids(specs)
     local pos = buf.current_stop + 1
-    for _, spec in ipairs(stops) do
+    for _, spec in ipairs(specs) do
+        if buf.current_stop > 0 and not spec.parent then
+            --print(buf.current_stop)
+            local current_stop = buf.stops[buf.current_stop]
+            spec.parent = current_stop.id
+        end
         buf.add_stop(spec, pos)
         pos = pos + 1
     end

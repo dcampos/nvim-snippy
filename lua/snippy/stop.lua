@@ -1,4 +1,5 @@
 local shared = require('snippy.shared')
+local util = require('snippy.util')
 
 local api = vim.api
 local fn = vim.fn
@@ -47,6 +48,17 @@ function Stop:get_before()
     local current_line = fn.getline(from[1] + 1)
     local pre = current_line:sub(1, from[2])
     return pre
+end
+
+function Stop:is_inside(other)
+    local ostartpos, oendpos = other:get_range()
+    local startpos, endpos = self:get_range()
+    if ostartpos == nil or oendpos == nil or startpos == nil or endpos == nil then
+        return false
+    end
+    local startposcheck = ostartpos[1] == startpos[1] and ostartpos[2] == startpos[2]
+    local endposcheck = oendpos[1] == endpos[1] and oendpos[2] == endpos[2]
+    return (startposcheck or util.is_before(ostartpos, startpos) and (endposcheck or util.is_after(oendpos, endpos)))
 end
 
 return Stop

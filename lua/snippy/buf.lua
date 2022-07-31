@@ -30,12 +30,22 @@ setmetatable(M, {
     end,
 })
 
-local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
+local function print_state()
+    print('current stop:', M.current_stop)
+    for i, stop in ipairs(M.stops) do
+        print('stop:', i, 'id:', stop.id)
+        local from, to = stop:get_range()
+        print('> range:', vim.inspect({ from, to }))
+        print('> before:', M.state().before)
+    end
+end
+
+local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, hl_group)
     local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
         id = id,
         end_line = endrow,
         end_col = endcol,
-        hl_group = shared.config.hl_group,
+        hl_group = hl_group,
         right_gravity = right_gravity,
         end_right_gravity = end_right_gravity,
     })
@@ -71,7 +81,7 @@ local function activate_parents(number)
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, shared.config.hl_group)
     end
 end
 
@@ -82,6 +92,18 @@ local function deactivate_parents(number)
         local from, to = stop:get_range()
         local mark_id = stop.mark
         local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+    end
+end
+
+local function activate_stop_and_parents(number)
+    local value = M.state().stops[number]
+    for n, stop in ipairs(M.state().stops) do
+        if stop.id == value.id then
+            local from, to = stop:get_range()
+            local mark_id = stop.mark
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, shared.config.hl_group)
+            activate_parents(n)
+        end
     end
 end
 
@@ -133,13 +155,14 @@ end
 
 -- Change the extmarks to expand on change
 function M.activate_stop(number)
+    --print('activating stop', number)
+    activate_stop_and_parents(number)
     local value = M.state().stops[number]
-    for n, stop in ipairs(M.state().stops) do
-        if stop.id == value.id then
-            local from, to = stop:get_range()
-            local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
-            activate_parents(n)
+    if value.spec.parent then
+        for i, stop in ipairs(M.stops) do
+            if stop.id == value.spec.parent then
+                activate_stop_and_parents(i)
+            end
         end
     end
     if value.spec.type == 'placeholder' then
@@ -169,6 +192,8 @@ function M.update_state()
     end
     local before = current_stop:get_before()
     M.state().before = before
+    --print('---')
+    --print_state()
 end
 
 function M.fix_current_stop()
@@ -180,6 +205,10 @@ function M.fix_current_stop()
     local old = M.state().before or new
     local current_line = api.nvim_get_current_line()
     if new ~= old and current_line:sub(1, #old) == old then
+        --print('fixing current stop:', M.current_stop, old, new)
+        --print('current state: >')
+        --print_state()
+        --print('---')
         local stop = M.stops[M.current_stop]
         local from, to = stop:get_range()
         add_mark(stop.mark, from[1], #old, to[1], to[2], false, true)
