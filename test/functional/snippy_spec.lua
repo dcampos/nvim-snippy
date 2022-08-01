@@ -23,7 +23,7 @@ describe('Snippy', function()
 
     before_each(function()
         clear()
-        screen = Screen.new(81, 5)
+        screen = Screen.new(50, 5)
         screen:attach()
         screen:set_default_attr_ids({
             [1] = { foreground = Screen.colors.Blue1, bold = true },
@@ -55,11 +55,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-        This is the first test.^                                                          |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        This is the first test.^                           |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
     end)
@@ -73,22 +73,22 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-        for ^ in  then                                                                    |
-                                                                                         |
-        end                                                                              |
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        for ^ in  then                                     |
+                                                          |
+        end                                               |
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.can_jump(1)]]))
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
-        for  in ^ then                                                                    |
-                                                                                         |
-        end                                                                              |
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        for  in ^ then                                     |
+                                                          |
+        end                                               |
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.can_jump(1)]]))
@@ -105,11 +105,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-        local ^v{3:ar} =                                                                      |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- SELECT --}                                                                     |
+        local ^v{3:ar} =                                       |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- SELECT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.can_jump(1)]]))
@@ -117,11 +117,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
-        local var = ^                                                                     |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        local var = ^                                      |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         neq(true, exec_lua([[return snippy.is_active()]]))
@@ -133,11 +133,11 @@ describe('Snippy', function()
         command('lua snippy.expand_snippet([[local $1 = $0]])')
         screen:expect({
             grid = [[
-        local ^ =                                                                         |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        local ^ =                                          |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -161,11 +161,11 @@ describe('Snippy', function()
         eq(true, exec_lua([[return snippy.is_active()]]))
         screen:expect({
             grid = [[
-          public static void main(String[] ^a{3:rgs}) {                                         |
-                                                                                           |
-          }                                                                                |
-          {1:~                                                                                }|
-          {2:-- SELECT --}                                                                     |
+          public static void main(String[] ^a{3:rgs}) {          |
+                                                            |
+          }                                                 |
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
         ]],
         })
     end)
@@ -178,22 +178,22 @@ describe('Snippy', function()
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
-        , ^,                                                                              |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        , ^,                                               |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.can_jump(-1)]]))
         feed('<plug>(snippy-previous)')
         screen:expect({
             grid = [[
-        ^, ,                                                                              |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        ^, ,                                               |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
     end)
@@ -204,22 +204,22 @@ describe('Snippy', function()
         command('lua snippy.expand_snippet([[local ${1:var} = ${1/snip/snap/g}]])')
         screen:expect({
             grid = [[
-        local ^v{3:ar} = var                                                                  |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- SELECT --}                                                                     |
+        local ^v{3:ar} = var                                   |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- SELECT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
         feed('snipsnipsnip')
         screen:expect({
             grid = [[
-        local snipsnipsnip^ = snapsnapsnap                                                |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        local snipsnipsnip^ = snapsnapsnap                 |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -233,11 +233,11 @@ describe('Snippy', function()
         feed('snippy')
         screen:expect({
             grid = [[
-        local snippy^ = SNIPPY                                                            |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        local snippy^ = SNIPPY                             |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -249,22 +249,22 @@ describe('Snippy', function()
         command('lua snippy.expand_snippet([[local $1 = $0]])')
         screen:expect({
             grid = [[
-        local ^ =                                                                         |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        local ^ =                                          |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
         feed('<left>')
         screen:expect({
             grid = [[
-        local^  =                                                                         |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        local^  =                                          |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         neq(true, exec_lua([[return snippy.is_active()]]))
@@ -277,11 +277,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        for ($^f{3:oo} = 0; $foo < ; $foo++) {                                                |
-                                                                                         |
-        }                                                                                |
-        {1:~                                                                                }|
-        {2:-- SELECT --}                                                                     |
+        for ($^f{3:oo} = 0; $foo < ; $foo++) {                 |
+                                                          |
+        }                                                 |
+        {1:~                                                 }|
+        {2:-- SELECT --}                                      |
         ]],
         })
 
@@ -291,11 +291,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        for ($foo = 0; $foo < ^; $foo++) {                                                |
-                                                                                         |
-        }                                                                                |
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        for ($foo = 0; $foo < ^; $foo++) {                 |
+                                                          |
+        }                                                 |
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
 
@@ -305,11 +305,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        for ($foo = 0; $foo < ; $foo++) {                                                |
-                ^                                                                         |
-        }                                                                                |
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        for ($foo = 0; $foo < ; $foo++) {                 |
+                ^                                          |
+        }                                                 |
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
 
@@ -324,11 +324,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        $foo^ = ; // set $foo                                                             |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        $foo^ = ; // set $foo                              |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
 
@@ -338,11 +338,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        $foo = ^; // set $foo                                                             |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        $foo = ^; // set $foo                              |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
 
@@ -356,11 +356,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
-        local util = require("^u{3:til}")                                                     |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- SELECT --}                                                                     |
+        local util = require("^u{3:til}")                      |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- SELECT --}                                      |
         ]],
         })
         feed('snippy.util')
@@ -368,11 +368,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-next)')
         screen:expect({
             grid = [[
-        local util = require("snippy.util")^                                              |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        local util = require("snippy.util")^               |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         neq(true, exec_lua([[return snippy.is_active()]]))
@@ -385,11 +385,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        çlocal ^v{3:ar} =  -- ▴                                                               |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- SELECT --}                                                                     |
+        çlocal ^v{3:ar} =  -- ▴                                |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- SELECT --}                                      |
         ]],
         })
 
@@ -399,11 +399,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        çlocal snippy = ^ -- ▴                                                            |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        çlocal snippy = ^ -- ▴                             |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
 
@@ -413,11 +413,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        çlocal snippy =  -- ▴ ^                                                           |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        çlocal snippy =  -- ▴ ^                            |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
 
@@ -439,11 +439,11 @@ describe('Snippy', function()
 
         screen:expect({
             grid = [[
-        var1                                                                             |
-        var2 var3                                                                        |
-        var2 var3 var3 ^v{3:ar4}                                                              |
-        var3 var3 var4                                                                   |
-        {2:-- SELECT --}                                                                     |
+        var1                                              |
+        var2 var3                                         |
+        var2 var3 var3 ^v{3:ar4}                               |
+        var3 var3 var4                                    |
+        {2:-- SELECT --}                                      |
         ]],
         })
 
@@ -457,11 +457,11 @@ describe('Snippy', function()
         feed('&a, $b, $c')
         screen:expect({
             grid = [[
-        scanf("%d%d%d", &a, $b, $c^);                                                     |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        scanf("%d%d%d", &a, $b, $c^);                      |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -473,11 +473,11 @@ describe('Snippy', function()
         command('lua snippy.expand_snippet([[first line\n${0:$VISUAL}\nsecond line]])')
         screen:expect({
             grid = [[
-        first line                                                                       |
-        ^i{3:nner line}                                                                       |
-        second line                                                                      |
-        {1:~                                                                                }|
-        {2:-- SELECT --}                                                                     |
+        first line                                        |
+        ^i{3:nner line}                                        |
+        second line                                       |
+        {1:~                                                 }|
+        {2:-- SELECT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -489,11 +489,11 @@ describe('Snippy', function()
         command('lua snippy.expand_snippet([[first line\n${0:$VISUAL}\nsecond line]])')
         screen:expect({
             grid = [[
-        first line                                                                       |
-        ^i{3:nner line}                                                                       |
-        second line                                                                      |
-        {1:~                                                                                }|
-        {2:-- SELECT --}                                                                     |
+        first line                                        |
+        ^i{3:nner line}                                        |
+        second line                                       |
+        {1:~                                                 }|
+        {2:-- SELECT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -505,11 +505,11 @@ describe('Snippy', function()
         feed('<Down><C-y>')
         screen:expect({
             grid = [[
-        snap^ =                                                                           |
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {1:~                                                                                }|
-        {2:-- INSERT --}                                                                     |
+        snap^ =                                            |
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {1:~                                                 }|
+        {2:-- INSERT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -534,21 +534,21 @@ describe('Snippy', function()
         exec_lua('snippy.expand_snippet([[class MyClass ${1:extends ${2:Super} } {\n\t$0\n}]])')
         screen:expect({
             grid = [[
-          class MyClass ^e{3:xtends Super } {                                                   |
-                                                                                           |
-          }                                                                                |
-          {1:~                                                                                }|
-          {2:-- SELECT --}                                                                     |
+          class MyClass ^e{3:xtends Super } {                    |
+                                                            |
+          }                                                 |
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
         ]],
         })
         exec_lua([[snippy.next()]])
         screen:expect({
             grid = [[
-          class MyClass extends ^S{3:uper}  {                                                   |
-                                                                                           |
-          }                                                                                |
-          {1:~                                                                                }|
-          {2:-- SELECT --}                                                                     |
+          class MyClass extends ^S{3:uper}  {                    |
+                                                            |
+          }                                                 |
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
         ]],
         })
         exec_lua([[snippy.previous()]])
@@ -557,11 +557,11 @@ describe('Snippy', function()
         exec_lua([[snippy.next()]])
         screen:expect({
             grid = [[
-          class MyClass  {                                                                 |
-                  ^                                                                         |
-          }                                                                                |
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          class MyClass  {                                  |
+                  ^                                          |
+          }                                                 |
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
         eq(false, exec_lua([[return snippy.is_active()]]))
@@ -572,21 +572,21 @@ describe('Snippy', function()
         feed('undo_this')
         screen:expect({
             grid = [[
-          local undo_this^ = undo_this                                                      |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          local undo_this^ = undo_this                       |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
         feed('<Esc>u<C-l>')
         screen:expect({
             grid = [[
-          local ^var = var                                                                  |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-                                                                                           |
+          local ^var = var                                   |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+                                                            |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -597,11 +597,11 @@ describe('Snippy', function()
         exec_lua([[snippy.next()]])
         screen:expect({
             grid = [[
-          snip                                                                             |
-          ^s{3:nap}                                                                             |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- SELECT --}                                                                     |
+          snip                                              |
+          ^s{3:nap}                                              |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
@@ -609,11 +609,11 @@ describe('Snippy', function()
         -- screen:snapshot_util()
         screen:expect({
             grid = [[
-          snip                                                                             |
-          ^snap                                                                             |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-                                                                                           |
+          snip                                              |
+          ^snap                                              |
+          {1:~                                                 }|
+          {1:~                                                 }|
+                                                            |
         ]],
         })
         feed('dd')
@@ -628,11 +628,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          Expand only if in the beginning of the line!^                                     |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          Expand only if in the beginning of the line!^      |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
         feed('<Esc>:%d<CR>')
@@ -642,11 +642,11 @@ describe('Snippy', function()
         -- screen:snapshot_util()
         screen:expect({
             grid = [[
-          foo begin^                                                                        |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          foo begin^                                         |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
     end)
@@ -659,11 +659,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          fooExpand this inside a word!^                                                    |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          fooExpand this inside a word!^                     |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
     end)
@@ -676,11 +676,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          @@@Expand this if it is keyword based!^                                           |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          @@@Expand this if it is keyword based!^            |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
         -- Don't expand this
@@ -690,11 +690,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          fooword^                                                                          |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          fooword^                                           |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
     end)
@@ -707,11 +707,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          foo Expand only if space-delimited word present!^                                 |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          foo Expand only if space-delimited word present!^  |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
         -- Don't expand this
@@ -721,11 +721,11 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          @@@default^                                                                       |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          @@@default^                                        |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
     end)
@@ -742,21 +742,21 @@ describe('Snippy', function()
         feed('ilocjj')
         screen:expect({
             grid = [[
-          local ^v{3:ar} =                                                                      |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- SELECT --}                                                                     |
+          local ^v{3:ar} =                                       |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
         ]],
         })
         feed('kk')
         screen:expect({
             grid = [[
-          local var = ^                                                                     |
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {1:~                                                                                }|
-          {2:-- INSERT --}                                                                     |
+          local var = ^                                      |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
         ]],
         })
         neq(true, exec_lua([[return snippy.is_active()]]))
