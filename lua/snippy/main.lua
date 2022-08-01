@@ -79,47 +79,6 @@ local function present_choices(stop, startpos)
     end, shared.config.choice_delay)
 end
 
-local function mirror_stop(number)
-    local stops = buf.stops
-    if number < 1 or number > #stops then
-        return
-    end
-    local cur_stop = stops[number]
-    local startpos, endpos = cur_stop:get_range()
-    if startpos and startpos[1] + 1 > vim.fn.line('$') then
-        buf.clear_state()
-        return
-    end
-    local text = cur_stop:get_text()
-    if cur_stop.prev_text == text then
-        return
-    end
-    cur_stop.prev_text = text
-    for i, stop in ipairs(stops) do
-        local is_inside = cur_stop:is_inside(stop)
-        if not is_inside and i > number and stop.id == cur_stop.id then
-            --print('setting text of', i, 'to the value of', number)
-            stop:set_text(text)
-        end
-    end
-    if cur_stop.spec.type == 'placeholder' then
-        local real_cur_stop = buf.stops[buf.current_stop]
-        local is_inside = number ~= buf.current_stop and real_cur_stop:is_inside(cur_stop)
-        if not is_inside and text ~= cur_stop.placeholder then
-            --print('clearing children of', number)
-            buf.clear_children(number)
-        end
-    end
-    if cur_stop.spec.parent then
-        for i, stop in ipairs(stops) do
-            if stop.id == cur_stop.spec.parent then
-                --print('mirroring stop', i, 'current stop is', buf.current_stop)
-                mirror_stop(i)
-            end
-        end
-    end
-end
-
 local function sort_stops(stops)
     table.sort(stops, function(s1, s2)
         if s1.id == 0 then
@@ -355,7 +314,7 @@ end
 
 function M._mirror_stops()
     if buf.current_stop ~= 0 then
-        mirror_stop(buf.current_stop)
+        buf.mirror_stop(buf.current_stop)
     end
 end
 
@@ -383,7 +342,7 @@ function M._jump(stop)
         return false
     end
     if buf.current_stop ~= 0 then
-        mirror_stop(buf.current_stop)
+        buf.mirror_stop(buf.current_stop)
         buf.deactivate_stops()
     end
     local should_finish = false
@@ -392,7 +351,7 @@ function M._jump(stop)
         buf.clear_autocmds()
 
         buf.activate_stop(stop)
-        mirror_stop(stop)
+        buf.mirror_stop(stop)
 
         local value = stops[stop]
         local startpos, endpos = value:get_range()

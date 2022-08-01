@@ -85,16 +85,6 @@ local function activate_parents(number)
     end
 end
 
-local function deactivate_parents(number)
-    local parents = get_parents(number)
-    for _, n in ipairs(parents) do
-        local stop = M.state().stops[n]
-        local from, to = stop:get_range()
-        local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
-    end
-end
-
 local function activate_stop_and_parents(number)
     local value = M.state().stops[number]
     for n, stop in ipairs(M.state().stops) do
@@ -103,6 +93,47 @@ local function activate_stop_and_parents(number)
             local mark_id = stop.mark
             local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, shared.config.hl_group)
             activate_parents(n)
+        end
+    end
+end
+
+function M.mirror_stop(number)
+    local stops = M.state().stops
+    if number < 1 or number > #stops then
+        return
+    end
+    local cur_stop = stops[number]
+    local startpos, _ = cur_stop:get_range()
+    if startpos and startpos[1] + 1 > vim.fn.line('$') then
+        M.clear_state()
+        return
+    end
+    local text = cur_stop:get_text()
+    if cur_stop.prev_text == text then
+        return
+    end
+    cur_stop.prev_text = text
+    for i, stop in ipairs(stops) do
+        local is_inside = cur_stop:is_inside(stop)
+        if not is_inside and i > number and stop.id == cur_stop.id then
+            --print('setting text of', i, 'to the value of', number)
+            stop:set_text(text)
+        end
+    end
+    if cur_stop.spec.type == 'placeholder' then
+        local real_cur_stop = M.stops[M.current_stop]
+        local is_inside = number ~= M.current_stop and real_cur_stop:is_inside(cur_stop)
+        if not is_inside and text ~= cur_stop.placeholder then
+            --print('clearing children of', number)
+            M.clear_children(number)
+        end
+    end
+    if cur_stop.spec.parent then
+        for i, stop in ipairs(stops) do
+            if stop.id == cur_stop.spec.parent then
+                --print('mirroring stop', i, 'current stop is', buf.current_stop)
+                M.mirror_stop(i)
+            end
         end
     end
 end
