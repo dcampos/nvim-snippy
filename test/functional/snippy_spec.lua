@@ -592,6 +592,61 @@ describe('Snippy', function()
         eq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
+    it('mirror parent stops', function()
+        screen:try_resize(50, 3)
+        exec_lua('snippy.expand_snippet([[local ${1:${2:${3:snip}}} = $1]])')
+        screen:expect{
+            grid=[[
+          local ^s{3:nip} = snip                                 |
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
+        ]]}
+
+        exec_lua([[snippy.next()]])
+        exec_lua([[snippy.next()]])
+        feed('snap')
+        screen:expect{
+            grid=[[
+          local snap^ = snap                                 |
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]]}
+
+        eq(true, exec_lua([[return snippy.is_active()]]))
+    end)
+
+    it('mirror parent of expanded snippet', function()
+        screen:try_resize(50, 3)
+        exec_lua('snippy.expand_snippet([[local $1 = $1]])')
+        screen:expect({
+            grid = [[
+          local ^ =                                          |
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
+
+        exec_lua('snippy.expand_snippet([[a_$1_c]])')
+        screen:expect({
+            grid = [[
+          local a_^_c = a__c                                 |
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
+
+        feed('b')
+        screen:expect({
+            grid = [[
+          local a_b^_c = a_b_c                               |
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
+
+        eq(true, exec_lua([[return snippy.is_active()]]))
+    end)
+
     it('should clear state if current line is deleted', function()
         exec_lua('snippy.expand_snippet([[${1:snip}\n${2:snap}]])')
         exec_lua([[snippy.next()]])
