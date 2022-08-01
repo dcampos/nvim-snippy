@@ -243,9 +243,7 @@ function M.fix_current_stop()
 end
 
 function M.clear_state()
-    for _, stop in pairs(M.state().stops) do
-        api.nvim_buf_del_extmark(0, shared.namespace, stop.mark)
-    end
+    vim.api.nvim_buf_clear_namespace(0, shared.namespace, 0, -1)
     M.state().current_stop = 0
     M.state().stops = {}
     M.state().before = nil
