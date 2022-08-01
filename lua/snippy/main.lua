@@ -384,7 +384,7 @@ function M._jump(stop)
     end
     if buf.current_stop ~= 0 then
         mirror_stop(buf.current_stop)
-        buf.deactivate_stop(buf.current_stop)
+        buf.deactivate_stops()
     end
     local should_finish = false
     if #stops >= stop and stop > 0 then

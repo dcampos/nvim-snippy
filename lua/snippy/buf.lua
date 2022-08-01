@@ -173,15 +173,11 @@ function M.activate_stop(number)
 end
 
 -- Change the extmarks NOT to expand on change
-function M.deactivate_stop(number)
-    local value = M.state().stops[number]
-    for n, stop in ipairs(M.state().stops) do
-        if stop.id == value.id then
-            local from, to = stop:get_range()
-            local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
-            deactivate_parents(n)
-        end
+function M.deactivate_stops()
+    for _, stop in ipairs(M.state().stops) do
+        local from, to = stop:get_range()
+        local mark_id = stop.mark
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
     end
 end
 
