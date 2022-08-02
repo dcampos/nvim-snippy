@@ -30,16 +30,6 @@ setmetatable(M, {
     end,
 })
 
-local function print_state()
-    print('current stop:', M.current_stop)
-    for i, stop in ipairs(M.stops) do
-        print('stop:', i, 'id:', stop.id)
-        local from, to = stop:get_range()
-        print('> range:', vim.inspect({ from, to }))
-        print('> before:', M.state().before)
-    end
-end
-
 local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, hl_group)
     local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
         id = id,
@@ -52,31 +42,8 @@ local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, e
     return mark
 end
 
-local function get_children(number)
-    local value = M.state().stops[number]
-    for n, stop in ipairs(M.state().stops) do
-        if value.id == stop.spec.parent then
-            return vim.list_extend({ n }, get_children(n))
-        end
-    end
-    return {}
-end
-
-local function get_parents(number)
-    local value = M.state().stops[number]
-    if not value.spec.parent then
-        return {}
-    end
-    for n, stop in ipairs(M.state().stops) do
-        if stop.id == value.spec.parent and stop.spec.type == 'placeholder' then
-            return vim.list_extend({ n }, get_parents(n))
-        end
-    end
-    return {}
-end
-
 local function activate_parents(number)
-    local parents = get_parents(number)
+    local parents = M.stops[number]:get_parents()
     for _, n in ipairs(parents) do
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
@@ -116,7 +83,6 @@ function M.mirror_stop(number)
     for i, stop in ipairs(stops) do
         local is_inside = cur_stop:is_inside(stop)
         if not is_inside and i > number and stop.id == cur_stop.id then
-            --print('setting text of', i, 'to the value of', number)
             stop:set_text(text)
         end
     end
@@ -124,14 +90,12 @@ function M.mirror_stop(number)
         local real_cur_stop = M.stops[M.current_stop]
         local is_inside = number ~= M.current_stop and real_cur_stop:is_inside(cur_stop)
         if not is_inside and text ~= cur_stop.placeholder then
-            --print('clearing children of', number)
             M.clear_children(number)
         end
     end
     if cur_stop.spec.parent then
         for i, stop in ipairs(stops) do
             if stop.id == cur_stop.spec.parent then
-                --print('mirroring stop', i, 'current stop is', buf.current_stop)
                 M.mirror_stop(i)
             end
         end
@@ -140,7 +104,7 @@ end
 
 function M.clear_children(stop_num)
     local current_stop = M.stops[M.current_stop]
-    local children = get_children(stop_num)
+    local children = M.stops[stop_num]:get_children()
     table.sort(children)
     for i = #children, 1, -1 do
         table.remove(M.state().stops, children[i])
@@ -186,7 +150,6 @@ end
 
 -- Change the extmarks to expand on change
 function M.activate_stop(number)
-    --print('activating stop', number)
     activate_stop_and_parents(number)
     local value = M.state().stops[number]
     if value.spec.parent then
@@ -219,8 +182,6 @@ function M.update_state()
     end
     local before = current_stop:get_before()
     M.state().before = before
-    --print('---')
-    --print_state()
 end
 
 function M.fix_current_stop()
@@ -232,10 +193,6 @@ function M.fix_current_stop()
     local old = M.state().before or new
     local current_line = api.nvim_get_current_line()
     if new ~= old and current_line:sub(1, #old) == old then
-        --print('fixing current stop:', M.current_stop, old, new)
-        --print('current state: >')
-        --print_state()
-        --print('---')
         local stop = M.stops[M.current_stop]
         local from, to = stop:get_range()
         add_mark(stop.mark, from[1], #old, to[1], to[2], false, true)
@@ -243,7 +200,7 @@ function M.fix_current_stop()
 end
 
 function M.clear_state()
-    vim.api.nvim_buf_clear_namespace(0, shared.namespace, 0, -1)
+    api.nvim_buf_clear_namespace(0, shared.namespace, 0, -1)
     M.state().current_stop = 0
     M.state().stops = {}
     M.state().before = nil

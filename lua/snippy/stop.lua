@@ -50,6 +50,29 @@ function Stop:get_before()
     return pre
 end
 
+function Stop:get_children()
+    local buf = require('snippy.buf')
+    for n, stop in ipairs(buf.state().stops) do
+        if self.id == stop.spec.parent then
+            return vim.list_extend({ n }, stop:get_children())
+        end
+    end
+    return {}
+end
+
+function Stop:get_parents()
+    local buf = require('snippy.buf')
+    if not self.spec.parent then
+        return {}
+    end
+    for n, stop in ipairs(buf.state().stops) do
+        if stop.id == self.spec.parent and stop.spec.type == 'placeholder' then
+            return vim.list_extend({ n }, stop:get_parents())
+        end
+    end
+    return {}
+end
+
 function Stop:is_inside(other)
     local ostartpos, oendpos = other:get_range()
     local startpos, endpos = self:get_range()
