@@ -30,6 +30,15 @@ setmetatable(M, {
     end,
 })
 
+--- Add or change an extmark associated with a stop.
+---@param id number|nil Extmark identifier (nil for creating a new one)
+---@param startrow number
+---@param startcol number
+---@param endrow number
+---@param endcol number
+---@param right_gravity number
+---@param end_right_gravity number
+---@return number Extmark identifier
 local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
     local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
         id = id,
@@ -52,6 +61,9 @@ local function activate_parents(number)
     end
 end
 
+--- Activates a stop (and all its mirrors) by changing its extmark's gravity.
+--- Parents (outer stops) must also be activated.
+---@param number number Stop number (index)
 local function activate_stop_and_parents(number)
     local value = M.state().stops[number]
     for n, stop in ipairs(M.state().stops) do
@@ -64,6 +76,8 @@ local function activate_stop_and_parents(number)
     end
 end
 
+--- Mirrors a stop and its parents by number.
+---@param number number Stop number (index)
 function M.mirror_stop(number)
     local stops = M.state().stops
     if number < 1 or number > #stops then
@@ -148,7 +162,8 @@ function M.add_stop(spec, pos)
     M.state().stops = stops
 end
 
--- Change the extmarks to expand on change
+--- Change the extmark's gravity to allow the tabstop to expand on change.
+---@p number number Stop number/index
 function M.activate_stop(number)
     activate_stop_and_parents(number)
     local value = M.state().stops[number]
@@ -166,7 +181,7 @@ function M.activate_stop(number)
     M.update_state()
 end
 
--- Change the extmarks NOT to expand on change
+--- Change the extmark's gravity to NOT allow the tabstop to expand on change.
 function M.deactivate_stops()
     for _, stop in ipairs(M.state().stops) do
         local from, to = stop:get_range()
