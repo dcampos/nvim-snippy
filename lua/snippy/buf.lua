@@ -30,12 +30,12 @@ setmetatable(M, {
     end,
 })
 
-local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, hl_group)
+local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
     local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
         id = id,
         end_line = endrow,
         end_col = endcol,
-        hl_group = hl_group,
+        hl_group = shared.config.hl_group,
         right_gravity = right_gravity,
         end_right_gravity = end_right_gravity,
     })
@@ -48,7 +48,7 @@ local function activate_parents(number)
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, shared.config.hl_group)
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
     end
 end
 
@@ -58,7 +58,7 @@ local function activate_stop_and_parents(number)
         if stop.id == value.id then
             local from, to = stop:get_range()
             local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, shared.config.hl_group)
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
             activate_parents(n)
         end
     end
