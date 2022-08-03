@@ -30,6 +30,15 @@ setmetatable(M, {
     end,
 })
 
+--- Add or change an extmark associated with a stop.
+---@param id number|nil Extmark identifier (nil for creating a new one)
+---@param startrow number
+---@param startcol number
+---@param endrow number
+---@param endcol number
+---@param right_gravity number
+---@param end_right_gravity number
+---@return number Extmark identifier
 local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
     local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
         id = id,
@@ -42,31 +51,8 @@ local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, e
     return mark
 end
 
-local function get_children(number)
-    local value = M.state().stops[number]
-    for n, stop in ipairs(M.state().stops) do
-        if value.id == stop.spec.parent then
-            return vim.list_extend({ n }, get_children(n))
-        end
-    end
-    return {}
-end
-
-local function get_parents(number)
-    local value = M.state().stops[number]
-    if not value.spec.parent then
-        return {}
-    end
-    for n, stop in ipairs(M.state().stops) do
-        if stop.id == value.spec.parent and stop.spec.type == 'placeholder' then
-            return vim.list_extend({ n }, get_parents(n))
-        end
-    end
-    return {}
-end
-
 local function activate_parents(number)
-    local parents = get_parents(number)
+    local parents = M.stops[number]:get_parents()
     for _, n in ipairs(parents) do
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
@@ -75,19 +61,64 @@ local function activate_parents(number)
     end
 end
 
-local function deactivate_parents(number)
-    local parents = get_parents(number)
-    for _, n in ipairs(parents) do
-        local stop = M.state().stops[n]
-        local from, to = stop:get_range()
-        local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+--- Activates a stop (and all its mirrors) by changing its extmark's gravity.
+--- Parents (outer stops) must also be activated.
+---@param number number Stop number (index)
+local function activate_stop_and_parents(number)
+    local value = M.state().stops[number]
+    for n, stop in ipairs(M.state().stops) do
+        if stop.id == value.id then
+            local from, to = stop:get_range()
+            local mark_id = stop.mark
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+            activate_parents(n)
+        end
+    end
+end
+
+--- Mirrors a stop and its parents by number.
+---@param number number Stop number (index)
+function M.mirror_stop(number)
+    local stops = M.state().stops
+    if number < 1 or number > #stops then
+        return
+    end
+    local cur_stop = stops[number]
+    local startpos, _ = cur_stop:get_range()
+    if startpos and startpos[1] + 1 > vim.fn.line('$') then
+        M.clear_state()
+        return
+    end
+    local text = cur_stop:get_text()
+    if cur_stop.prev_text == text then
+        return
+    end
+    cur_stop.prev_text = text
+    for i, stop in ipairs(stops) do
+        local is_inside = cur_stop:is_inside(stop)
+        if not is_inside and i > number and stop.id == cur_stop.id then
+            stop:set_text(text)
+        end
+    end
+    if cur_stop.spec.type == 'placeholder' then
+        local real_cur_stop = M.stops[M.current_stop]
+        local is_inside = number ~= M.current_stop and real_cur_stop:is_inside(cur_stop)
+        if not is_inside and text ~= cur_stop.placeholder then
+            M.clear_children(number)
+        end
+    end
+    if cur_stop.spec.parent then
+        for i, stop in ipairs(stops) do
+            if stop.id == cur_stop.spec.parent then
+                M.mirror_stop(i)
+            end
+        end
     end
 end
 
 function M.clear_children(stop_num)
     local current_stop = M.stops[M.current_stop]
-    local children = get_children(stop_num)
+    local children = M.stops[stop_num]:get_children()
     table.sort(children)
     for i = #children, 1, -1 do
         table.remove(M.state().stops, children[i])
@@ -131,15 +162,16 @@ function M.add_stop(spec, pos)
     M.state().stops = stops
 end
 
--- Change the extmarks to expand on change
+--- Change the extmark's gravity to allow the tabstop to expand on change.
+---@p number number Stop number/index
 function M.activate_stop(number)
+    activate_stop_and_parents(number)
     local value = M.state().stops[number]
-    for n, stop in ipairs(M.state().stops) do
-        if stop.id == value.id then
-            local from, to = stop:get_range()
-            local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
-            activate_parents(n)
+    if value.spec.parent then
+        for i, stop in ipairs(M.stops) do
+            if stop.id == value.spec.parent then
+                activate_stop_and_parents(i)
+            end
         end
     end
     if value.spec.type == 'placeholder' then
@@ -149,16 +181,12 @@ function M.activate_stop(number)
     M.update_state()
 end
 
--- Change the extmarks NOT to expand on change
-function M.deactivate_stop(number)
-    local value = M.state().stops[number]
-    for n, stop in ipairs(M.state().stops) do
-        if stop.id == value.id then
-            local from, to = stop:get_range()
-            local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
-            deactivate_parents(n)
-        end
+--- Change the extmark's gravity to NOT allow the tabstop to expand on change.
+function M.deactivate_stops()
+    for _, stop in ipairs(M.state().stops) do
+        local from, to = stop:get_range()
+        local mark_id = stop.mark
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
     end
 end
 
@@ -187,9 +215,7 @@ function M.fix_current_stop()
 end
 
 function M.clear_state()
-    for _, stop in pairs(M.state().stops) do
-        api.nvim_buf_del_extmark(0, shared.namespace, stop.mark)
-    end
+    api.nvim_buf_clear_namespace(0, shared.namespace, 0, -1)
     M.state().current_stop = 0
     M.state().stops = {}
     M.state().before = nil
