@@ -61,7 +61,8 @@ jobs:
           make unittest
 
       - name: Check formatting
-        uses: JohnnyMorganz/stylua-action@1.0.0
+        uses: JohnnyMorganz/stylua-action@v1
         with:
+          version: v0.15.0
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --check lua/ test/
