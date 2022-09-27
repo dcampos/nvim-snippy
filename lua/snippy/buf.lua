@@ -101,6 +101,7 @@ function M.mirror_stop(number)
         end
     end
     if cur_stop.spec.type == 'placeholder' then
+        -- cur_stop may not be the actual current active stop
         local real_cur_stop = M.stops[M.current_stop]
         local is_inside = number ~= M.current_stop and real_cur_stop:is_inside(cur_stop)
         if not is_inside and text ~= cur_stop.placeholder then
