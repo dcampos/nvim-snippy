@@ -126,9 +126,13 @@ local function place_stops(specs)
     local pos = buf.current_stop + 1
     for _, spec in ipairs(specs) do
         if buf.current_stop > 0 and not spec.parent then
-            --print(buf.current_stop)
             local current_stop = buf.stops[buf.current_stop]
             spec.parent = current_stop.id
+            if current_stop.spec.type == 'placeholder' then
+                -- If the current stop was a placeholder, we convert it to a
+                -- tabstop so that its (new) children don't get cleared.
+                current_stop.spec.type = 'tabstop'
+            end
         end
         buf.add_stop(spec, pos)
         pos = pos + 1

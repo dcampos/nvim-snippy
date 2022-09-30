@@ -378,6 +378,39 @@ describe('Snippy', function()
         neq(true, exec_lua([[return snippy.is_active()]]))
     end)
 
+    it('does nested expansion', function()
+        local s1 = [[local ${1:var} = ${0:value}]]
+        local s2 = [[require(${1:modname})]]
+        exec_lua('snippy.expand_snippet([[' .. s1 .. ']])')
+        feed('snip')
+        feed('<plug>(snippy-next)')
+
+        screen:expect({
+            grid = [[
+          local snip = ^v{3:alue}                                |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
+        ]],
+        })
+
+        feed('x<BS>')
+        exec_lua('snippy.expand_snippet([[' .. s2 .. ']])')
+
+        screen:expect({
+            grid = [[
+          local snip = require(^m{3:odname})                     |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
+        ]],
+        })
+
+        eq(true, exec_lua([[return snippy.is_active()]]))
+    end)
+
     it('jumps correctly when unicode chars present', function()
         local snip = 'local ${1:var} = $2 -- ▴ $0'
         feed('iç')
