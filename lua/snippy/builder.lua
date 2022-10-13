@@ -14,13 +14,13 @@ local varmap = {
         return vim.api.nvim_get_current_line()
     end,
     TM_CURRENT_WORD = function()
-        return ''
+        return fn.expand('<cword>')
     end,
     TM_LINE_INDEX = function()
-        return 0
+        return fn.line('.') - 1
     end,
     TM_LINE_NUMBER = function()
-        return 1
+        return fn.line('.')
     end,
     TM_FILENAME = function()
         return fn.expand('%:t')
@@ -80,10 +80,10 @@ local varmap = {
         return fn.localtime()
     end,
     RANDOM = function()
-        return math.random()
+        return string.format('%06d', math.random(999999))
     end,
     RANDOM_HEX = function()
-        return nil
+        return string.format('%06x', math.random(0x1000000))
     end,
     UUID = function()
         return nil
