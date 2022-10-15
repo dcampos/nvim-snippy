@@ -97,6 +97,9 @@ local function read_snippets_file(snippets_file)
             end
         end
         if not snips[prefix] or snips[prefix].priority <= priority then
+            if #body > 1 and body[#body] == '' then
+                body = vim.list_slice(body, 1, #body - 1)
+            end
             snips[prefix] = {
                 kind = 'snipmate',
                 prefix = prefix,

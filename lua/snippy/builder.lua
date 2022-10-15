@@ -17,10 +17,10 @@ local varmap = {
         return fn.expand('<cword>')
     end,
     TM_LINE_INDEX = function()
-        return fn.line('.') - 1
+        return tostring(fn.line('.') - 1)
     end,
     TM_LINE_NUMBER = function()
-        return fn.line('.')
+        return tostring(fn.line('.'))
     end,
     TM_FILENAME = function()
         return fn.expand('%:t')
