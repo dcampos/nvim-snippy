@@ -130,6 +130,10 @@ part of the description:
 <
 Please be aware that the legacy syntax doesn't support snippet options.
 
+A single empty line at the end of the snippet body is discarded, regardless of
+being indented. This is for maintaining compatibility with SnipMate, but also
+allows snippets to be conveniently separated by a single blank line.
+
                                                       *snippy-snippet-options*
 
 The `option`s control the behavior of the expansion of the snippet and are
