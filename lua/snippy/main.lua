@@ -168,22 +168,28 @@ local function get_snippet_at_cursor(auto_trigger)
                             auto_trigger and snippet.option.auto_trigger
                             or not auto_trigger and not snippet.option.auto_trigger
                         then
-                            if snippet.option.inword then
-                                -- Match inside word
-                                return word, snippet
-                            elseif snippet.option.beginning then
-                                -- Match if word is first on line
-                                if word == current_line_to_col then
+                            local custom_expand = true
+                            for k,v in pairs(snippet.option.custom) do
+                                custom_expand = custom_expand and v()
+                            end
+                            if custom_expand then
+                                if snippet.option.inword then
+                                    -- Match inside word
                                     return word, snippet
-                                end
-                            elseif snippet.option.word then
-                                if word == kword then
-                                    return word, snippet
-                                end
-                            else
-                                if word_bound then
-                                    -- By default only match on word boundary
-                                    return word, snippet
+                                elseif snippet.option.beginning then
+                                    -- Match if word is first on line
+                                    if word == current_line_to_col then
+                                        return word, snippet
+                                    end
+                                elseif snippet.option.word then
+                                    if word == kword then
+                                        return word, snippet
+                                    end
+                                else
+                                    if word_bound then
+                                        -- By default only match on word boundary
+                                        return word, snippet
+                                    end
                                 end
                             end
                         end

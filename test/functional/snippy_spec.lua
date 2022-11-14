@@ -16,6 +16,13 @@ describe('Snippy', function()
             snippy.setup({
                 snippet_dirs = '%s',
                 enable_auto = true,
+                expand_options = {
+                  c = function()
+                    local cur_row,cur_col = vim.api.nvim_win_get_cursor(0)
+                    local first_char = vim.api.nvim_buf_get_text(0,cur_row-1,0,cur_row-1,1,{})
+                    return first_char == "#"
+                  end
+                }
             })]],
             alter_slashes(snippy_src .. '/test/snippets/')
         ))
@@ -733,6 +740,37 @@ describe('Snippy', function()
         screen:expect({
             grid = [[
           foo begin^                                         |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
+    end)
+
+    it('should expand with custom option', function()
+        setup_test_snippets()
+        command('set filetype=python')
+        insert('comment')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          comment^                                           |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
+        feed('<Esc>:%d<CR>')
+        insert('# comment')
+        feed('a')
+        feed('<plug>(snippy-expand)')
+        -- screen:snapshot_util()
+        screen:expect({
+            grid = [[
+          # Expand this if on a commented line!^             |
           {1:~                                                 }|
           {1:~                                                 }|
           {1:~                                                 }|

@@ -22,9 +22,14 @@ local function parse_options(prefix, line)
     local beginning = opt:find('b') and true
     local auto = opt:find('A') and true
 
-    local invalid = opt:match('[^bwiA]')
-    if invalid then
-        error(string.format('Unknown option %s in snippet %s', invalid, prefix))
+    local custom = {}
+    local invalid = false
+    for sym in opt:gmatch('[^bwiA]') do
+      if not shared.config.expand_options[sym] then
+        error(string.format('Unknown option %s in snippet %s', sym, prefix))
+      else
+        custom[sym] = shared.config.expand_options[sym]
+      end
     end
 
     assert(
@@ -37,6 +42,7 @@ local function parse_options(prefix, line)
         inword = inword,
         beginning = beginning,
         auto_trigger = auto,
+        custom = custom
     }
 end
 
