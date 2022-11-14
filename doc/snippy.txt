@@ -149,6 +149,27 @@ optional. Currently supported are the following:
         this feature, because it checks every key pressed, may theoretically
         affect the performance of your editor when used.
 
+Custom `option`s can be defined via the setup option `expand_options` to restrict
+expansion in specific scenarios. For example, consider latex snippets which
+should only be expanded when inside of a math environment or in comments:
+>
+    expand_options = {
+        m = function()
+            return vim.fn["vimtex#syntax#in_mathzone"]() == 1
+        end,
+        c = function()
+            return vim.fn["vimtex#syntax#in_comment"]() == 1
+        end,
+    }
+<
+Snippets with the above custom expand `option`s can then be written:
+>
+    snippet trigger1 "Description for snippet in mathzone" m
+        ...
+    snippet trigger2 "Description for autosnippet in comment" Ac
+        ...
+<
+
                                                       *snippy-usage-indenting*
 
 Make sure each line in the snippet definition is indented with spaces or tabs
@@ -448,6 +469,12 @@ mappings~
     | next                | snippy.mapping.Next              |
     | previous            | snippy.mapping.Previous          |
     | cut_text            | snippy.mapping.CutText           |
+
+expand_options~
+    Add new `option`s to limit triggering in certain scenarios. See
+    |snippy-snippet-options|.
+        Type: `Table`
+        Default: {}
 
 
 ==============================================================================

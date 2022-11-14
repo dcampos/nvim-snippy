@@ -29,6 +29,7 @@ local default_config = {
     mappings = {},
     choice_delay = 100,
     enable_auto = false,
+    expand_options = {},
 }
 
 M.get_scopes = get_scopes
