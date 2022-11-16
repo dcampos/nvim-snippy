@@ -76,7 +76,7 @@ describe('Snippet reader', function()
             trigger = {
                 kind = 'snipmate',
                 prefix = 'trigger',
-                option = {},
+                option = { custom = {} },
                 description = 'description',
                 priority = 0,
                 body = {
@@ -96,8 +96,8 @@ describe('Snippet reader', function()
         vim.cmd('set filetype=java')
         assert.is_truthy(require('snippy.shared').config.snippet_dirs)
         assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
-        assert.is_same({ beginning = true }, snippy.snippets.java.cls.option)
-        assert.is_same({ auto_trigger = true }, snippy.snippets.java.psvm.option)
+        assert.is_same({ beginning = true, custom = {} }, snippy.snippets.java.cls.option)
+        assert.is_same({ auto_trigger = true, custom = {} }, snippy.snippets.java.psvm.option)
     end)
 
     it('can read vim-snippets snippets', function()
