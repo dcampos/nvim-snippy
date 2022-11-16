@@ -18,9 +18,7 @@ describe('Snippy', function()
                 enable_auto = true,
                 expand_options = {
                   c = function()
-                    local cur_row,cur_col = vim.api.nvim_win_get_cursor(0)
-                    local first_char = vim.api.nvim_buf_get_text(0,cur_row-1,0,cur_row-1,1,{})
-                    return first_char == "#"
+                      return vim.startswith(vim.api.nvim_get_current_line(), '#')
                   end
                 }
             })]],

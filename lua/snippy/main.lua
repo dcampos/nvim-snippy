@@ -169,8 +169,10 @@ local function get_snippet_at_cursor(auto_trigger)
                             or not auto_trigger and not snippet.option.auto_trigger
                         then
                             local custom_expand = true
-                            for k,v in pairs(snippet.option.custom) do
-                                custom_expand = custom_expand and v()
+                            if snippet.option.custom then
+                                for k, v in pairs(snippet.option.custom) do
+                                    custom_expand = custom_expand and v()
+                                end
                             end
                             if custom_expand then
                                 if snippet.option.inword then
