@@ -11,6 +11,17 @@ local t = util.t
 
 local M = {}
 
+setmetatable(M, {
+    __index = function(self, key)
+        if key == 'snippets' then
+            if #self._snippets == 0 then
+                self.read_snippets()
+            end
+            return self._snippets
+        end
+    end,
+})
+
 -- Stop management
 
 local function ensure_normal_mode()
@@ -142,7 +153,6 @@ end
 -- Snippet management
 
 local function get_snippet_at_cursor(auto_trigger)
-    M.read_snippets()
     local _, col = unpack(api.nvim_win_get_cursor(0))
 
     -- Remove leading whitespace for current_line_to_col
@@ -278,7 +288,6 @@ function M.complete_done()
 end
 
 function M.get_completion_items()
-    M.read_snippets()
     local items = {}
     local scopes = shared.get_scopes()
 
@@ -524,7 +533,8 @@ end
 
 -- Setup
 
-M.snippets = {}
+M._snippets = {}
+
 M.readers = {
     snipmate_reader,
 }
@@ -535,7 +545,7 @@ function M.read_snippets()
         if scope and scope ~= '' and not shared.cache[scope] then
             for _, reader in ipairs(M.readers) do
                 local snips = reader.read_snippets(scope)
-                M.snippets[scope] = util.merge_snippets(M.snippets[scope] or {}, snips)
+                M._snippets[scope] = util.merge_snippets(M._snippets[scope] or {}, snips)
             end
             shared.cache[scope] = true
         end
@@ -544,7 +554,7 @@ end
 
 function M.clear_cache()
     shared.cache = {}
-    M.snippets = {}
+    M._snippets = {}
 end
 
 function M.complete_snippet_files(prefix)
