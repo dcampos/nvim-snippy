@@ -1,10 +1,6 @@
 local snippy = require('snippy')
 
 describe('Snippet reader', function()
-    setup(function()
-        vim.cmd([[runtime! plugin/snippy.vim]])
-    end)
-
     before_each(function()
         snippy.clear_cache()
     end)
