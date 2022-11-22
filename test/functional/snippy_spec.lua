@@ -38,7 +38,7 @@ describe('Snippy', function()
 
         command('set rtp=$VIMRUNTIME')
         command('set rtp+=' .. alter_slashes(snippy_src))
-        command('runtime plugin/snippy.vim')
+        command('runtime plugin/snippy.lua')
         command('lua snippy = require("snippy")')
         exec_lua([[snippy.setup({ choice_delay = 0 })]])
     end)
