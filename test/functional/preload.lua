@@ -3,8 +3,10 @@
 local global_helpers = require('test.helpers')
 
 -- Bypass CI behaviour logic
-global_helpers.isCI = function(_)
+global_helpers.is_ci = function(_)
     return false
 end
+
+global_helpers.isCI = global_helpers.is_ci
 
 local helpers = require('test.functional.helpers')(nil)

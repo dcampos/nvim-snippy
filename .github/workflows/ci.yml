@@ -20,11 +20,11 @@ jobs:
       - name: Set current date
         id: vars
         run: |
-          echo "::set-output name=current_date::$(date +'%Y-%m-%d')"
+          echo "{current_date}={$(date +'%Y-%m-%d')}" >> $GITHUB_OUTPUT
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache
         with:
           path: neovim
@@ -36,7 +36,7 @@ jobs:
           sudo apt-get install -y autoconf automake build-essential cmake gcc-11 gettext gperf libtool-bin locales ninja-build pkg-config unzip
 
       - name: Setup lua
-        uses: leafo/gh-actions-lua@v8
+        uses: leafo/gh-actions-lua@v9
         with:
           luaVersion: "luajit"
 
