@@ -20,7 +20,7 @@ jobs:
       - name: Set current date
         id: vars
         run: |
-          echo "{current_date}={$(date +'%Y-%m-%d')}" >> $GITHUB_OUTPUT
+          echo "current_date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v3
 
