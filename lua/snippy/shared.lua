@@ -64,12 +64,10 @@ function M.set_config(params)
         local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
         for _, dir in ipairs(dir_list) do
             if vim.fn.isdirectory(vim.fn.expand(dir) .. '/snippets') == 1 then
-                vim.api.nvim_echo({
-                    {
-                        'Snippy: folders in "snippet_dirs" should no longer contain a "snippets" subfolder',
-                        'WarningMsg',
-                    },
-                }, true, {})
+                vim.notify(
+                    'Snippy: folders in "snippet_dirs" should no longer contain a "snippets" subfolder',
+                    vim.log.levels.WARN
+                )
             end
         end
     end
