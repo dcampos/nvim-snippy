@@ -78,7 +78,7 @@ local function read_snippets_file(snippets_file)
             local msg = [[[Snippy] Warning: you seem to have autotriggered snippets,]]
                 .. [[ but the autotrigger feature isn't enabled in your config.]]
                 .. [[ See :help snippy-snippet-options for details.]]
-            api.nvim_echo({ { msg, 'WarningMsg' } }, true, {})
+            vim.notify(msg, vim.log.levels.WARN)
         end
         local body = {}
         local indent = nil
