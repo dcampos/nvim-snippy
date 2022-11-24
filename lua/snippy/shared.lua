@@ -74,13 +74,24 @@ function M.set_config(params)
         end
     end
     if params.enable_auto then
-        vim.cmd([[
-            augroup snippy_auto
-            autocmd!
-            autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
-            autocmd InsertCharPre * lua Snippy_last_char = vim.v.char
-            augroup END
-        ]])
+        local group = vim.api.nvim_create_augroup('SnippyAuto', {})
+        local autocmd = vim.api.nvim_create_autocmd
+
+        autocmd({ 'TextChangedI', 'TextChangedP' }, {
+            group = group,
+            pattern = '*',
+            callback = function()
+                require('snippy').expand(true)
+            end,
+        })
+
+        autocmd('InsertCharPre', {
+            group = group,
+            pattern = '*',
+            callback = function()
+                _G.Snippy_last_char = vim.v.char
+            end,
+        })
     end
     M.config = vim.tbl_extend('force', M.config, params)
 end
