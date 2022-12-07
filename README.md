@@ -1,6 +1,6 @@
 # Snippy
 
-A snippets plugin for Neovim **0.5.0+** written in Lua.
+A snippets plugin for Neovim **0.7.0+** written in Lua.
 
 ## Status
 

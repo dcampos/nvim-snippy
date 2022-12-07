@@ -64,23 +64,32 @@ function M.set_config(params)
         local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
         for _, dir in ipairs(dir_list) do
             if vim.fn.isdirectory(vim.fn.expand(dir) .. '/snippets') == 1 then
-                vim.api.nvim_echo({
-                    {
-                        'Snippy: folders in "snippet_dirs" should no longer contain a "snippets" subfolder',
-                        'WarningMsg',
-                    },
-                }, true, {})
+                vim.notify(
+                    'Snippy: folders in "snippet_dirs" should no longer contain a "snippets" subfolder',
+                    vim.log.levels.WARN
+                )
             end
         end
     end
     if params.enable_auto then
-        vim.cmd([[
-            augroup snippy_auto
-            autocmd!
-            autocmd TextChangedI,TextChangedP * lua require 'snippy'.expand(true)
-            autocmd InsertCharPre * lua Snippy_last_char = vim.v.char
-            augroup END
-        ]])
+        local group = vim.api.nvim_create_augroup('SnippyAuto', {})
+        local autocmd = vim.api.nvim_create_autocmd
+
+        autocmd({ 'TextChangedI', 'TextChangedP' }, {
+            group = group,
+            pattern = '*',
+            callback = function()
+                require('snippy').expand(true)
+            end,
+        })
+
+        autocmd('InsertCharPre', {
+            group = group,
+            pattern = '*',
+            callback = function()
+                _G.Snippy_last_char = vim.v.char
+            end,
+        })
     end
     M.config = vim.tbl_extend('force', M.config, params)
 end

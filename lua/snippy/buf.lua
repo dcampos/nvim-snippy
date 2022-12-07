@@ -224,35 +224,44 @@ function M.clear_state()
 end
 
 function M.setup_autocmds()
-    local bufnr = api.nvim_buf_get_number(0)
-    cmd(string.format(
-        [[
-            augroup snippy_local
-            autocmd! * <buffer=%s>
-            autocmd TextChanged,TextChangedI <buffer=%s> lua require 'snippy'._handle_TextChanged()
-            autocmd TextChangedP <buffer=%s> lua require 'snippy'._handle_TextChangedP()
-            autocmd CursorMoved,CursorMovedI <buffer=%s> lua require 'snippy'._handle_CursorMoved()
-            autocmd BufWritePost <buffer=%s> lua require 'snippy'._handle_BufWritePost()
-            augroup END
-        ]],
-        bufnr,
-        bufnr,
-        bufnr,
-        bufnr,
-        bufnr
-    ))
+    local autocmd = vim.api.nvim_create_autocmd
+    local group = vim.api.nvim_create_augroup('SnippyLocal', {})
+
+    autocmd({ 'TextChanged', 'TextChangedI' }, {
+        group = group,
+        buffer = 0,
+        callback = function()
+            require('snippy')._handle_TextChanged()
+        end,
+    })
+
+    autocmd('TextChangedP', {
+        group = group,
+        buffer = 0,
+        callback = function()
+            require('snippy')._handle_TextChangedP()
+        end,
+    })
+
+    autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+        group = group,
+        buffer = 0,
+        callback = function()
+            require('snippy')._handle_CursorMoved()
+        end,
+    })
+
+    autocmd('BufWritePost', {
+        group = group,
+        buffer = 0,
+        callback = function()
+            require('snippy')._handle_BufWritePost()
+        end,
+    })
 end
 
 function M.clear_autocmds()
-    local bufnr = api.nvim_buf_get_number(0)
-    cmd(string.format(
-        [[
-            augroup snippy_local
-            autocmd! * <buffer=%s>
-            augroup END
-        ]],
-        bufnr
-    ))
+    pcall(vim.api.nvim_clear_autocmds, { group = 'SnippyLocal', buffer = 0 })
 end
 
 return M
