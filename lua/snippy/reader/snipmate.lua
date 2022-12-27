@@ -174,6 +174,10 @@ local function list_dirs()
         local rtp = table.concat(vim.api.nvim_list_runtime_paths(), ',')
         dirs = vim.fn.globpath(rtp, 'snippets/', 0, 1)
     end
+    local local_dir = shared.config.local_snippet_dir
+    if local_dir and fn.isdirectory(local_dir) then
+        table.insert(dirs, 1, fn.fnamemodify(local_dir, ':p'))
+    end
     if type(dirs) ~= 'string' then
         dirs = table.concat(dirs, ',')
     end

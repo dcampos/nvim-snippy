@@ -31,6 +31,7 @@ the available options:
 >
     require('snippy').setup({
         snippet_dirs = '~/snippets',
+        local_snippet_dir = '.snippets',
         hl_group = 'Search',
         enable_auto = false,
         scopes = {
@@ -396,17 +397,22 @@ snippet_dirs ~
         Type: `String` or `List`
         Default: vim.api.nvim_list_runtime_paths()
 
+local_snippet_dir ~
+    Path to a directory containing project-specific snippets. May be relative.
+        Type: `String`
+        Default: .snippets
+
 hl_group ~
     Highlight group used for placeholders.
         Type: `String`
         Default: nil
 
-choice_delay~
+choice_delay ~
     Defines the delay in milliseconds before the choice menu is displayed.
         Type: `Number`
         Default: 100
 
-enable_auto~
+enable_auto ~
     Enables snippets with the `A` option to be automatically triggered. See
     |snippy-snippet-options|.
         Type: `Boolean`
@@ -433,7 +439,7 @@ scopes ~
             php = { '_', 'php', 'html', 'javascript' },
         }
 <
-mappings~
+mappings ~
     A table for easily mapping keys in Lua. Each key must be a table or a
     string with one or more mode identifier characters (see |map-listing|).
     The values should be tables mapping LHS mapping values to RHS values.

@@ -24,6 +24,7 @@ end
 
 local default_config = {
     snippet_dirs = nil,
+    local_snippet_dir = '.snippets',
     hl_group = nil,
     scopes = {},
     mappings = {},
@@ -70,6 +71,7 @@ function M.set_config(params)
                 )
             end
         end
+        params.snippet_dirs = dir_list
     end
     if params.enable_auto then
         local group = vim.api.nvim_create_augroup('SnippyAuto', {})
