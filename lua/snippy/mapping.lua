@@ -72,14 +72,7 @@ end
 
 local function create_rhs(rhs, lhs)
     if type(M[rhs]) == 'function' then
-        if vim.version().api_level > 8 then
-            return '', { callback = M[rhs](lhs), desc = string.format('snippy.%s()', rhs) }
-        else
-            -- Legacy solution for nvim < 0.7.0
-            local id = string.format('%p', M[rhs])
-            fnmap[id] = M[rhs](lhs)
-            return '<cmd>lua require("snippy.mapping")._run("' .. id .. '")<cr>', { noremap = true }
-        end
+        return '', { callback = M[rhs](lhs), desc = string.format('snippy.%s()', rhs) }
     elseif type(M[rhs]) == 'string' then
         return M[rhs], {}
     end
