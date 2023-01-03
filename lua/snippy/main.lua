@@ -470,6 +470,11 @@ function M.expand_snippet(snippet, word)
     end
     if not word then
         word = ''
+    else
+        local line_to_cursor = api.nvim_get_current_line():sub(1, col)
+        if not vim.endswith(line_to_cursor, word) then
+            return ''
+        end
     end
     col = col - #word
     local indent = current_line:match('^(%s*)')
