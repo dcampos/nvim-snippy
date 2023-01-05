@@ -3,7 +3,7 @@ local config = require('snippy.shared').config
 local dummy = setmetatable({}, {
     __index = function(_, _)
         return function() end
-    end
+    end,
 })
 
 local logger = dummy
