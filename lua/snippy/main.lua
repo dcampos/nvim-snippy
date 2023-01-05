@@ -2,6 +2,7 @@ local snipmate_reader = require('snippy.reader.snipmate')
 local buf = require('snippy.buf')
 local shared = require('snippy.shared')
 local util = require('snippy.util')
+local log = require('snippy.log')
 
 local Builder = require('snippy.builder')
 
@@ -265,6 +266,7 @@ end
 
 function M.complete_done()
     local completed_item = vim.v.completed_item
+    log.debug('complete_done', completed_item)
     if completed_item.user_data then
         local word = completed_item.word
         local user_data = completed_item.user_data
@@ -463,6 +465,7 @@ function M.parse_snippet(snippet)
 end
 
 function M.expand_snippet(snippet, word)
+    log.debug('expand_snippet', word, snippet)
     local current_line = api.nvim_get_current_line()
     local row, col = unpack(api.nvim_win_get_cursor(0))
     if fn.mode() ~= 'i' then

@@ -31,6 +31,10 @@ local default_config = {
     choice_delay = 100,
     enable_auto = false,
     expand_options = {},
+    debug = {
+        enabled = false,
+        level = 'debug',
+    },
 }
 
 M.get_scopes = get_scopes
@@ -93,7 +97,7 @@ function M.set_config(params)
             end,
         })
     end
-    M.config = vim.tbl_extend('force', M.config, params)
+    M.config = vim.tbl_deep_extend('force', M.config, params)
 end
 
 function M.set_buffer_config(bufnr, params)
