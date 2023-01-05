@@ -31,7 +31,7 @@ local default_config = {
     choice_delay = 100,
     enable_auto = false,
     expand_options = {},
-    debug = {
+    logging = {
         enabled = false,
         level = 'debug',
     },

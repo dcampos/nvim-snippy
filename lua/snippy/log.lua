@@ -8,12 +8,12 @@ local dummy = setmetatable({}, {
 
 local logger = dummy
 
-if config.debug.enabled then
+if config.logging.enabled then
     local ok, plog = pcall(require, 'plenary.log')
     if ok then
         logger = plog.new({
             plugin = 'snippy',
-            level = config.debug.level or 'debug',
+            level = config.logging.level or 'debug',
         })
     end
 end
