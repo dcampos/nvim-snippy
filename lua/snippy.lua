@@ -3,11 +3,8 @@ local shared = require('snippy.shared')
 local M = {}
 
 setmetatable(M, {
-    __index = function(self, key)
-        local value = rawget(self, key)
-        if value then
-            return value
-        elseif key == 'mapping' then
+    __index = function(_, key)
+        if key == 'mapping' then
             return require('snippy.mapping')
         end
         return require('snippy.main')[key]
