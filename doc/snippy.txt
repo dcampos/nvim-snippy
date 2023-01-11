@@ -28,7 +28,7 @@ Snippy includes an optional |snippy.setup()| function for you to quickly
 configure it according to your needs. See the |snippy-setup-options| section
 for information on the available options. Below is an example showing most of
 the available options:
->
+>vim
     require('snippy').setup({
         snippet_dirs = '~/snippets',
         local_snippet_dir = '.snippets',
@@ -59,7 +59,7 @@ the available options:
 <
 It's also possible to define options for a specific buffer using the
 |snippy.setup_buffer()| function. Example:
->
+>vim
     autocmd BufRead,BufNewFile *_spec.lua lua require('snippy').setup_buffer(0,
         \ { scopes = { '_', 'lua', 'busted' } })
 <
@@ -69,7 +69,7 @@ Snippy comes with no mappings activated by default. So you'll want to define
 some, probably.
 
 For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
->
+>vim
     imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
     imap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
     smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
@@ -78,7 +78,7 @@ For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 Of course, you can also define different mappings to expand and jump forward.
 To expand with `<C-]>`, jump forward with `<C-j>`, and jump back with `<C-k>`,
 set it up like this:
->
+>vim
     imap <expr> <C-]> snippy#can_expand() ? '<Plug>(snippy-expand)' : '<C-]>'
     imap <expr> <C-j> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<C-j>'
     imap <expr> <C-k> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<C-k>'
@@ -87,7 +87,7 @@ set it up like this:
 <
 You can optionally define mappings for cutting the currently selected text, to
 be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
->
+>vim
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
@@ -153,7 +153,7 @@ optional. Currently supported are the following:
 Custom `option`s can be defined via the setup option `expand_options` to restrict
 expansion in specific scenarios. For example, consider latex snippets which
 should only be expanded when inside of a math environment or in comments:
->
+>lua
     expand_options = {
         m = function()
             return vim.fn["vimtex#syntax#in_mathzone"]() == 1
@@ -178,8 +178,8 @@ in order to be recognized as such. By default, indenting is done with tabs,
 but it is also possible to indent with spaces, as long as it is consistent and
 there is no mixing of tabs and spaces. If you want Neovim to indent your
 custom snippets with two spaces, for example, create a file
-`after/ftplugin/snippets.vim` and add the following: >
-
+`after/ftplugin/snippets.vim` and add the following:
+>vim
     setlocal expandtab tabstop=2 sw=2 
 <
 This could also be achieved with an |autocmd|. Indenting with spaces is a
@@ -360,7 +360,7 @@ snippy.complete()                                          *snippy.complete()*
     Shows a basic completion menu at the current location.
 
     Suggested mapping:
->
+>vim
     inoremap <c-r><tab> <cmd>lua require'snippy'.complete()<CR>
 <
     It is also necessary to set up an |autocmd| to call |snippy.complete_done()|.
@@ -368,7 +368,7 @@ snippy.complete()                                          *snippy.complete()*
 snippy.complete_done()                                *snippy.complete_done()*
     To be called when the |CompleteDone| |autocmd| is fired, expanding any snippet
     present in the |v:completed_item| variable. Example:
->
+>vim
     autocmd snip_comp_done CompleteDone * lua require 'snippy'.complete_done()
 <
 Some Vimscript |autoload| functions are also provided for convenience,
@@ -425,8 +425,8 @@ scopes ~
     scopes.
         Type: `Table`
         Default: nil
-        Example: >
-
+        Example:
+>lua
         scopes = {
             -- Load busted.snippets for *_spec.lua
             lua = function(scopes)
@@ -446,8 +446,8 @@ mappings ~
     RHS should be a string or a `snippy.mapping.*` enum value.
         Type: `Table`
         Default: {}
-        Example: >
-
+        Example:
+>lua
         mappings = {
             -- Mappings for insert and select mode
             [{ 'i', 's' }] = {
