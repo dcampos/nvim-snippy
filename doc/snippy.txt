@@ -63,10 +63,13 @@ It's also possible to define options for a specific buffer using the
     autocmd BufRead,BufNewFile *_spec.lua lua require('snippy').setup_buffer(0,
         \ { scopes = { '_', 'lua', 'busted' } })
 <
+Both `setup()` and `setup_buffer()` are entirely optional and you shouldn't
+need to call them unless you want to change some configuration parameter.
+
                                                        *snippy-usage-mappings*
 
 Snippy comes with no mappings activated by default. So you'll want to define
-some, probably.
+some. From Vimscript, the easiest way is using the `<Plug>` mappings.
 
 For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 >vim
@@ -318,7 +321,7 @@ snippy.can_jump({direction})                               *snippy.can_jump()*
     Checks if a jump in the indicated direction can be performed at the
     current location.
 
-    {direction} is a integer. You can pass `-1` or  `1` to mean backward or
+    {direction} is an integer. You can pass `-1` or  `1` to mean backward or
     forward respectively.
 
 snippy.can_expand_or_advance()                *snippy.can_expand_or_advance()*
