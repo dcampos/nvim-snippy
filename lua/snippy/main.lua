@@ -475,8 +475,8 @@ function M.expand_snippet(snippet, word)
         word = ''
     else
         local line_to_cursor = api.nvim_get_current_line():sub(1, col)
-        if not vim.endswith(line_to_cursor, word) then
-            return ''
+        if not vim.endswith(line_to_cursor, word:gsub('\n', '\0')) then
+            return false
         end
     end
     col = col - #word
