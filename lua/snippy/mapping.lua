@@ -11,8 +11,6 @@ local function feedkey(key)
     end
 end
 
-local fnmap = {}
-
 M.Expand = 'expand'
 M.ExpandOrAdvance = 'expand_or_advance'
 M.Next = 'next'
@@ -60,15 +58,6 @@ M.previous = function(fallback)
 end
 
 M.cut_text = '<Plug>(snippy-cut-text)'
-
-M._run = function(id)
-    local fun = fnmap[id]
-    if fun then
-        fun()
-    else
-        error(string.format('[snippy] No function with id %s', id))
-    end
-end
 
 local function create_rhs(rhs, lhs)
     if type(M[rhs]) == 'function' then
