@@ -97,7 +97,7 @@ function M.set_config(params)
             end,
         })
     end
-    M.config = vim.tbl_deep_extend('force', M.config, params)
+    M.config = vim.tbl_extend('force', M.config, params)
 end
 
 function M.set_buffer_config(bufnr, params)
