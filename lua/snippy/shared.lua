@@ -43,6 +43,7 @@ M.namespace = vim.api.nvim_create_namespace('snippy')
 M.config = vim.tbl_extend('force', {}, default_config)
 M.buffer_config = {}
 M.enable_auto = false
+M.last_char = ''
 
 function M.set_selection(value, mode)
     if mode == 'V' or mode == 'line' then
@@ -93,7 +94,7 @@ function M.set_config(params)
             group = group,
             pattern = '*',
             callback = function()
-                _G.Snippy_last_char = vim.v.char
+                M.last_char = vim.v.char
             end,
         })
     end

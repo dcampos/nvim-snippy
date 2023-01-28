@@ -161,7 +161,7 @@ local function get_snippet_at_cursor(auto_trigger)
 
     if current_line_to_col then
         if auto_trigger then
-            if not Snippy_last_char or not vim.endswith(current_line_to_col, Snippy_last_char) then
+            if not shared.last_char or not vim.endswith(current_line_to_col, shared.last_char) then
                 return nil, nil
             end
         end
@@ -181,7 +181,7 @@ local function get_snippet_at_cursor(auto_trigger)
                         then
                             local custom_expand = true
                             if snippet.option.custom then
-                                for k, v in pairs(snippet.option.custom) do
+                                for _, v in pairs(snippet.option.custom) do
                                     custom_expand = custom_expand and v()
                                 end
                             end
@@ -506,7 +506,7 @@ end
 
 function M.expand(auto)
     local word, snippet = get_snippet_at_cursor(auto)
-    Snippy_last_char = nil
+    shared.last_char = nil
     if word and snippet then
         return M.expand_snippet(snippet, word)
     end
