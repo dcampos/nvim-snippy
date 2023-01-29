@@ -392,6 +392,7 @@ function M._jump(stop)
         else
             select_stop(startpos, endpos)
         end
+        api.nvim_exec_autocmds('User', { pattern = 'SnippyJumped' })
     else
         should_finish = true
     end
@@ -489,6 +490,7 @@ function M.expand_snippet(snippet, word)
     api.nvim_set_option('undolevels', api.nvim_get_option('undolevels'))
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
+    api.nvim_exec_autocmds('User', { pattern = 'SnippyExpanded' })
     M.next()
     return ''
 end
@@ -536,7 +538,7 @@ function M.can_expand_or_advance()
 end
 
 function M.is_active()
-    return buf.current_stop > 0 and not vim.tbl_isempty(buf.stops)
+    return buf.state().active
 end
 
 -- Setup

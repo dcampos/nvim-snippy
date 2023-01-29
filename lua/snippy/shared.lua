@@ -59,6 +59,7 @@ function M.set_selection(value, mode)
         value = table.concat(lines, '\n')
     end
     M.selected_text = value
+    vim.api.nvim_exec_autocmds('User', { pattern = 'SnippyTextCut' })
 end
 
 function M.set_config(params)
