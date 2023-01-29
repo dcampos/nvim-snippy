@@ -3,7 +3,6 @@ local shared = require('snippy.shared')
 local Stop = require('snippy.stop')
 
 local api = vim.api
-local cmd = vim.cmd
 
 local M = {}
 
@@ -139,6 +138,7 @@ function M.state()
         M._state[bufnr] = {
             stops = {},
             current_stop = 0,
+            active = false,
         }
     end
     return M._state[bufnr]
@@ -179,6 +179,7 @@ function M.activate_stop(number)
         value.placeholder = value:get_text()
     end
     M.state().current_stop = number
+    M.state().active = true
     M.update_state()
 end
 
@@ -216,11 +217,16 @@ function M.fix_current_stop()
 end
 
 function M.clear_state()
+    if not M.state().active then
+        return
+    end
     api.nvim_buf_clear_namespace(0, shared.namespace, 0, -1)
     M.state().current_stop = 0
     M.state().stops = {}
     M.state().before = nil
+    M.state().active = false
     M.clear_autocmds()
+    api.nvim_exec_autocmds('User', { pattern = 'SnippyFinished' })
 end
 
 function M.setup_autocmds()

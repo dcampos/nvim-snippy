@@ -887,4 +887,20 @@ describe('Snippy', function()
         })
         neq(true, exec_lua([[return snippy.is_active()]]))
     end)
+
+    it('autocmds', function()
+        exec_lua([[
+            Snippy_autocmds = ''
+            vim.api.nvim_create_autocmd('User', {
+                pattern = 'Snippy{Expanded,Jumped,Finished}',
+                callback = function(args)
+                    Snippy_autocmds = Snippy_autocmds .. args.match:sub(7)
+                end,
+            })
+        ]])
+        local s1 = [[require(${0:modname})]]
+        exec_lua('snippy.expand_snippet([[' .. s1 .. ']])')
+        exec_lua('snippy.next()')
+        eq('ExpandedJumpedFinished', exec_lua([[return Snippy_autocmds]]))
+    end)
 end)
