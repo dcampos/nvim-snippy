@@ -10,6 +10,7 @@ CONTENTS                                                     *snippy-contents*
     FUNCTIONS............................|snippy-functions|
     SETUP OPTIONS........................|snippy-setup-options|
     COMMANDS.............................|snippy-commands|
+    AUTOCMDS.............................|snippy-autocmds|
     LICENSE..............................|snippy-license|
 
 
@@ -513,6 +514,27 @@ COMMANDS                                                     *snippy-commands*
     Invalidates current cache, allowing newly added/edited snippets to be
     loaded.
 
+
+==============================================================================
+AUTOCMDS                                                     *snippy-autocmds*
+
+SnippyExpanded                                                |SnippyExpanded|
+    After expanding a snippet.
+
+SnippyJumped                                                    |SnippyJumped|
+    When jumping back and forth between tabstops.
+
+SnippyFinished                                                |SnippyFinished|
+    After exiting (finishing) a snippet.
+
+SnippyTextCut                                                  |SnippyTextCut|
+    When selecting and cutting a chunk of text for later use.
+
+
+Example of using |SnippyFinished| to exit insert mode:
+>vim
+    autocmd User SnippyFinished call feedkeys("\<Esc>", 'n')
+<
 
 ==============================================================================
 LICENCE                                                       *snippy-license*
