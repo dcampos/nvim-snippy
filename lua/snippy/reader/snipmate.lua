@@ -178,6 +178,9 @@ local function list_dirs()
     if local_dir and fn.isdirectory(local_dir) then
         table.insert(dirs, 1, fn.fnamemodify(local_dir, ':p'))
     end
+    for key,dir in ipairs(dirs) do
+        dirs[key] = vim.fn.substitute(dir, '\\\\$', '', 'g')
+    end
     if type(dirs) ~= 'string' then
         dirs = table.concat(dirs, ',')
     end
