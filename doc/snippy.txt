@@ -29,7 +29,7 @@ Snippy includes an optional |snippy.setup()| function for you to quickly
 configure it according to your needs. See the |snippy-setup-options| section
 for information on the available options. Below is an example showing most of
 the available options:
->vim
+>lua
     require('snippy').setup({
         snippet_dirs = '~/snippets',
         local_snippet_dir = '.snippets',
@@ -64,13 +64,14 @@ It's also possible to define options for a specific buffer using the
     autocmd BufRead,BufNewFile *_spec.lua lua require('snippy').setup_buffer(0,
         \ { scopes = { '_', 'lua', 'busted' } })
 <
-Both `setup()` and `setup_buffer()` are entirely optional and you shouldn't
-need to call them unless you want to change some configuration parameter.
+
+Both `setup()` and `setup_buffer()` are optional and only need to be called if
+you want to change a configuration parameter.
 
                                                        *snippy-usage-mappings*
 
-Snippy comes with no mappings activated by default. So you'll want to define
-some. From Vimscript, the easiest way is using the `<Plug>` mappings.
+Snippy comes with no active mappings by default, so you need to define some.
+From Vimscript, the easiest way is to use the `<Plug>` mappings.
 
 For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
 >vim
@@ -79,7 +80,7 @@ For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
     smap <expr> <Tab> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<Tab>'
     smap <expr> <S-Tab> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<S-Tab>'
 <
-Of course, you can also define different mappings to expand and jump forward.
+You can also define different mappings for expanding and jumping forward.
 To expand with `<C-]>`, jump forward with `<C-j>`, and jump back with `<C-k>`,
 set it up like this:
 >vim
@@ -89,16 +90,26 @@ set it up like this:
     smap <expr> <C-j> snippy#can_jump(1) ? '<Plug>(snippy-next)' : '<C-j>'
     smap <expr> <C-k> snippy#can_jump(-1) ? '<Plug>(snippy-previous)' : '<C-k>'
 <
-You can optionally define mappings for cutting the currently selected text, to
-be used later by the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
+You can optionally define mappings for cutting and storing the currently selected text
+in the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
 >vim
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
+To use these mappings, follow these steps:
+
+    1. Select text in visual mode.
+    2. Press the key mapped to the `<Plug>(snippy-cut-text)` (or the `cut_text`
+       action in the setup options).
+    3. Type the trigger and expand the snippet.
+
+The selected text will replace the `$VISUAL` placeholder in the snippet. The
+same can be done in normal mode using text objects.
+
 When mapping from Lua using |nvim_set_keymap()|, you can use
-|snippy.can_expand()| and |snippy.can_jump()| functions. The Vimscript
-functions above are just convenience wrappings around those. You can also map
-keys by using the `mappings` setup option (see |snippy-setup-options|).
+|snippy.can_expand()| and |snippy.can_jump()|. The Vimscript functions above
+are just convenience wrappings around those. You can also map keys by using
+the `mappings` setup option (see |snippy-setup-options|).
 
                                                        *snippy-usage-snippets*
 
@@ -187,7 +198,7 @@ custom snippets with two spaces, for example, create a file
     setlocal expandtab tabstop=2 sw=2 
 <
 This could also be achieved with an |autocmd|. Indenting with spaces is a
-Snippy feature and might not be compatible with other snippet plugins like
+Snippy-specific feature and might not be compatible with other snippet plugins like
 SnipMate.
 
                                                        *snippy-usage-priority*
