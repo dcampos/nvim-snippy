@@ -4,7 +4,13 @@ INIT_LUAROCKS := eval $$(luarocks --lua-version=5.1 path) &&
 
 # .DEFAULT_GOAL := build
 
-NEOVIM_BRANCH ?= stable
+NEOVIM_BRANCH ?= master
+
+ifeq ($(NEOVIM_BRANCH),master)
+	RUNNER = neovim/build/bin/nvim -ll $(PWD)/neovim/test/busted_runner.lua
+else
+	RUNNER = $(PWD)/neovim/.deps/usr/bin/busted
+endif
 
 neovim:
 	git clone --depth 1 https://github.com/neovim/neovim --branch $(NEOVIM_BRANCH)
@@ -17,7 +23,7 @@ export TEST_COLORS=1
 
 functionaltest: neovim vim-snippets
 	$(INIT_LUAROCKS) VIMRUNTIME=$(PWD)/neovim/runtime \
-		neovim/.deps/usr/bin/busted \
+		$(RUNNER) \
 		-v \
 		--shuffle \
 		--lazy \
