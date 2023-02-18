@@ -11,7 +11,7 @@ jobs:
   linux:
     strategy:
       matrix:
-        version: [stable, v0.7.0, master]
+        version: [stable, v0.7.0, nightly]
 
     runs-on: ubuntu-latest
 
@@ -47,16 +47,16 @@ jobs:
         run: |
           luarocks install vusted
 
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.version }}
+
       - name: Run functional tests
-        env:
-          NEOVIM_BRANCH: ${{ matrix.version }}
         run: |
           make functionaltest
 
       - name: Run unit tests
-        env:
-          VIMRUNTIME: ${{ github.workspace }}/neovim/runtime/
-          VUSTED_NVIM: ${{ github.workspace }}/neovim/build/bin/nvim
         run: |
           make unittest
 

@@ -1,29 +1,15 @@
 FILTER ?= .*
 
-NEOVIM_BRANCH ?= master
+.deps/vim-snippets:
+	git clone --depth 1 https://github.com/honza/vim-snippets .deps/vim-snippets
 
-neovim:
-	git clone --depth 1 https://github.com/neovim/neovim --branch $(NEOVIM_BRANCH)
-	make -C $@
+.deps/mini.test:
+	git clone --depth 1 https://github.com/echasnovski/mini.test .deps/mini.test
 
-vim-snippets:
-	git clone --depth 1 https://github.com/honza/vim-snippets
+functionaltest: .deps/mini.test
+	nvim --headless --noplugin -u ./test/functional/minimal_init.lua -c 'lua MiniTest.run()'
 
-export TEST_COLORS ?= 1
-
-export BUSTED_ARGS = -v --lazy --shuffle \
-	--filter=$(FILTER) \
-	--lpath=$(PWD)/test/functional/?.lua
-
-functionaltest: neovim vim-snippets
-	SNIPPY_PATH=$(PWD) TEST_FILE=$(PWD)/test/functional \
-		make -C neovim functionaltest
-
-	-@stty sane
-
-unittest:
-	VIMRUNTIME=$(PWD)/neovim/runtime/ \
-		VUSTED_NVIM=$(PWD)/neovim/build/bin/nvim \
+unittest: .deps/vim-snippets
 		vusted --shuffle test/unit
 
 test: functionaltest unittest

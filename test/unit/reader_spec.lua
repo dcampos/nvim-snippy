@@ -97,7 +97,7 @@ describe('Snippet reader', function()
     end)
 
     it('can read vim-snippets snippets', function()
-        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './vim-snippets/snippets/'
+        local snippet_dirs = os.getenv('VIM_SNIPPETS_PATH') or './.deps/vim-snippets/snippets/'
         snippy.setup({
             snippet_dirs = snippet_dirs,
             scopes = {

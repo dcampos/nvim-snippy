@@ -102,10 +102,14 @@ local varmap = {
 local Builder = {}
 
 function Builder.new(o)
-    local builder = setmetatable(o, { __index = Builder })
+    local builder = setmetatable({}, { __index = Builder })
+    o = o or {}
     builder.stops = {}
     builder.result = ''
     builder.indent = o.indent or ''
+    builder.word = o.word or ''
+    builder.row = o.row or 0
+    builder.col = o.col or 0
     builder.extra_indent = ''
     return builder
 end

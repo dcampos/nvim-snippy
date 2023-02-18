@@ -180,7 +180,8 @@ local function get_snippet_at_cursor(auto_trigger)
                             or not auto_trigger and not snippet.option.auto_trigger
                         then
                             local custom_expand = true
-                            if snippet.option.custom then
+                            if snippet.option.custom and snippet.option.custom ~= {} then
+                                log.debug('custom options', vim.inspect(snippet.option.custom))
                                 for _, v in pairs(snippet.option.custom) do
                                     custom_expand = custom_expand and v()
                                 end
