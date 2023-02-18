@@ -22,9 +22,7 @@ functionaltest: neovim vim-snippets
 	-@stty sane
 
 unittest:
-	VIMRUNTIME=$(PWD)/neovim/runtime/ \
-		VUSTED_NVIM=$(PWD)/neovim/build/bin/nvim \
-		vusted --shuffle test/unit
+	vusted --shuffle test/unit
 
 test: functionaltest unittest
 
