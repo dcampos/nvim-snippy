@@ -315,11 +315,11 @@ function M.get_completion_items()
 end
 
 function M.cut_text(mode, visual)
-    local tmpval, tmptype = fn.getreg('"'), fn.getregtype('"')
+    local tmpval, tmptype = fn.getreg('x'), fn.getregtype('x')
     local keys
     if visual then
         keys = 'gv'
-        vim.cmd('normal! y')
+        vim.cmd('normal! "xy')
     else
         if mode == 'line' then
             keys = "'[V']"
@@ -328,10 +328,10 @@ function M.cut_text(mode, visual)
         else
             return
         end
-        vim.cmd('normal! ' .. keys .. 'y')
+        vim.cmd('normal! ' .. keys .. '"xy')
     end
-    shared.set_selection(api.nvim_eval('@"'), mode)
-    fn.setreg('"', tmpval, tmptype)
+    shared.set_selection(api.nvim_eval('@x'), mode)
+    fn.setreg('x', tmpval, tmptype)
     api.nvim_feedkeys(t(keys .. '"_c'), 'n', true)
 end
 
