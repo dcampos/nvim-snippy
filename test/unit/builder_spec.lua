@@ -4,7 +4,9 @@ local parser = require('snippy.parser')
 describe('Builder', function()
     it('resolves comment vars', function()
         -- Reset commentstring to default value
-        vim.cmd([[set commentstring&]])
+        -- No long works on nightly because there is no default value
+        -- vim.cmd([[set commentstring=&]])
+        vim.cmd([[set commentstring=/*%s*/]])
         local builder = Builder.new({ row = 0, col = 0, indent = '', word = '' })
         builder:evaluate_variable({ name = 'BLOCK_COMMENT_START' })
         assert.are.equal('/*', builder.result)
