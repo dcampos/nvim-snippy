@@ -76,12 +76,14 @@ and also the [mapping examples](../../wiki/Mappings) on the Wiki.
 
 ## Adding snippets
 
-By default every `snippets` directory in `runtimepath` will be searched for
-snippets. Files with the `.snippet` extension contain a single snippet, while
-files with the `.snippets` extension can be used to declare multiple snippets.
+Normally, you should place your custom snippets in
+`$XDG_CONFIG_HOME/nvim/snippets`. However, any `snippets` directory in
+`runtimepath` will be searched for snippets. Files with the `.snippet`
+extension contain a single snippet, while files with the `.snippets`
+extension can be used to declare multiple snippets.
 
-A basic `lua.snippets` file for Lua showing off some of the plugin's features
-would look like this:
+A basic `lua.snippets` file for Lua, demonstrating some of the plugin's
+features, would look like this:
 
 ```vim-snippet
 # Comments are possible
@@ -102,9 +104,8 @@ snippet repeat
 	while ${1:condition}
 ```
 
-You can see example snippets by looking at the [honza/vim-snippets][3]
-repository, which, if installed, Snippy will also use automatically as a source
-of snippets .
+You can find example snippets in the [honza/vim-snippets][3] repository, which,
+if installed, Snippy will also use automatically as a source of snippets.
 
 See `:help snippy-usage-snippets` and `:help snippy-snippet-syntax` for more
 information.
@@ -132,37 +133,39 @@ Or:
 make unittest
 ```
 
-You need to have [`vusted`][4] installed for the above command to succeed.
+You need to have [`vusted`][4] installed for running the unit tests.
 
 ## Advantages
 
 These are some of the advantages of this plugin when compared with other snippet plugins for Vim/Neovim:
 
-* No dependence on any external plugin or library.
-* Only core Neovim. No need to install Python or any other external language.
-* Because it uses the built-in `extmarks` feature, there is no insertion of markers in the text.
-* No need to edit JSON files by hand. Snippets file format is much simpler and may speed up the process of creating snippets.
-* No need to defined snippets in Lua or Vimscript code.
+* Core Neovim only, no external dependencies.
+* Uses built-in `extmarks` feature, avoiding insertion of markers in the text.
+* Simple snippet file format, no need to edit JSON files by hand.
+* No need to define snippets in Lua or Vimscript code.
 * Simple and standard snippet syntax.
 
 ## FAQ
 
-#### Is UltiSnips's feature X available?
+#### Is feature X from Ultisnips available?
 
-This is so far the most frequently asked question and the answer to it is
-generally no. UltiSnips is a great snippets manager for those wanting to use
-advanced snippet features, like Python evaluation, but that comes at a price of
-being heavyweight and complicated, whereas Snippy strives to be minimal and
-simple. That said, UltiSnips has some nice features like auto-trigger that ~may
-be added~ has been added to Snippy to improve usability.
+This question is very frequently asked and the answer is usually no. UltiSnips
+is a great snippet manager for those who want to use advanced snippet features,
+such as Python code evaluation, but that comes with the cost of being heavy and
+complex, whereas Snippy aims to be minimal and simple. That said, UltiSnips has
+some useful features, like auto-trigger, that have been added to Snippy in
+order to improve usability.
 
 **See also:** issues with label [![label: question][~question]](https://github.com/dcampos/nvim-snippy/issues?q=label%3Aquestion).
 
 ## Known bugs
 
-* There is a bug in Neovim where `extmarks` are extended to the beginning of the completed item when the `complete()` function is called and a completion menu is shown, even if the user does not select or confirm anything. See the [bug report][1] for more information.
+* There is a bug in Neovim where `extmarks` are extended to the beginning of
+  the completed item when the `complete()` function is called and a completion
+  menu is shown, even if the user does not select or confirm anything. See the
+  [bug report][1] for more information.
 
-## Credits
+## Acknowledgements
 
 The snippet parsing code is based on [vsnip][5].
 

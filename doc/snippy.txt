@@ -113,10 +113,11 @@ the `mappings` setup option (see |snippy-setup-options|).
 
                                                        *snippy-usage-snippets*
 
-By default every `snippets` directory in |runtimepath| will be searched for
-snippets. Snippy uses a file format based on SnipMate's, with some
-modifications (which are covered below). So the following patterns are
-accepted:
+Normally, your custom snippets should be placed in
+`$XDG_CONFIG_HOME/nvim/snippets`. However, any `snippets` directory in
+|runtimepath| will be searched for snippets. Snippy uses a file format based
+on SnipMate's, with some modifications (which are covered below). So the
+following patterns are accepted:
 
     - snippets/{filetype}.snippets
     - snippets/{filetype}_{name}.snippets
