@@ -130,6 +130,12 @@ Files with the `.snippet` extension contain a single snippet each, whereas
 files with the `.snippets` extension can be used to declare multiple snippets
 using the following format:
 >
+    # Load also snippets from these scopes
+    extends html, css, javascript
+
+    # Define higher priority
+    priority 1000
+
     snippet trigger1 "Description for snippet 1" [option]
     	This is the first line.
     	This is the second line.
@@ -199,8 +205,21 @@ custom snippets with two spaces, for example, create a file
     setlocal expandtab tabstop=2 sw=2 
 <
 This could also be achieved with an |autocmd|. Indenting with spaces is a
-Snippy-specific feature and might not be compatible with other snippet plugins like
-SnipMate.
+Snippy-specific feature and might not be compatible with other snippet plugins
+like SnipMate.
+
+                                                        *snippy-usage-extends*
+
+When creating `*.snippets` files, you can use two directives to modify how
+snippets are loaded: `extends` and `priority`. The `extends` directive
+specifies that other scopes should also be loaded when the current scope is
+loaded. For instance, to load HTML and CSS snippets for PHP files, add the
+following line: >
+
+    extends css, html
+
+This will ensure that the CSS and HTML snippets are available when you are
+working with PHP files.
 
                                                        *snippy-usage-priority*
 
