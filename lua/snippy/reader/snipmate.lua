@@ -122,7 +122,7 @@ local function read_snippets_file(snippets_file)
         if line:sub(1, 7) == 'snippet' then
             parse_snippet()
         elseif line:sub(1, 7) == 'extends' then
-            local scopes = vim.split(vim.trim(line:sub(8)), '%s+')
+            local scopes = vim.split(vim.trim(line:sub(8)), ', *')
             vim.list_extend(extends, scopes)
             i = i + 1
         elseif line:sub(1, 8) == 'priority' then
