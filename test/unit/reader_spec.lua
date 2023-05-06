@@ -142,7 +142,7 @@ describe('Snippet reader', function()
     end)
 
     it('should parse extendss keyword', function()
-        snippy.setup({ snippet_dirs = './test/snippets/', enable_auto = false  })
+        snippy.setup({ snippet_dirs = './test/snippets/', enable_auto = false })
         vim.cmd('set filetype=extends')
         assert.is_not.same({}, require('snippy.reader.snipmate').list_available_scopes())
         assert.is_not_same({}, snippy.snippets.extends)
