@@ -29,7 +29,7 @@ local function complete_snippet_files(lead, _, _)
 end
 
 command('SnippyEdit', function(params)
-    vim.cmd([[split ]] .. vim.fn.fnameescape(params.args))
+    vim.cmd(params.mods .. [[ split ]] .. vim.fn.fnameescape(params.args))
 end, { nargs = 1, complete = complete_snippet_files })
 
 command('SnippyReload', function()
