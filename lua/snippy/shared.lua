@@ -35,6 +35,13 @@ local default_config = {
         enabled = false,
         level = 'debug',
     },
+    virtual_markers = {
+        enabled = false,
+        empty = '␣',
+        start = '❬',
+        ['end'] = '❭',
+        hl_group = 'VirtualTextHint',
+    },
 }
 
 M.get_scopes = get_scopes
@@ -98,6 +105,12 @@ function M.set_config(params)
                 M.last_char = vim.v.char
             end,
         })
+    end
+    if params.logging then
+        params.logging = vim.tbl_extend('keep', params.logging, M.config.logging)
+    end
+    if params.virtual_markers then
+        params.virtual_markers = vim.tbl_extend('keep', params.virtual_markers, M.config.virtual_markers)
     end
     M.config = vim.tbl_extend('force', M.config, params)
 end
