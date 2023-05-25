@@ -11,6 +11,7 @@ function Stop.new(o)
         __index = Stop,
         id = -1,
         mark = nil,
+        end_mark = nil,
     })
     return self
 end

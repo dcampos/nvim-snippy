@@ -38,23 +38,38 @@ setmetatable(M, {
 ---@param right_gravity number
 ---@param end_right_gravity number
 ---@return number Extmark identifier
-local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, active)
+---@return number? Extmark identifier
+local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, end_id, active)
+    local config = shared.config
     local opts = {
         id = id,
         end_line = endrow,
         end_col = endcol,
-        hl_group = shared.config.hl_group,
+        hl_group = config.hl_group,
         right_gravity = right_gravity,
         end_right_gravity = end_right_gravity,
     }
-    if not active and startrow == endrow and startcol == endcol then
-        if vim.fn.has('nvim-0.10') == 1 then
+    if end_id then
+        api.nvim_buf_del_extmark(0, shared.namespace, end_id)
+        end_id = nil
+    end
+    if vim.fn.has('nvim-0.10') == 1 and config.virtual_markers.enabled then
+        if not active then
             opts.virt_text_pos = 'inline'
-            opts.virt_text = { { '␣', 'VirtualTextHint' } }
+            if startrow == endrow and startcol == endcol then
+                opts.virt_text = { { config.virtual_markers.empty, config.virtual_markers.hl_group } }
+            else
+                opts.virt_text = { { config.virtual_markers.start, config.virtual_markers.hl_group } }
+                end_id = api.nvim_buf_set_extmark(0, shared.namespace, endrow, endcol, {
+                    virt_text_pos = 'inline',
+                    virt_text = { { config.virtual_markers['end'], config.virtual_markers.hl_group } },
+                    right_gravity = end_right_gravity,
+                })
+            end
         end
     end
     local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, opts)
-    return mark
+    return mark, end_id
 end
 
 local function activate_parents(number)
@@ -63,7 +78,9 @@ local function activate_parents(number)
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true)
+        local end_id = stop.end_mark
+        local _, end_mark = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, end_id, true)
+        stop.end_mark = end_mark
     end
 end
 
@@ -76,7 +93,9 @@ local function activate_stop_and_parents(number)
         if stop.id == value.id then
             local from, to = stop:get_range()
             local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true)
+            local end_id = stop.end_mark
+            local _, end_mark = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, end_id, true)
+            stop.end_mark = end_mark
             activate_parents(n)
         end
     end
@@ -165,8 +184,12 @@ function M.add_stop(spec, pos)
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
     local stops = M.state().stops
-    local smark = add_mark(nil, startrow, startcol, endrow, endcol, true, true)
-    table.insert(stops, pos, Stop.new({ id = spec.id, traversable = is_traversable(), mark = smark, spec = spec }))
+    local smark, emark = add_mark(nil, startrow, startcol, endrow, endcol, true, true)
+    table.insert(
+        stops,
+        pos,
+        Stop.new({ id = spec.id, traversable = is_traversable(), mark = smark, end_mark = emark, spec = spec })
+    )
     M.state().stops = stops
 end
 
@@ -195,8 +218,8 @@ function M.deactivate_stops()
     for _, stop in ipairs(M.state().stops) do
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local text
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true, text)
+        local _, end_id = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true, stop.end_mark, false)
+        stop.end_mark = end_id
     end
 end
 
@@ -220,7 +243,8 @@ function M.fix_current_stop()
     if new ~= old and current_line:sub(1, #old) == old then
         local stop = M.stops[M.current_stop]
         local from, to = stop:get_range()
-        add_mark(stop.mark, from[1], #old, to[1], to[2], false, true)
+        local _, end_mark = add_mark(stop.mark, from[1], #old, to[1], to[2], false, true)
+        stop.end_mark = end_mark
     end
 end
 
