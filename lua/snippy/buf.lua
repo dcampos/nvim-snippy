@@ -38,15 +38,22 @@ setmetatable(M, {
 ---@param right_gravity number
 ---@param end_right_gravity number
 ---@return number Extmark identifier
-local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
-    local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
+local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, active)
+    local opts = {
         id = id,
         end_line = endrow,
         end_col = endcol,
         hl_group = shared.config.hl_group,
         right_gravity = right_gravity,
         end_right_gravity = end_right_gravity,
-    })
+    }
+    if not active and startrow == endrow and startcol == endcol then
+        if vim.fn.has('nvim-0.10') == 1 then
+            opts.virt_text_pos = 'inline'
+            opts.virt_text = { { '␣', 'VirtualTextHint' } }
+        end
+    end
+    local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, opts)
     return mark
 end
 
@@ -56,7 +63,7 @@ local function activate_parents(number)
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true)
     end
 end
 
@@ -69,7 +76,7 @@ local function activate_stop_and_parents(number)
         if stop.id == value.id then
             local from, to = stop:get_range()
             local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true)
             activate_parents(n)
         end
     end
@@ -188,7 +195,8 @@ function M.deactivate_stops()
     for _, stop in ipairs(M.state().stops) do
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+        local text
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true, text)
     end
 end
 
