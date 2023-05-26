@@ -59,10 +59,10 @@ local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, e
             if startrow == endrow and startcol == endcol then
                 opts.virt_text = { { config.virtual_markers.empty, config.virtual_markers.hl_group } }
             else
-                opts.virt_text = { { config.virtual_markers.open, config.virtual_markers.hl_group } }
+                opts.virt_text = { { config.virtual_markers.left, config.virtual_markers.hl_group } }
                 end_id = api.nvim_buf_set_extmark(0, shared.namespace, endrow, endcol, {
                     virt_text_pos = 'inline',
-                    virt_text = { { config.virtual_markers.close, config.virtual_markers.hl_group } },
+                    virt_text = { { config.virtual_markers.right, config.virtual_markers.hl_group } },
                     right_gravity = end_right_gravity,
                 })
             end
