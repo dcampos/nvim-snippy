@@ -38,8 +38,8 @@ local default_config = {
     virtual_markers = {
         enabled = false,
         empty = '␣',
-        start = '❬',
-        ['end'] = '❭',
+        open = '❬',
+        close = '❭',
         hl_group = 'VirtualTextHint',
     },
 }
