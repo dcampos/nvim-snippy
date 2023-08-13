@@ -38,7 +38,7 @@ local default_config = {
     virtual_markers = {
         enabled = false,
         empty = '␣',
-        left = '▸',
+        default = '▸',
         hl_group = 'SnippyMarker',
     },
 }

@@ -526,7 +526,7 @@ virtual_markers ~
         {
             enabled = false,
             empty = '',
-            left = '',
+            default = '',
             hl_group = 'VirtualTextHint',
         }
 

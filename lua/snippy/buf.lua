@@ -55,7 +55,7 @@ local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, e
             if startrow == endrow and startcol == endcol then
                 opts.virt_text = { { config.virtual_markers.empty, config.virtual_markers.hl_group } }
             else
-                opts.virt_text = { { config.virtual_markers.left, config.virtual_markers.hl_group } }
+                opts.virt_text = { { config.virtual_markers.default, config.virtual_markers.hl_group } }
             end
         end
     end
