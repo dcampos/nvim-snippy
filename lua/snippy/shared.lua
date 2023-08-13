@@ -25,7 +25,7 @@ end
 local default_config = {
     snippet_dirs = nil,
     local_snippet_dir = '.snippets',
-    hl_group = nil,
+    hl_group = 'SnippyPlaceholder',
     scopes = {},
     mappings = {},
     choice_delay = 100,
@@ -38,9 +38,8 @@ local default_config = {
     virtual_markers = {
         enabled = false,
         empty = '␣',
-        left = '❬',
-        right = '❭',
-        hl_group = 'VirtualTextHint',
+        left = '▸',
+        hl_group = 'SnippyMarker',
     },
 }
 

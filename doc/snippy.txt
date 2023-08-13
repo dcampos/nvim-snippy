@@ -525,9 +525,8 @@ virtual_markers ~
 
         {
             enabled = false,
-            empty = '␣',
-            left = '❬',
-            right = '❭',
+            empty = '',
+            left = '',
             hl_group = 'VirtualTextHint',
         }
 
