@@ -1,4 +1,5 @@
 local shared = require('snippy.shared')
+local util = require('snippy.util')
 
 local Stop = require('snippy.stop')
 
@@ -35,17 +36,18 @@ setmetatable(M, {
 ---@param startcol number
 ---@param endrow number
 ---@param endcol number
----@param right_gravity number
----@param end_right_gravity number
+---@param right_gravity boolean
+---@param end_right_gravity boolean
+---@param active boolean
 ---@return number Extmark identifier
----@return number? Extmark identifier
-local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, active)
+local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, active, number)
     local config = shared.config
+    local hl_group = config.hl_group
     local opts = {
         id = id,
         end_line = endrow,
         end_col = endcol,
-        hl_group = config.hl_group,
+        hl_group = hl_group,
         right_gravity = right_gravity,
         end_right_gravity = end_right_gravity,
     }
@@ -53,9 +55,11 @@ local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, e
         if not active then
             opts.virt_text_pos = 'inline'
             if startrow == endrow and startcol == endcol then
-                opts.virt_text = { { config.virtual_markers.empty, config.virtual_markers.hl_group } }
+                local text = util.expand_virtual_marker(config.virtual_markers.empty, number)
+                opts.virt_text = { { text, config.virtual_markers.hl_group } }
             else
-                opts.virt_text = { { config.virtual_markers.default, config.virtual_markers.hl_group } }
+                local text = util.expand_virtual_marker(config.virtual_markers.default, number)
+                opts.virt_text = { { text, config.virtual_markers.hl_group } }
             end
         end
     end
@@ -69,7 +73,7 @@ local function activate_parents(number)
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true)
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true, number)
     end
 end
 
@@ -82,7 +86,7 @@ local function activate_stop_and_parents(number)
         if stop.id == value.id then
             local from, to = stop:get_range()
             local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true)
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, true, number)
             activate_parents(n)
         end
     end
@@ -171,7 +175,7 @@ function M.add_stop(spec, pos)
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
     local stops = M.state().stops
-    local smark, emark = add_mark(nil, startrow, startcol, endrow, endcol, true, true)
+    local smark = add_mark(nil, startrow, startcol, endrow, endcol, true, true, false, pos)
     table.insert(stops, pos, Stop.new({ id = spec.id, traversable = is_traversable(), mark = smark, spec = spec }))
     M.state().stops = stops
 end
@@ -198,10 +202,10 @@ end
 
 --- Change the extmark's gravity to NOT allow the tabstop to expand on change.
 function M.deactivate_stops()
-    for _, stop in ipairs(M.state().stops) do
+    for n, stop in ipairs(M.state().stops) do
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true, false)
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true, false, n)
     end
 end
 
@@ -225,7 +229,7 @@ function M.fix_current_stop()
     if new ~= old and current_line:sub(1, #old) == old then
         local stop = M.stops[M.current_stop]
         local from, to = stop:get_range()
-        local _ = add_mark(stop.mark, from[1], #old, to[1], to[2], false, true)
+        local _ = add_mark(stop.mark, from[1], #old, to[1], to[2], false, true, true, M.current_stop)
     end
 end
 
