@@ -32,12 +32,8 @@ There are no snippets installed by default. You can create your own, or install
 Plug 'honza/vim-snippets'
 ```
 
-If you want to use Snippy with [nvim-cmp][2], please install the corresponding
-integration plugin:
-
-```vim
-Plug 'dcampos/cmp-snippy'
-```
+If you want to use Snippy with [nvim-cmp][2], please install and configure
+[cmp-snippy][6].
 
 ## Usage
 
@@ -178,4 +174,5 @@ MIT license.
 [3]: https://github.com/honza/vim-snippets
 [4]: https://github.com/notomo/vusted
 [5]: https://github.com/hrsh7th/vim-vsnip
+[6]: https://github.com/dcampos/cmp-snippy
 [~question]: https://img.shields.io/github/labels/dcampos/nvim-snippy/question
