@@ -57,4 +57,12 @@ function M.merge_snippets(current, added)
     return result
 end
 
+function M.pumvisible()
+    local ok, cmp = pcall(require, 'cmp')
+    if ok then
+        return cmp.visible()
+    end
+    return vim.fn.pumvisible() == 1
+end
+
 return M

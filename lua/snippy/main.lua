@@ -336,7 +336,7 @@ function M.cut_text(mode, visual)
 end
 
 function M._mirror_stops()
-    if buf.current_stop ~= 0 then
+    if not util.pumvisible() and buf.current_stop ~= 0 then
         buf.mirror_stop(buf.current_stop)
     end
 end
