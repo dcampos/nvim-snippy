@@ -162,7 +162,8 @@ allows snippets to be conveniently separated by a single blank line.
 The `option`s control the behavior of the expansion of the snippet and are
 optional. Currently supported are the following:
     - `w` Word boundary - The word expands only when the trigger is on a word
-        boundary. This is the default behavior.
+        boundary. A |word| in this context is a sequence of |iskeyword|
+        characters.
     - `i` In-word expansion - The snippet gets expanded even if the trigger is
         only part of the word, up to the cursor.
     - `b` Beginning of line - The snippet is only expanded if its trigger is
@@ -172,9 +173,13 @@ optional. Currently supported are the following:
         this feature, because it checks every key pressed, may theoretically
         affect the performance of your editor when used.
 
-Custom `option`s can be defined via the setup option `expand_options` to restrict
-expansion in specific scenarios. For example, consider latex snippets which
-should only be expanded when inside of a math environment or in comments:
+Note that the default behavior is to only expand if the whole |WORD|
+(space-delimited) before the cursor matches the trigger.
+
+Custom `option`s can be defined via the setup option `expand_options` to
+restrict expansion in specific scenarios. For example, consider latex snippets
+which should only be expanded when inside of a math environment or in
+comments:
 >lua
     expand_options = {
         m = function()
