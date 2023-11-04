@@ -167,7 +167,6 @@ local function get_snippet_at_cursor(auto_trigger)
         end
 
         local word = current_line_to_col:match('(%S*)$') -- Remove leading whitespace
-        local kword = fn.matchstr(word, '\\k\\+$')
         local word_bound = true
         local scopes = shared.get_scopes()
         while #word > 0 do
@@ -194,10 +193,6 @@ local function get_snippet_at_cursor(auto_trigger)
                                     if word == current_line_to_col then
                                         return word, snippet
                                     end
-                                elseif snippet.option.word then
-                                    if word == kword then
-                                        return word, snippet
-                                    end
                                 else
                                     if word_bound then
                                         -- By default only match on word boundary
@@ -209,8 +204,8 @@ local function get_snippet_at_cursor(auto_trigger)
                     end
                 end
             end
-            word = word:sub(2)
-            word_bound = false
+            word_bound = fn.match(word, '^\\k') == -1
+            word = fn.strcharpart(word, 1)
         end
     end
     return nil, nil
