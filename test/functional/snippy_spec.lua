@@ -835,7 +835,7 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          foo Expand only if space-delimited word present!^  |
+          foo Expand if keyword-delimited word present!^     |
           {1:~                                                 }|
           {1:~                                                 }|
           {1:~                                                 }|
@@ -849,7 +849,7 @@ describe('Snippy', function()
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          @@@default^                                        |
+          @@@Expand if keyword-delimited word present!^      |
           {1:~                                                 }|
           {1:~                                                 }|
           {1:~                                                 }|
