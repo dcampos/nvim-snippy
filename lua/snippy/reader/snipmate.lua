@@ -16,47 +16,45 @@ local exprs = {
 -- Loading
 
 local function parse_options(prefix, line)
-    local opt = line:match(' (%w+)$') or ''
-    local word = opt:find('w') and true
-    local inword = opt:find('i') and true
-    local beginning = opt:find('b') and true
-    local auto = opt:find('A') and true
+    local options = {}
 
-    local custom = {}
-    local invalid = false
+    local opt = line:match(' (%w+)$') or ''
+    if opt:find('i') then
+        options['i'] = true
+    elseif opt:find('b') then
+        options['b'] = true
+    else
+        options['w'] = true
+    end
+    options['A'] = opt:find('A') and true
+
     for sym in opt:gmatch('[^bwiA]') do
         if not shared.config.expand_options[sym] then
             error(string.format('Unknown option %s in snippet %s', sym, prefix))
         else
-            custom[sym] = shared.config.expand_options[sym]
+            options[sym] = shared.config.expand_options[sym]
         end
     end
 
     assert(
-        not ((word and inword) or (word and beginning) or (inword and beginning)),
+        not ((options['w'] and options['i']) or (options['w'] and options['b']) or (options['i'] and options['b'])),
         'Options [w, i, b] cannot be combined'
     )
 
-    return {
-        word = word,
-        inword = inword,
-        beginning = beginning,
-        auto_trigger = auto,
-        custom = custom,
-    }
+    return options
 end
 
 local function parser_header(line)
     local parts = vim.split(line, '%s+')
     local prefix = parts[2]
     assert(parts[1] == 'snippet')
-    local option = {}
+    local options = {}
     local description = #parts > 2 and table.concat(vim.list_slice(parts, 3), ' ') or nil
     if description and description:sub(1, 1) == '"' then
-        option = description and parse_options(prefix, line) or {}
+        options = description and parse_options(prefix, line) or {}
         description = description:match('^"(.+)"')
     end
-    return prefix, description, option
+    return prefix, description, options
 end
 
 local function read_snippets_file(snippets_file)
@@ -72,9 +70,9 @@ local function read_snippets_file(snippets_file)
 
     local function parse_snippet()
         local line = lines[i]
-        local prefix, description, option = parser_header(line)
+        local prefix, description, options = parser_header(line)
         assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
-        if option.auto_trigger and not shared.config.enable_auto then
+        if options['A'] and not shared.config.enable_auto then
             local msg = [[[Snippy] Warning: you seem to have autotriggered snippets,]]
                 .. [[ but the autotrigger feature isn't enabled in your config.]]
                 .. [[ See :help snippy-snippet-options for details.]]
@@ -111,7 +109,7 @@ local function read_snippets_file(snippets_file)
                 prefix = prefix,
                 priority = priority,
                 description = description,
-                option = option,
+                options = options,
                 body = body,
             }
         end
@@ -162,7 +160,7 @@ local function read_snippet_file(snippet_file, scope)
             description = description,
             -- Priority for .snippet is always 0
             priority = 0,
-            option = {},
+            options = {},
             body = body,
         },
     }

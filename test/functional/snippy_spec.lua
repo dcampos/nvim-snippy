@@ -844,12 +844,12 @@ describe('Snippy', function()
         })
         -- Don't expand this
         feed('<Esc>:%d<CR>')
-        insert('@@@default')
+        insert('foodefault')
         feed('a')
         feed('<plug>(snippy-expand)')
         screen:expect({
             grid = [[
-          @@@Expand if keyword-delimited word present!^      |
+          foodefault^                                        |
           {1:~                                                 }|
           {1:~                                                 }|
           {1:~                                                 }|

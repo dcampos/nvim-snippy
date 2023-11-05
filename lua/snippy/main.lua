@@ -175,30 +175,28 @@ local function get_snippet_at_cursor(auto_trigger)
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
                         if
-                            auto_trigger and snippet.option.auto_trigger
-                            or not auto_trigger and not snippet.option.auto_trigger
+                            auto_trigger and snippet.options['A']
+                            or not auto_trigger and not snippet.options['A']
                         then
-                            local custom_expand = true
-                            if snippet.option.custom then
-                                for _, v in pairs(snippet.option.custom) do
-                                    custom_expand = custom_expand and v()
+                            local can_expand = true
+                            for option, v in pairs(snippet.options) do
+                                if type(v) == 'function' then
+                                    can_expand = can_expand and v()
+                                else
+                                    if option == 'i' then
+                                        -- Match inside word
+                                        can_expand = can_expand and true
+                                    elseif option == 'b' then
+                                        -- Match if word is first on line
+                                        can_expand = can_expand and word == current_line_to_col
+                                    elseif option == 'w' then
+                                        -- By default only match on word boundary
+                                        can_expand = can_expand and word_bound
+                                    end
                                 end
                             end
-                            if custom_expand then
-                                if snippet.option.inword then
-                                    -- Match inside word
-                                    return word, snippet
-                                elseif snippet.option.beginning then
-                                    -- Match if word is first on line
-                                    if word == current_line_to_col then
-                                        return word, snippet
-                                    end
-                                else
-                                    if word_bound then
-                                        -- By default only match on word boundary
-                                        return word, snippet
-                                    end
-                                end
+                            if can_expand then
+                                return word, snippet
                             end
                         end
                     end
