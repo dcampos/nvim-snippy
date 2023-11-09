@@ -162,7 +162,7 @@ function M.clear_children(stop_num)
 end
 
 function M.state()
-    local bufnr = api.nvim_buf_get_number(0)
+    local bufnr = api.nvim_get_current_buf()
     if not M._state[bufnr] then
         M._state[bufnr] = {
             stops = {},
