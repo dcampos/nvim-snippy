@@ -926,13 +926,15 @@ describe('Snippy', function()
         ]],
         })
         exec_lua([[snippy.next()]])
-        screen:expect{grid=[[
+        screen:expect({
+            grid = [[
           local >var = ^v{3:al}|                                 |
           {1:~                                                 }|
           {1:~                                                 }|
           {1:~                                                 }|
           {2:-- SELECT --}                                      |
-        ]]}
+        ]],
+        })
     end)
 
     it('virtual markers with numbers', function()
@@ -955,12 +957,14 @@ describe('Snippy', function()
         ]],
         })
         exec_lua([[snippy.next()]])
-        screen:expect{grid=[[
+        screen:expect({
+            grid = [[
           local 1:>var = ^v{3:al}3:|                             |
           {1:~                                                 }|
           {1:~                                                 }|
           {1:~                                                 }|
           {2:-- SELECT --}                                      |
-        ]]}
+        ]],
+        })
     end)
 end)
