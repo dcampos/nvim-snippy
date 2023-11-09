@@ -4,14 +4,22 @@ local util = require('snippy.util')
 local api = vim.api
 local fn = vim.fn
 
+---@class Stop
+---@field id number
+---@field order number
+---@field traversable boolean
+---@field mark number
+---@field spec table
 local Stop = {}
 
 function Stop.new(o)
     local self = setmetatable(o, {
         __index = Stop,
         id = -1,
+        order = -1,
+        traversable = false,
         mark = nil,
-        end_mark = nil,
+        spec = {},
     })
     return self
 end
@@ -23,7 +31,7 @@ function Stop:get_range()
         local endrow, endcol = mark[3].end_row, mark[3].end_col
         return { startrow, startcol }, { endrow, endcol }
     end
-    return nil
+    error('No mark found for stop')
 end
 
 function Stop:get_text()
@@ -46,6 +54,7 @@ end
 
 function Stop:get_before()
     local from, _ = self:get_range()
+    assert(from, 'from should not be nil')
     local current_line = fn.getline(from[1] + 1)
     local pre = current_line:sub(1, from[2])
     return pre
