@@ -908,6 +908,7 @@ describe('Snippy', function()
 
     it('virtual markers', function()
         if exec_lua([[return vim.fn.has('nvim-0.10')]]) == 0 then
+            pending('feature requires nvim >= 0.10')
             return
         end
         command('set filetype=lua')
@@ -942,6 +943,7 @@ describe('Snippy', function()
 
     it('virtual markers with numbers', function()
         if exec_lua([[return vim.fn.has('nvim-0.10')]]) == 0 then
+            pending('feature requires nvim >= 0.10')
             return
         end
         command('set filetype=lua')
