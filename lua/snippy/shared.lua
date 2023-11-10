@@ -25,7 +25,7 @@ end
 local default_config = {
     snippet_dirs = nil,
     local_snippet_dir = '.snippets',
-    hl_group = nil,
+    hl_group = 'SnippyPlaceholder',
     scopes = {},
     mappings = {},
     choice_delay = 100,
@@ -34,6 +34,12 @@ local default_config = {
     logging = {
         enabled = false,
         level = 'debug',
+    },
+    virtual_markers = {
+        enabled = false,
+        empty = '',
+        default = '',
+        hl_group = 'SnippyMarker',
     },
 }
 
@@ -98,6 +104,12 @@ function M.set_config(params)
                 M.last_char = vim.v.char
             end,
         })
+    end
+    if params.logging then
+        params.logging = vim.tbl_extend('keep', params.logging, M.config.logging)
+    end
+    if params.virtual_markers then
+        params.virtual_markers = vim.tbl_extend('keep', params.virtual_markers, M.config.virtual_markers)
     end
     M.config = vim.tbl_extend('force', M.config, params)
 end

@@ -440,7 +440,7 @@ local_snippet_dir ~
 hl_group ~
     Highlight group used for placeholders.
         Type: `String`
-        Default: nil
+        Default: SnippyPlaceholder
 
 choice_delay ~
     Defines the delay in milliseconds before the choice menu is displayed.
@@ -511,11 +511,31 @@ mappings ~
     | previous            | snippy.mapping.Previous          |
     | cut_text            | snippy.mapping.CutText           |
 
-expand_options~
+expand_options ~
     Add new `option`s to limit triggering in certain scenarios. See
     |snippy-snippet-options|.
         Type: `Table`
         Default: {}
+
+virtual_markers ~
+    Enable virtual text markers that show all available (inactive) tabstops
+    and placeholders.
+        Type: `Table`
+        Default: >lua
+
+        virtual_markers = {
+            enabled = false,
+            -- Marker for all placeholders (non-empty)
+            default = '',
+            -- Marker for all empty tabstops
+            empty = '',
+            -- Marker highlighing
+            hl_group = 'SnippyMarker',
+        }
+<
+    The marker value can contain the following special formatting symbols:
+
+        - `%n`: current stop number.
 
 
 ==============================================================================

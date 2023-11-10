@@ -1,4 +1,5 @@
 local shared = require('snippy.shared')
+local util = require('snippy.util')
 
 local Stop = require('snippy.stop')
 
@@ -24,7 +25,7 @@ setmetatable(M, {
         elseif key == 'stops' then
             self.state().stops = value
         else
-            return rawset(self, key, value)
+            rawset(self, key, value)
         end
     end,
 })
@@ -35,32 +36,48 @@ setmetatable(M, {
 ---@param startcol number
 ---@param endrow number
 ---@param endcol number
----@param right_gravity number
----@param end_right_gravity number
+---@param right_gravity boolean
+---@param end_right_gravity boolean
+---@param current boolean
 ---@return number Extmark identifier
-local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity)
-    local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, {
+local function add_mark(id, startrow, startcol, endrow, endcol, right_gravity, end_right_gravity, current, order)
+    local config = shared.config
+    local hl_group = config.hl_group
+    local opts = {
         id = id,
         end_line = endrow,
         end_col = endcol,
-        hl_group = shared.config.hl_group,
+        hl_group = hl_group,
         right_gravity = right_gravity,
         end_right_gravity = end_right_gravity,
-    })
+    }
+    if vim.fn.has('nvim-0.10') == 1 and config.virtual_markers.enabled then
+        if not current and order > 0 then
+            opts.virt_text_pos = 'inline'
+            if startrow == endrow and startcol == endcol then
+                local text = util.expand_virtual_marker(config.virtual_markers.empty, order)
+                opts.virt_text = { { text, config.virtual_markers.hl_group } }
+            else
+                local text = util.expand_virtual_marker(config.virtual_markers.default, order)
+                opts.virt_text = { { text, config.virtual_markers.hl_group } }
+            end
+        end
+    end
+    local mark = api.nvim_buf_set_extmark(0, shared.namespace, startrow, startcol, opts)
     return mark
 end
 
-local function activate_parents(number)
+local function activate_parents(number, current)
     local parents = M.stops[number]:get_parents()
     for _, n in ipairs(parents) do
         local stop = M.state().stops[n]
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, current, stop.order)
     end
 end
 
---- Activates a stop (and all its mirrors) by changing its extmark's gravity.
+--- Activates a stop (and all its mirrors) by current its extmark's gravity.
 --- Parents (outer stops) must also be activated.
 ---@param number number Stop number (index)
 local function activate_stop_and_parents(number)
@@ -69,10 +86,22 @@ local function activate_stop_and_parents(number)
         if stop.id == value.id then
             local from, to = stop:get_range()
             local mark_id = stop.mark
-            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true)
-            activate_parents(n)
+            local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], false, true, n == number, stop.order)
+            activate_parents(n, n == number)
         end
     end
+end
+
+--- Gets the ordering number for the next added tabstop.
+---@return integer
+local function next_order()
+    local n = 1
+    for _, stop in ipairs(M.state().stops) do
+        if stop.traversable then
+            n = n + 1
+        end
+    end
+    return n
 end
 
 --- Mirrors a stop and its parents by number.
@@ -133,7 +162,7 @@ function M.clear_children(stop_num)
 end
 
 function M.state()
-    local bufnr = api.nvim_buf_get_number(0)
+    local bufnr = api.nvim_get_current_buf()
     if not M._state[bufnr] then
         M._state[bufnr] = {
             stops = {},
@@ -158,8 +187,14 @@ function M.add_stop(spec, pos)
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
     local stops = M.state().stops
-    local smark = add_mark(nil, startrow, startcol, endrow, endcol, true, true)
-    table.insert(stops, pos, Stop.new({ id = spec.id, traversable = is_traversable(), mark = smark, spec = spec }))
+    local traversable = is_traversable()
+    local order = traversable and next_order() or -1
+    local smark = add_mark(nil, startrow, startcol, endrow, endcol, true, true, false, order)
+    table.insert(
+        stops,
+        pos,
+        Stop.new({ id = spec.id, order = order, traversable = traversable, mark = smark, spec = spec })
+    )
     M.state().stops = stops
 end
 
@@ -188,7 +223,7 @@ function M.deactivate_stops()
     for _, stop in ipairs(M.state().stops) do
         local from, to = stop:get_range()
         local mark_id = stop.mark
-        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true)
+        local _ = add_mark(mark_id, from[1], from[2], to[1], to[2], true, true, false, stop.order)
     end
 end
 
@@ -212,7 +247,7 @@ function M.fix_current_stop()
     if new ~= old and current_line:sub(1, #old) == old then
         local stop = M.stops[M.current_stop]
         local from, to = stop:get_range()
-        add_mark(stop.mark, from[1], #old, to[1], to[2], false, true)
+        local _ = add_mark(stop.mark, from[1], #old, to[1], to[2], false, true, true, stop.order)
     end
 end
 

@@ -57,4 +57,11 @@ function M.merge_snippets(current, added)
     return result
 end
 
+function M.expand_virtual_marker(marker_text, number)
+    -- Use %n to insert the stop number
+    local result = marker_text:gsub('([^%%]-)%%n', '%1' .. number)
+    result = result:gsub('%%%%', '%')
+    return result
+end
+
 return M
