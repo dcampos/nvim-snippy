@@ -907,6 +907,9 @@ describe('Snippy', function()
     end)
 
     it('virtual markers', function()
+        if exec_lua([[vim.fn.has('nvim-0.10')]]) == 0 then
+            return
+        end
         command('set filetype=lua')
         exec_lua([[snippy.setup({
             virtual_markers ={
@@ -938,6 +941,9 @@ describe('Snippy', function()
     end)
 
     it('virtual markers with numbers', function()
+        if exec_lua([[vim.fn.has('nvim-0.10')]]) == 0 then
+            return
+        end
         command('set filetype=lua')
         exec_lua([[snippy.setup({
             virtual_markers = {
