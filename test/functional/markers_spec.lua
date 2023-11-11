@@ -25,6 +25,10 @@ describe('Virtual markers', function()
         exec_lua([[snippy.setup({ choice_delay = 0 })]])
     end)
 
+    after_each(function()
+        screen:detach()
+    end)
+
     it('basic', function()
         skip(eval('has("nvim-0.10")') == 0, 'feature requires nvim >= 0.10')
         command('set filetype=lua')
