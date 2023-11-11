@@ -2,7 +2,6 @@ local Screen = require('test.functional.ui.screen')
 local helpers = require('test.functional.helpers')(after_each)
 local clear, command, eval = helpers.clear, helpers.command, helpers.eval
 local alter_slashes = helpers.alter_slashes
-local skip = helpers.skip
 local exec_lua = helpers.exec_lua
 
 describe('Virtual markers', function()
@@ -30,7 +29,10 @@ describe('Virtual markers', function()
     end)
 
     it('basic', function()
-        skip(eval('has("nvim-0.10")') == 0, 'feature requires nvim >= 0.10')
+        if eval('has("nvim-0.10")') == 0 then
+            pending('feature requires nvim >= 0.10')
+            return true
+        end
         command('set filetype=lua')
         exec_lua([[snippy.setup({
             virtual_markers ={
@@ -62,7 +64,10 @@ describe('Virtual markers', function()
     end)
 
     it('with stop numbers', function()
-        skip(eval('has("nvim-0.10")') == 0, 'feature requires nvim >= 0.10')
+        if eval('has("nvim-0.10")') == 0 then
+            pending('feature requires nvim >= 0.10')
+            return true
+        end
         command('set filetype=lua')
         exec_lua([[snippy.setup({
             virtual_markers = {
