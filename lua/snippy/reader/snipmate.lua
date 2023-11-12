@@ -175,7 +175,7 @@ local function list_dirs()
         dirs = vim.fn.globpath(rtp, 'snippets/', 0, 1)
     end
     local local_dir = shared.config.local_snippet_dir
-    if local_dir and fn.isdirectory(local_dir) then
+    if local_dir and fn.isdirectory(local_dir) == 1 then
         table.insert(dirs, 1, fn.fnamemodify(local_dir, ':p'))
     end
     for key, dir in ipairs(dirs) do
@@ -228,7 +228,7 @@ local function load_scope(scope, stack)
 end
 
 function M.list_available_scopes()
-    local dirs = list_dirs()
+    local dirs = vim.split(list_dirs(), ',', true)
     local patterns = {
         '/(.-)/.-%.snippets',
         '/(.-)/.-%.snippet',
@@ -240,13 +240,16 @@ function M.list_available_scopes()
     local scopes = {}
     for _, expr in ipairs(exprs) do
         local e = expr:format('*')
-        local paths = fn.globpath(dirs, e, 0, 1)
-        for _, path in ipairs(paths) do
-            for _, pat in ipairs(patterns) do
-                local m = path:match(pat)
-                if m then
-                    scopes[m] = true
-                    break
+        for _, dir in ipairs(dirs) do
+            local paths = fn.globpath(dir, e, 0, 1)
+            for _, path in ipairs(paths) do
+                path = path:sub(#dir)
+                for _, pat in ipairs(patterns) do
+                    local m = path:match(pat)
+                    if m then
+                        scopes[m] = true
+                        break
+                    end
                 end
             end
         end
@@ -256,8 +259,13 @@ end
 
 function M.list_existing_files()
     local files = {}
-    local get_scopes = shared.get_scopes
-    for _, scope in ipairs(get_scopes()) do
+    local scopes
+    if vim.bo.filetype == '' then
+        scopes = M.list_available_scopes()
+    else
+        scopes = shared.get_scopes()
+    end
+    for _, scope in ipairs(scopes) do
         local scope_files = list_files(scope)
         vim.list_extend(files, scope_files)
     end
