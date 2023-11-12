@@ -1,7 +1,7 @@
 local M = {}
 
 local function get_scopes()
-    local scopes = vim.tbl_flatten({ '_' })
+    local scopes = { '_' }
     if vim.bo.filetype ~= '' then
         vim.list_extend(scopes, vim.split(vim.bo.filetype, '.', true))
     end
