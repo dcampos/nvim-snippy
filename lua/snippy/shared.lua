@@ -1,18 +1,24 @@
 local M = {}
 
 local function get_scopes()
-    local scopes = vim.tbl_flatten({ '_', vim.split(vim.bo.filetype, '.', true) })
+    local scopes = vim.tbl_flatten({ '_' })
+    if vim.bo.filetype ~= '' then
+        vim.list_extend(scopes, vim.split(vim.bo.filetype, '.', true))
+    end
 
+    -- Check for global config
     if M.config.scopes['_'] then
         local global_scopes = M.config.scopes['_']
         scopes = type(global_scopes) == 'table' and global_scopes or global_scopes(scopes)
     end
 
+    -- Check for filetype-specific config (overrides global)
     if M.config.scopes and M.config.scopes[vim.bo.filetype] then
         local ft_scopes = M.config.scopes[vim.bo.filetype]
         scopes = type(ft_scopes) == 'table' and ft_scopes or ft_scopes(scopes)
     end
 
+    -- Check for buffer-specific config (overrides filetype-specific)
     local buf_config = M.buffer_config[vim.fn.bufnr(0)]
     if buf_config then
         local buf_scopes = buf_config.scopes

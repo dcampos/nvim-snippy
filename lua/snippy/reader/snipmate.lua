@@ -195,7 +195,7 @@ local function list_files(ftype)
         local paths = fn.globpath(dirs, e, 0, 1)
         all = vim.list_extend(all, paths)
     end
-    return all
+    return vim.tbl_map(util.normalize_path, all)
 end
 
 local function load_scope(scope, stack)

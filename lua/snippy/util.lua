@@ -22,6 +22,11 @@ function M.t(input)
     return api.nvim_replace_termcodes(input, true, false, true)
 end
 
+function M.normalize_path(path)
+    path = vim.fs and vim.fs.normalize(path) or vim.fn.fnamemodify(path, ':p:gs?/\\+?/?')
+    return path
+end
+
 function M.parse_comment_string()
     local defaults = {
         ['start'] = '/*',

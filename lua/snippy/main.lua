@@ -569,7 +569,7 @@ function M.complete_snippet_files(prefix)
     end
     local results = {}
     for _, file in ipairs(files) do
-        if file:find(prefix, 1, true) then
+        if file:find(prefix, 1, true) and not vim.tbl_contains(results, file) then
             table.insert(results, fn.fnamemodify(file, ':p'))
         end
     end
