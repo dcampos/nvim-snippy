@@ -8,9 +8,10 @@ syn match snipCommand '\%(\\\@<!\%(\\\\\)*\)\@<=`.\{-}\%(\\\@<!\%(\\\\\)*\)\@<=`
 syn match snippet '^snippet.*' contains=multiSnipText,snipKeyword
 syn match snippet '^extends.*' contains=snipKeyword
 syn match snippet '^version.*' contains=snipKeyword
+syn match snippet '^priority.*' contains=snipKeyword
 syn match multiSnipText '\S\+ \zs.*' contained
-syn match snipKeyword '^(snippet|extends|version)'me=s+8 contained
-syn match snipError "^[^#vse\t ].*$"
+syn match snipKeyword '^(snippet|extends|version|priority)'me=s+8 contained
+syn match snipError "^[^#vsep\t ].*$"
 
 syn region choice start='\${\d\+|' end='|}' contains=choiceValue
 syn match choiceValue '[|,]\zs[^,|]\+\ze[|,]' contained
