@@ -518,6 +518,7 @@ expand_options ~
         Default: {}
 
 virtual_markers ~
+    Requires nvim >= `0.10.0`.
     Enable virtual text markers that show all available (inactive) tabstops
     and placeholders.
         Type: `Table`

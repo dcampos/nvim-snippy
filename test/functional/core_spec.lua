@@ -4,7 +4,8 @@ local clear, command, eval = helpers.clear, helpers.command, helpers.eval
 local feed, alter_slashes = helpers.feed, helpers.alter_slashes
 local insert = helpers.insert
 local eq, neq, ok = helpers.eq, helpers.neq, helpers.ok
-local sleep, exec_lua = helpers.sleep, helpers.exec_lua
+local sleep = vim and vim.uv and vim.uv.sleep or helpers.sleep
+local exec_lua = helpers.exec_lua
 
 describe('Core', function()
     local screen
