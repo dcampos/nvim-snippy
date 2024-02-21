@@ -6,6 +6,7 @@ local util = require('snippy.util')
 local M = {}
 
 local exprs = {
+    'all.snippets',
     '%s.snippets',
     '%s_*.snippets',
     '%s/*.snippets',
