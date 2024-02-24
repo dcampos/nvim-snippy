@@ -31,11 +31,19 @@ describe('Core', function()
         clear()
         screen = Screen.new(50, 5)
         screen:attach()
-        screen:set_default_attr_ids({
+
+        local defaults = {
             [1] = { foreground = Screen.colors.Blue1, bold = true },
             [2] = { bold = true },
             [3] = { background = Screen.colors.LightGrey },
-        })
+        }
+
+        if eval('has("nvim-0.10")') > 0 then
+            command('colorscheme vim')
+            defaults[3] = { background = Screen.colors.LightGrey, foreground = Screen.colors.Black }
+        end
+
+        screen:set_default_attr_ids(defaults)
 
         command('set rtp=$VIMRUNTIME')
         command('set rtp+=' .. alter_slashes(snippy_src))
@@ -109,6 +117,7 @@ describe('Core', function()
         feed('a')
         eq(true, exec_lua([[return snippy.can_expand()]]))
         feed('<plug>(snippy-expand)')
+        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         local ^v{3:ar} =                                       |

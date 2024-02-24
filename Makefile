@@ -11,7 +11,7 @@ vim-snippets:
 
 export TEST_COLORS ?= 1
 
-export BUSTED_ARGS = -v --lazy --shuffle \
+export BUSTED_ARGS = -v --lazy \
 	--filter=$(FILTER) \
 	--lpath=$(PWD)/test/functional/?.lua
 
