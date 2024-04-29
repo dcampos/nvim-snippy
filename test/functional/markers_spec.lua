@@ -1,5 +1,5 @@
+local helpers = require('helpers')
 local Screen = require('test.functional.ui.screen')
-local helpers = require('test.functional.helpers')(after_each)
 local clear, command, eval = helpers.clear, helpers.command, helpers.eval
 local alter_slashes = helpers.alter_slashes
 local exec_lua = helpers.exec_lua
