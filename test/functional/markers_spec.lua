@@ -1,35 +1,13 @@
 local helpers = require('helpers')
-local Screen = require('test.functional.ui.screen')
-local clear, command, eval = helpers.clear, helpers.command, helpers.eval
-local alter_slashes = helpers.alter_slashes
+local command, eval = helpers.command, helpers.eval
 local exec_lua = helpers.exec_lua
 
 describe('Virtual markers', function()
     local screen
-    local snippy_src = os.getenv('SNIPPY_PATH') or '.'
 
     before_each(function()
-        clear()
-        screen = Screen.new(50, 5)
-        screen:attach()
-
-        local defaults = {
-            [1] = { foreground = Screen.colors.Blue1, bold = true },
-            [2] = { bold = true },
-            [3] = { background = Screen.colors.LightGrey },
-        }
-
-        if eval('has("nvim-0.10")') > 0 then
-            command('colorscheme vim')
-            defaults[3] = { background = Screen.colors.LightGrey, foreground = Screen.colors.Black }
-        end
-
-        screen:set_default_attr_ids(defaults)
-        command('set rtp=$VIMRUNTIME')
-        command('set rtp+=' .. alter_slashes(snippy_src))
-        command('runtime plugin/snippy.lua')
-        command('lua snippy = require("snippy")')
-        exec_lua([[snippy.setup({ choice_delay = 0 })]])
+        helpers.before_each()
+        screen = helpers.screen
     end)
 
     after_each(function()
