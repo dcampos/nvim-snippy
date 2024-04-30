@@ -36,7 +36,7 @@ end
 command('SnippyEdit', function(params)
     if (vim.fn.empty(params.args)) then
         local slash = vim.fn.exists("+shellslash") == 1 and '\\' or '/'
-        local path = vim.fn.stdpath("config") .. slash .. snippets
+        local path = vim.fn.stdpath("config") .. slash .. "snippets"
         if (not (vim.uv or vim.loop).fs_stat(path)) then
             vim.fn.mkdir(path, 'p')
         end
