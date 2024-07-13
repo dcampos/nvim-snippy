@@ -559,7 +559,9 @@ COMMANDS                                                     *snippy-commands*
 
 :SnippyEdit {file}                                                |SnippyEdit|
 
-    Opens an existing snippet file in a new split. Completion available.
+    Opens an existing snippet file in a new split by default (supports
+    <modes>). Completion available. Passing an empty {file} opens the default
+    snippets file for the current filetype.
 
 :SnippyReload                                                  |SnippyReload|
 
