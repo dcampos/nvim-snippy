@@ -34,13 +34,14 @@ local function complete_snippet_files(lead, _, _)
 end
 
 command('SnippyEdit', function(params)
-    if (vim.fn.empty(params.args)) then
+    if (vim.fn.empty(params.args) == 1) then
         local slash = vim.fn.exists("+shellslash") == 1 and '\\' or '/'
         local path = vim.fn.stdpath("config") .. slash .. "snippets"
         if (not (vim.uv or vim.loop).fs_stat(path)) then
             vim.fn.mkdir(path, 'p')
         end
-        local file = path .. slash .. vim.bo.ft .. ".snippets"
+        local ft = vim.bo.ft == '' and '_' or vim.bo.ft
+        local file = path .. slash .. ft .. ".snippets"
         vim.cmd(params.mods .. [[ split ]] .. vim.fn.fnameescape(file))
     else
         vim.cmd(params.mods .. [[ split ]] .. vim.fn.fnameescape(params.args))
