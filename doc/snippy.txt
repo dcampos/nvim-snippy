@@ -557,13 +557,13 @@ scopes ~
 ==============================================================================
 COMMANDS                                                     *snippy-commands*
 
-:SnippyEdit {file}                                                |SnippyEdit|
+:SnippyEdit {file}                                                *:SnippyEdit*
 
     Opens an existing snippet file in a new split by default (supports
-    <modes>). Completion available. Passing an empty {file} opens the default
+    |<mods>|). Completion available. Passing an empty {file} opens the default
     snippets file for the current filetype.
 
-:SnippyReload                                                  |SnippyReload|
+:SnippyReload                                                  *:SnippyReload*
 
     Invalidates current cache, allowing newly added/edited snippets to be
     loaded.
@@ -572,16 +572,16 @@ COMMANDS                                                     *snippy-commands*
 ==============================================================================
 AUTOCMDS                                                     *snippy-autocmds*
 
-SnippyExpanded                                                |SnippyExpanded|
+SnippyExpanded                                                *SnippyExpanded*
     After expanding a snippet.
 
-SnippyJumped                                                    |SnippyJumped|
+SnippyJumped                                                    *SnippyJumped*
     When jumping back and forth between tabstops.
 
-SnippyFinished                                                |SnippyFinished|
+SnippyFinished                                                *SnippyFinished*
     After exiting (finishing) a snippet.
 
-SnippyTextCut                                                  |SnippyTextCut|
+SnippyTextCut                                                  *SnippyTextCut*
     When selecting and cutting a chunk of text for later use.
 
 
