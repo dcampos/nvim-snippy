@@ -45,7 +45,7 @@ jobs:
 
       - name: Setup vusted
         run: |
-          luarocks install vusted
+          luarocks install vusted 2.3.4-1
 
       - name: Run functional tests
         env:
