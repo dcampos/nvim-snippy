@@ -43,9 +43,9 @@ jobs:
       - name: Setup luarocks
         uses: leafo/gh-actions-luarocks@v4
 
-      - name: Setup vusted
+      - name: Install rocks
         run: |
-          luarocks install vusted
+          luarocks install nlua
 
       - name: Run functional tests
         env:
@@ -58,6 +58,7 @@ jobs:
           VIMRUNTIME: ${{ github.workspace }}/neovim/runtime/
           VUSTED_NVIM: ${{ github.workspace }}/neovim/build/bin/nvim
         run: |
+          PATH=./neovim/build/bin/nvim:$PATH
           make unittest
 
       - name: Check formatting
