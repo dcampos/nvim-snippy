@@ -30,7 +30,7 @@ H.setup_test_snippets = function()
                   end
                 }
             })]],
-        H.alter_slashes(snippy_src .. '/test/snippets/')
+        snippy_src .. '/test/snippets/'
     ))
 end
 
@@ -53,7 +53,7 @@ H.before_each = function()
     H.screen:set_default_attr_ids(defaults)
 
     H.command('set rtp=$VIMRUNTIME')
-    H.command('set rtp+=' .. H.alter_slashes(snippy_src))
+    H.command('set rtp+=' .. snippy_src)
     H.command('runtime plugin/snippy.lua')
     H.command('lua snippy = require("snippy")')
     H.exec_lua([[snippy.setup({ choice_delay = 0 })]])
