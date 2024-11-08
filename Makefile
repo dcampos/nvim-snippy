@@ -1,10 +1,11 @@
 FILTER ?= .*
 
-NEOVIM_BRANCH ?= master
+NEOVIM_TEST_VERSION := v0.10.2
+NEOVIM_RUNNER_VERSION ?= v0.10.2
 
-neovim:
-	git clone --depth 1 https://github.com/neovim/neovim --branch $(NEOVIM_BRANCH)
-	make -C $@
+nvim-test:
+	git clone --depth 1 https://github.com/lewis6991/nvim-test
+	nvim-test/bin/nvim-test --init
 
 vim-snippets:
 	git clone --depth 1 https://github.com/honza/vim-snippets
@@ -15,13 +16,16 @@ export BUSTED_ARGS = -v --lazy --shuffle \
 	--filter=$(FILTER) \
 	--lpath=$(PWD)/test/functional/?.lua
 
-functionaltest: neovim vim-snippets
-	SNIPPY_PATH=$(PWD) TEST_FILE=$(PWD)/test/functional \
-		make -C neovim functionaltest
+functionaltest: nvim-test
+	nvim-test/bin/nvim-test test/functional \
+		--lpath=$(PWD)/lua/?.lua \
+		--lpath=$(PWD)/test/functional/?.lua \
+		--verbose \
+		--coverage
 
 	-@stty sane
 
-unittest:
+unittest: vim-snippets
 	vusted --shuffle test/unit
 
 test: functionaltest unittest

@@ -5,6 +5,7 @@ local insert = helpers.insert
 local eq = helpers.eq
 local exec_lua = helpers.exec_lua
 local setup_test_snippets = helpers.setup_test_snippets
+local sleep = vim and vim.uv and vim.uv.sleep or helpers.sleep
 
 describe('Options', function()
     local screen
@@ -60,11 +61,23 @@ describe('Options', function()
           {2:-- INSERT --}                                      |
         ]],
         })
-        feed('<Esc>:%d<CR>')
+    end)
+
+    it('should expand with beginning option', function()
+        setup_test_snippets()
+        command('set filetype=python')
         insert('foo begin')
+        screen:expect({
+            grid = [[
+          foo begi^n                                         |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+                                                            |
+        ]],
+        })
         feed('a')
         feed('<plug>(snippy-expand)')
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
           foo begin^                                         |
@@ -76,12 +89,21 @@ describe('Options', function()
         })
     end)
 
-    it('should expand with custom option', function()
+    it('should expand with custom option 1', function()
         setup_test_snippets()
         command('set filetype=python')
         insert('comment')
-        feed('a')
-        feed('<plug>(snippy-expand)')
+        screen:expect({
+            grid = [[
+          commen^t                                           |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+                                                            |
+        ]],
+        })
+        feed('a<plug>(snippy-expand)')
+        eq(false, exec_lua([[return snippy.is_active()]]))
         screen:expect({
             grid = [[
           comment^                                           |
@@ -91,10 +113,13 @@ describe('Options', function()
           {2:-- INSERT --}                                      |
         ]],
         })
-        feed('<Esc>:%d<CR>')
+    end)
+
+    it('should expand with custom option', function()
+        setup_test_snippets()
+        command('set filetype=python')
         insert('# comment')
-        feed('a')
-        feed('<plug>(snippy-expand)')
+        feed('a<plug>(snippy-expand)')
         -- screen:snapshot_util()
         screen:expect({
             grid = [[

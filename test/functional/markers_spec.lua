@@ -54,7 +54,7 @@ describe('Virtual markers', function()
             pending('feature requires nvim >= 0.10')
             return true
         end
-        command('set filetype=lua')
+        -- command('set filetype=lua')
         exec_lua([[snippy.setup({
             virtual_markers = {
                 enabled = true,

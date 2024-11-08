@@ -11,29 +11,32 @@ jobs:
   linux:
     strategy:
       matrix:
-        version: [stable, v0.7.0, master]
+        version: [stable, v0.7.0, nightly]
 
     runs-on: ubuntu-latest
+
+    env:
+      NVIM_TEST_VERSION: ${{ matrix.version }}
 
     steps:
 
       - name: Set current date
         id: vars
         run: |
-          echo "current_date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "nvim_test_path=$HOME/.data/nvim-test/" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v3
 
       - uses: actions/cache@v3
         id: cache
         with:
-          path: neovim
-          key: ${{ runner.os }}-nvim-${{ matrix.version }}-${{ steps.vars.outputs.current_date }}
+          path: ${{ steps.vars.outputs.nvim_test_path }}
+          key: ${{ runner.os }}-nvim-test-${{ matrix.version }}
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y autoconf automake build-essential cmake gcc-11 gettext gperf libtool-bin locales ninja-build pkg-config unzip
+      # - name: Install dependencies
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y autoconf automake build-essential cmake gcc-11 gettext gperf libtool-bin locales ninja-build pkg-config unzip
 
       - name: Setup lua
         uses: leafo/gh-actions-lua@v9
@@ -49,15 +52,14 @@ jobs:
 
       - name: Run functional tests
         env:
-          NEOVIM_BRANCH: ${{ matrix.version }}
+          NVIM_TEST_VERSION: ${{ matrix.version }}
+          NVIM_RUNNER_VERSION: v0.10.2
         run: |
           make functionaltest
 
       - name: Run unit tests
-        env:
-          VIMRUNTIME: ${{ github.workspace }}/neovim/runtime/
-          VUSTED_NVIM: ${{ github.workspace }}/neovim/build/bin/nvim
         run: |
+          export VUSTED_NVIM=$HOME/.data/nvim-test/nvim-test-${{ matrix.version }}/bin/nvim
           make unittest
 
       - name: Check formatting
