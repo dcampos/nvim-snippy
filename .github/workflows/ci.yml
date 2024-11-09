@@ -33,15 +33,10 @@ jobs:
           path: ${{ steps.vars.outputs.nvim_test_path }}
           key: ${{ runner.os }}-nvim-test-${{ matrix.version }}
 
-      # - name: Install dependencies
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y autoconf automake build-essential cmake gcc-11 gettext gperf libtool-bin locales ninja-build pkg-config unzip
-
       - name: Setup lua
-        uses: leafo/gh-actions-lua@v9
+        uses: leafo/gh-actions-lua@v10
         with:
-          luaVersion: "luajit"
+          luaVersion: "luajit-openresty"
 
       - name: Setup luarocks
         uses: leafo/gh-actions-luarocks@v4
@@ -63,8 +58,8 @@ jobs:
           make unittest
 
       - name: Check formatting
-        uses: JohnnyMorganz/stylua-action@v2
+        uses: JohnnyMorganz/stylua-action@v4
         with:
-          version: v0.17.1
+          version: v0.20.0
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --check lua/ test/
