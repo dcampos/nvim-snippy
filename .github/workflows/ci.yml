@@ -20,18 +20,7 @@ jobs:
 
     steps:
 
-      - name: Set current date
-        id: vars
-        run: |
-          echo "nvim_test_path=$HOME/.data/nvim-test/" >> $GITHUB_OUTPUT
-
       - uses: actions/checkout@v3
-
-      - uses: actions/cache@v3
-        id: cache
-        with:
-          path: ${{ steps.vars.outputs.nvim_test_path }}
-          key: ${{ runner.os }}-nvim-test-${{ matrix.version }}
 
       - name: Setup lua
         uses: leafo/gh-actions-lua@v10
