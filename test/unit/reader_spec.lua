@@ -111,6 +111,8 @@ describe('Snippet reader', function()
         local total_failed = {}
         local count = 0
         for _, scope in ipairs(scopes) do
+            -- Workaround for when there is no undo_ftplugin set
+            vim.b.undo_ftplugin = vim.b.undo_ftplugin or ''
             vim.cmd('set filetype=' .. scope)
             local snips = snippy.snippets
             assert.is_not.equal(nil, snips[scope])
