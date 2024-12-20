@@ -36,18 +36,20 @@ local function cursor_placed()
     api.nvim_feedkeys(t("<cmd>lua require('snippy.buf').setup_autocmds()<CR>"), 'n', true)
 end
 
-local function move_cursor_to(row, col)
+local function move_cursor_to(row, col, after)
     local line = fn.getline(row)
     col = math.max(fn.strchars(line:sub(1, col)) - 1, 0)
+    col = after and col + 1 or col
     api.nvim_feedkeys(t(string.format('%sG0%s', row, string.rep('<Right>', col))), 'n', true)
 end
 
 local function select_stop(from, to)
     api.nvim_win_set_cursor(0, { from[1] + 1, from[2] + 1 })
     ensure_normal_mode()
-    move_cursor_to(from[1] + 1, from[2] + 1)
+    move_cursor_to(from[1] + 1, from[2] + 1, false)
     api.nvim_feedkeys(t('v'), 'n', true)
-    move_cursor_to(to[1] + 1, to[2])
+    local exclusive = vim.o.selection == 'exclusive'
+    move_cursor_to(to[1] + 1, to[2], exclusive)
     api.nvim_feedkeys(t('o<c-g>'), 'n', true)
     cursor_placed()
 end
