@@ -11,11 +11,16 @@ setmetatable(M, {
     end,
 })
 
+--- Set configuration
+--- @param o snippy.Config Global configuration parameters
 function M.setup(o)
     shared.set_config(o)
     require('snippy.mapping').init()
 end
 
+--- Set buffer configuration
+--- @param bufnr integer Buffer number
+--- @param o snippy.BufferConfig Configuration parameters for the current buffer
 function M.setup_buffer(bufnr, o)
     shared.set_buffer_config(bufnr, o)
 end

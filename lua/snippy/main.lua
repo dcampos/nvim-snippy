@@ -246,6 +246,7 @@ end
 
 -- Public functions
 
+---Complete snippets at the current cursor position
 function M.complete()
     local col = api.nvim_win_get_cursor(0)[2]
     local current_line = api.nvim_get_current_line()
@@ -261,6 +262,7 @@ function M.complete()
     fn.complete(col - #word + 1, choices)
 end
 
+---Call this on CompleteDone to expand completed snippets
 function M.complete_done()
     local completed_item = vim.v.completed_item
     log.debug('complete_done', completed_item)
@@ -286,6 +288,8 @@ function M.complete_done()
     end
 end
 
+---Returns a list of completion items in the current context
+---@return table items
 function M.get_completion_items()
     local items = {}
     local scopes = shared.get_scopes()
@@ -311,6 +315,9 @@ function M.get_completion_items()
     return items
 end
 
+---For cutting curently selected text
+---@param mode string Currenct selection mode
+---@param visual boolean Whether it is a visual selection
 function M.cut_text(mode, visual)
     local tmpval, tmptype = fn.getreg('x'), fn.getregtype('x')
     local keys
@@ -338,6 +345,8 @@ function M._mirror_stops()
     end
 end
 
+---Jumps to the previous valid snippet stop
+---@return boolean
 function M.previous()
     local stops = buf.stops
     local stop = (buf.current_stop or 0) - 1
@@ -347,6 +356,8 @@ function M.previous()
     return M._jump(stop)
 end
 
+---Jumps to the next valid snippet stop
+---@return boolean
 function M.next()
     local stops = buf.stops
     local stop = (buf.current_stop or 0) + 1
@@ -405,7 +416,7 @@ function M._jump(stop)
     return true
 end
 
--- Check if the cursor is inside any stop
+-- Check if the cursor is inside any stop. Otherwise, clears the current snippet.
 function M._check_position()
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
@@ -438,6 +449,9 @@ function M._check_position()
     buf.clear_state()
 end
 
+---Parses a snippet into an internal representation
+---@param snippet string|table The snippet to parse (either text or structured)
+---@return table parsed The parsed snippet representation
 function M.parse_snippet(snippet)
     local ok, parsed, pos
     local text
@@ -457,11 +471,15 @@ function M.parse_snippet(snippet)
     end
     if not ok or pos <= #text then
         error("> Error while parsing snippet: didn't parse till the end")
-        return ''
     end
+    assert(parsed, '> Snippet could not be parsed')
     return parsed
 end
 
+---Expands a snippet at the current cursor position
+---@param snippet string|table The snippet to expand
+---@param word string|nil The trigger word that was matched
+---@return boolean # True on success, false on failure
 function M.expand_snippet(snippet, word)
     log.debug('expand_snippet', word, snippet)
     local current_line = api.nvim_get_current_line()
@@ -489,9 +507,12 @@ function M.expand_snippet(snippet, word)
     place_stops(stops)
     api.nvim_exec_autocmds('User', { pattern = 'SnippyExpanded' })
     M.next()
-    return ''
+    return true
 end
 
+---Returns a string representation of a snippet
+---@param snippet string|table The snippet to represent
+---@return string # The string representation
 function M.get_repr(snippet)
     local parsed = M.parse_snippet(snippet)
     local builder = Builder.new({ row = 0, col = 0, indent = '', word = '' })
@@ -499,10 +520,15 @@ function M.get_repr(snippet)
     return content
 end
 
+---Tries to expand a snippet or advance to the next stop
+---@return boolean
 function M.expand_or_advance()
     return M.expand() or M.next()
 end
 
+---Expands a snippet at the current cursor position if possible
+---@param auto boolean|nil Whether this is an automatic expansion
+---@return boolean
 function M.expand(auto)
     local word, snippet = get_snippet_at_cursor(auto)
     shared.last_char = nil
@@ -512,6 +538,9 @@ function M.expand(auto)
     return false
 end
 
+---Checks if a snippet can be expanded at the current position
+---@param auto boolean|nil Whether this is an automatic expansion check
+---@return boolean
 function M.can_expand(auto)
     local word, snip = get_snippet_at_cursor(auto)
     if word and snip then
@@ -521,6 +550,9 @@ function M.can_expand(auto)
     end
 end
 
+---Checks if it's possible to jump in the specified direction
+---@param dir integer The direction to check (positive for forward, negative for backward)
+---@return boolean
 function M.can_jump(dir)
     local stops = buf.state().stops
     if dir >= 0 then
@@ -530,10 +562,14 @@ function M.can_jump(dir)
     end
 end
 
+---Checks if expansion or advancement is possible
+---@return boolean
 function M.can_expand_or_advance()
     return M.can_expand() or M.can_jump(1)
 end
 
+---Checks if there is any snippet active
+---@return boolean
 function M.is_active()
     return buf.state().active
 end
@@ -546,6 +582,7 @@ M.readers = {
     snipmate_reader,
 }
 
+---Loads snippets for the current scopes
 function M.read_snippets()
     local scopes = shared.get_scopes()
     for _, scope in ipairs(scopes) do
@@ -559,11 +596,15 @@ function M.read_snippets()
     end
 end
 
+---Clears currently cached snippets
 function M.clear_cache()
     shared.cache = {}
     M._snippets = {}
 end
 
+---For completion of snippet file names
+---@param prefix string Prefix to find
+---@return table results Snippet file names
 function M.complete_snippet_files(prefix)
     local files = {}
     for _, reader in ipairs(M.readers) do

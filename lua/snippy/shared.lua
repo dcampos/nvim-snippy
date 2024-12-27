@@ -28,19 +28,30 @@ local function get_scopes()
     return scopes
 end
 
+---@class snippy.Config
 local default_config = {
+    ---@type string|table
     snippet_dirs = nil,
+    ---@type string
     local_snippet_dir = '.snippets',
+    ---@type string
     hl_group = 'SnippyPlaceholder',
+    ---@type table|function
     scopes = {},
+    ---@type table
     mappings = {},
+    ---@type integer?
     choice_delay = 100,
+    ---@type boolean
     enable_auto = false,
+    ---@type table
     expand_options = {},
+    ---@type table
     logging = {
         enabled = false,
         level = 'debug',
     },
+    ---@type table
     virtual_markers = {
         enabled = false,
         empty = '',
@@ -49,11 +60,14 @@ local default_config = {
     },
 }
 
+---@class snippy.BufferConfig
+---@field scopes table|function List of scopes for the current buffer.
+M.buffer_config = {}
+
 M.get_scopes = get_scopes
 M.selected_text = nil
 M.namespace = vim.api.nvim_create_namespace('snippy')
 M.config = vim.tbl_extend('force', {}, default_config)
-M.buffer_config = {}
 M.enable_auto = false
 M.last_char = ''
 

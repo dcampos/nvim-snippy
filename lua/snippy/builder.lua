@@ -3,6 +3,7 @@ local shared = require('snippy.shared')
 local parser = require('snippy.parser')
 local fn = vim.fn
 
+---@type table<string, fun(): string?>
 local varmap = {
     TM_SELECTED_TEXT = function()
         return shared.selected_text
@@ -99,21 +100,39 @@ local varmap = {
     end,
 }
 
-local Builder = {}
+---@class snippy.Builder Snippet renderer/builder
+---@field row integer Current row
+---@field col integer Current row
+---@field indent string Current indent level
+---@field extra_indent string
+---@field stops table Tabstops/variables being built
+---@field result string Snippet being rendered
+local Builder = {
+    row = 0,
+    col = 0,
+    word = '',
+    indent = '',
+    extra_indent = '',
+}
 
+---@param o table?
+---@return snippy.Builder
 function Builder.new(o)
-    local builder = setmetatable(o, { __index = Builder })
+    local builder = setmetatable(o or {}, { __index = Builder })
     builder.stops = {}
     builder.result = ''
-    builder.indent = o.indent or ''
-    builder.extra_indent = ''
     return builder
 end
 
+---Adds content to the final result
+---@param content string
 function Builder:add(content)
     self.result = self.result .. content
 end
 
+---Evaluates Vimscript code
+---@param code string
+---@return string # Evaluation result
 function Builder:eval_vim(code)
     local ok, result = pcall(fn.eval, code)
     if ok then
@@ -126,9 +145,13 @@ function Builder:eval_vim(code)
         return result
     else
         util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+        return ''
     end
 end
 
+---Evaluates Lua code
+---@param code string
+---@return string # Evaluation result
 function Builder:eval_lua(code)
     local ok, result = pcall(fn.luaeval, code)
     if ok then
@@ -138,17 +161,18 @@ function Builder:eval_lua(code)
         elseif tp ~= 'table' and tp ~= 'string' then
             result = ''
         end
+        ---@cast result string
         return result
     else
         util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+        return ''
     end
 end
 
---- Indents a list of lines.
----
---@param lines table: unindented lines
---@param is_expansion boolean: true during eval/variable expansion
---@returns table: indented lines
+---Indents a list of lines
+---@param lines string[] Unindented lines
+---@param is_expansion boolean True during eval/variable expansion, false otherwise
+---@return string[] lines List of indented lines
 function Builder:indent_lines(lines, is_expansion)
     local new_level
     for i, line in ipairs(lines) do
@@ -168,13 +192,13 @@ function Builder:indent_lines(lines, is_expansion)
     return lines
 end
 
---- Appends a sequence of characters to the result.
----
---@param is_expansion boolean: true during eval/variable expansion
---@param text any: text to be appended
+---Appends a sequence of characters to the result
+---@param text string|string[] Text to be appended
+---@param is_expansion? boolean True during eval/variable expansion
 function Builder:append_text(text, is_expansion)
     local lines = type(text) == 'string' and vim.split(text, '\n', true) or text
-    lines = self:indent_lines(lines, is_expansion)
+    ---@cast lines string[]
+    lines = self:indent_lines(lines, is_expansion or false)
     self.row = self.row + #lines - 1
     if #lines > 1 then
         self.col = #lines[#lines] -- fn.strchars(lines[#lines])
@@ -184,15 +208,14 @@ function Builder:append_text(text, is_expansion)
     self:add(table.concat(lines, '\n'))
 end
 
---- Evaluates a variable and possibly its children.
----
---@param variable (string) Variable name.
+---Evaluates a variable and possibly its children
+---@param variable table Variable node
 function Builder:evaluate_variable(variable)
     if not varmap[variable.name] then
-        self:append_text(string.format('$%s', variable.name))
+        self:append_text(string.format('$%s', variable.name), false)
         return
     end
-    local result = varmap[variable.name] and varmap[variable.name](variable.children)
+    local result = varmap[variable.name] and varmap[variable.name]()
     if not result then
         self:process_structure(variable.children)
     else
@@ -200,6 +223,9 @@ function Builder:evaluate_variable(variable)
     end
 end
 
+---Processes the snippet structure
+---@param structure table|string The structure or string to process
+---@param parent any Parent node
 function Builder:process_structure(structure, parent)
     if type(structure) == 'table' then
         for _, value in ipairs(structure) do
@@ -262,6 +288,7 @@ function Builder:process_structure(structure, parent)
     end
 end
 
+---Adds a final ($0) tabstop if none is found
 function Builder:fix_ending()
     for _, stop in ipairs(self.stops) do
         if stop.id == 0 then
@@ -274,6 +301,11 @@ function Builder:fix_ending()
     )
 end
 
+---Renders the snippet to a string
+---@param structure table
+---@param preview boolean? Whether it is a preview rendering
+---@return string result Rendered snippet
+---@return table stops List of tabstops
 function Builder:build_snip(structure, preview)
     self:process_structure(structure)
     self:fix_ending()
