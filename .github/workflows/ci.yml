@@ -11,7 +11,7 @@ jobs:
   linux:
     strategy:
       matrix:
-        version: [stable, v0.7.0, nightly]
+        version: [v0.10.4, v0.7.0, nightly]
 
     runs-on: ubuntu-latest
 

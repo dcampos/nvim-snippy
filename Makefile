@@ -1,7 +1,7 @@
 FILTER ?= .*
 
-NEOVIM_TEST_VERSION := v0.10.2
-NEOVIM_RUNNER_VERSION ?= v0.10.2
+NVIM_TEST_VERSION ?= v0.10.4
+NVIM_RUNNER_VERSION ?= v0.10.4
 
 nvim-test:
 	git clone --depth 1 https://github.com/lewis6991/nvim-test
@@ -20,6 +20,8 @@ functionaltest: nvim-test
 	nvim-test/bin/nvim-test test/functional \
 		--lpath=$(PWD)/lua/?.lua \
 		--lpath=$(PWD)/test/functional/?.lua \
+		--target_version $(NVIM_TEST_VERSION) \
+		--runner_version $(NVIM_RUNNER_VERSION) \
 		--verbose \
 		--coverage
 
