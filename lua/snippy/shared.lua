@@ -89,9 +89,13 @@ function M.set_selection(value, mode)
 end
 
 function M.set_config(params)
-    vim.validate({
-        params = { params, 't' },
-    })
+    if vim.fn.has('nvim-0.11') == 1 then
+        vim.validate('params', params, 'table')
+    else
+        vim.validate({
+            params = { params, 't' },
+        })
+    end
     if params.snippet_dirs then
         local dirs = params.snippet_dirs
         local dir_list = type(dirs) == 'table' and dirs or vim.split(dirs, ',')
@@ -135,10 +139,15 @@ function M.set_config(params)
 end
 
 function M.set_buffer_config(bufnr, params)
-    vim.validate({
-        bufnr = { bufnr, 'n' },
-        params = { params, 't' },
-    })
+    if vim.fn.has('nvim-0.11') == 1 then
+        vim.validate('bufnr', bufnr, 'number')
+        vim.validate('params', params, 'table')
+    else
+        vim.validate({
+            bufnr = { bufnr, 'n' },
+            params = { params, 't' },
+        })
+    end
     M.buffer_config[vim.fn.bufnr(bufnr)] = params
 end
 
