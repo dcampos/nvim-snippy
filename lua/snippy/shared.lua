@@ -73,15 +73,12 @@ M.last_char = ''
 
 function M.set_selection(value, mode)
     if mode == 'V' or mode == 'line' then
-        value = value:sub(1, #value - 1)
-        local lines = vim.split(value, '\n')
-        local indent = ''
-        for i, line in ipairs(lines) do
-            if i == 1 then
-                indent = line:match('^%s*')
-            end
-            lines[i] = line:gsub('^' .. indent, '')
+        local lines = value
+        if type(value) == 'string' then
+            value = value:sub(1, #value - 1)
+            lines = vim.split(value, '\n')
         end
+        lines = require('snippy.util').normalize_indent(lines)
         value = table.concat(lines, '\n')
     end
     M.selected_text = value

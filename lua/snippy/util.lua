@@ -103,8 +103,6 @@ function M.normalize_snippets(snippets)
         snippets[trigger] = snippet
     end
 
-    L.log.debug(snippets)
-
     return snippets
 end
 
@@ -113,6 +111,28 @@ function M.expand_virtual_marker(marker_text, number)
     local result = marker_text:gsub('([^%%]-)%%n', '%1' .. number)
     result = result:gsub('%%%%', '%')
     return result
+end
+
+---Converts spaces to tabs based on shiftwidth
+---@param lines table
+---@return table
+function M.normalize_indent(lines)
+    local leading = ''
+    for i, line in ipairs(lines) do
+        if i == 1 then
+            leading = line:match('^%s*')
+        end
+
+        -- Remove leading spaces from all lines
+        line = line:gsub('^' .. leading, '')
+
+        lines[i] = line:gsub('^%s+', function(spaces)
+            local sw = vim.fn.shiftwidth()
+            local tabs = math.floor(#spaces / sw)
+            return string.rep('\t', tabs) .. spaces:sub(tabs * sw + 1)
+        end)
+    end
+    return lines
 end
 
 return M
