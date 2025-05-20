@@ -12,14 +12,18 @@ local t = util.t
 
 local M = {}
 
-setmetatable(M, {
-    __index = function(self, key)
-        if key == 'snippets' then
-            if #self._snippets == 0 then
-                self.read_snippets()
-            end
-            return self._snippets
+M._user_snippets = {}
+
+M.snippets = setmetatable({}, {
+    __index = function(_, key)
+        if #M._snippets == 0 then
+            M.read_snippets()
         end
+        return M._snippets[key]
+    end,
+    __newindex = function(_, scope, snippets)
+        M._user_snippets[scope] = util.normalize_snippets(snippets)
+        M.clear_cache()
     end,
 })
 
@@ -176,21 +180,19 @@ local function get_snippet_at_cursor(auto_trigger)
                 if scope and M.snippets[scope] then
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
-                        if
-                            auto_trigger and snippet.option.auto_trigger
-                            or not auto_trigger and not snippet.option.auto_trigger
-                        then
+                        local option = snippet.option or {}
+                        if auto_trigger and option.auto_trigger or not auto_trigger and not option.auto_trigger then
                             local custom_expand = true
-                            if snippet.option.custom then
-                                for _, v in pairs(snippet.option.custom) do
+                            if option.custom then
+                                for _, v in pairs(option.custom) do
                                     custom_expand = custom_expand and v()
                                 end
                             end
                             if custom_expand then
-                                if snippet.option.inword then
+                                if option.inword then
                                     -- Match inside word
                                     return word, snippet
-                                elseif snippet.option.beginning then
+                                elseif option.beginning then
                                     -- Match if word is first on line
                                     if word == current_line_to_col then
                                         return word, snippet
@@ -296,10 +298,11 @@ function M.get_completion_items()
 
     for _, scope in ipairs(scopes) do
         if scope and M.snippets[scope] then
-            for _, snip in pairs(M.snippets[scope]) do
+            for prefix, snip in pairs(M.snippets[scope]) do
+                prefix = snip.prefix or prefix
                 table.insert(items, {
-                    word = snip.prefix,
-                    abbr = snip.prefix,
+                    word = prefix,
+                    abbr = prefix,
                     kind = 'Snippet',
                     dup = 1,
                     user_data = {
@@ -458,7 +461,7 @@ function M.parse_snippet(snippet)
     local parser = require('snippy.parser')
     if type(snippet) == 'table' then
         -- Structured snippet
-        text = table.concat(snippet.body, '\n')
+        text = type(snippet.body) == 'table' and table.concat(snippet.body, '\n') or snippet.body
         if snippet.kind == 'snipmate' then
             ok, parsed, pos = parser.parse_snipmate(text, 1)
         else
@@ -587,9 +590,10 @@ function M.read_snippets()
     local scopes = shared.get_scopes()
     for _, scope in ipairs(scopes) do
         if scope and scope ~= '' and not shared.cache[scope] then
+            M._snippets[scope] = M._user_snippets[scope] or {}
             for _, reader in ipairs(M.readers) do
                 local snips = reader.read_snippets(scope)
-                M._snippets[scope] = util.merge_snippets(M._snippets[scope] or {}, snips)
+                M._snippets[scope] = util.merge_snippets(M._snippets[scope], snips)
             end
             shared.cache[scope] = true
         end

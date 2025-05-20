@@ -62,6 +62,52 @@ function M.merge_snippets(current, added)
     return result
 end
 
+function M.validate(rules)
+    -- Use vim.validade(table) if neovim >= 0.11, or the new form if not available
+    if vim.fn.has('nvim-0.11') == 0 then
+        for key, value in rules do
+            vim.validate(key, value[1], value[2])
+        end
+    else
+        vim.validate(rules)
+    end
+end
+
+---Normalizes user-added snippets
+---@param snippets table A table containing `{ scope = snippets }` definitions
+---@return table
+function M.normalize_snippets(snippets)
+    M.validate({ snippets = { snippets, 'table' } })
+
+    for trigger, snippet in pairs(snippets) do
+        M.validate({
+            trigger = { trigger, 'string' },
+            snippet = { snippet, { 'string', 'table' } },
+        })
+        if type(snippet) == 'table' then
+            M.validate({
+                body = { snippet.body, { 'string', 'table' } },
+                priority = { snippet.priority, 'number', true },
+                kind = { snippet.kind, 'sring', true },
+                opts = { snippet.priority, 'table', true },
+            })
+        else
+            -- Text snippets - add defaults
+            snippet = {
+                trigger = trigger,
+                body = snippet,
+            }
+        end
+        snippet.kind = snippet.kind or 'snipmate'
+        snippet.priority = snippet.priority or 999
+        snippets[trigger] = snippet
+    end
+
+    L.log.debug(snippets)
+
+    return snippets
+end
+
 function M.expand_virtual_marker(marker_text, number)
     -- Use %n to insert the stop number
     local result = marker_text:gsub('([^%%]-)%%n', '%1' .. number)
