@@ -1,6 +1,6 @@
 local util = require('snippy.util')
 local shared = require('snippy.shared')
-local parser = require('snippy.parser')
+local EvalLang = require('snippy.parser.common').EvalLang
 local fn = vim.fn
 
 ---@type table<string, fun(): string?>
@@ -267,7 +267,7 @@ function Builder:process_structure(structure, parent)
                     local code = value.children[1].raw
                     local lang = value.lang
                     local result
-                    if lang == parser.EvalLang.Vimscript then
+                    if lang == EvalLang.Vimscript then
                         result = self:eval_vim(code)
                     else
                         result = self:eval_lua(code)
