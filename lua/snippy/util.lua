@@ -75,9 +75,13 @@ end
 
 ---Normalizes user-added snippets
 ---@param snippets table A table containing `{ scope = snippets }` definitions
+---@param opts table? Currently only priority can be passed
 ---@return table
-function M.normalize_snippets(snippets)
+function M.normalize_snippets(snippets, opts)
     M.validate({ snippets = { snippets, 'table' } })
+    M.validate({ opts = { opts, 'table', true }, })
+
+    opts = opts or {}
 
     for trigger, snippet in pairs(snippets) do
         M.validate({
@@ -99,7 +103,7 @@ function M.normalize_snippets(snippets)
             }
         end
         snippet.kind = snippet.kind or 'snipmate'
-        snippet.priority = snippet.priority or 999
+        snippet.priority = snippet.priority or opts.priority or 999
         snippets[trigger] = snippet
     end
 

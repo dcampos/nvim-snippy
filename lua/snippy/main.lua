@@ -14,16 +14,12 @@ local M = {}
 
 M._user_snippets = {}
 
-M.snippets = setmetatable({}, {
-    __index = function(_, key)
-        if #M._snippets == 0 then
-            M.read_snippets()
+setmetatable(M, {
+    __index = function(self, key)
+        if key == 'snippets' then
+            self.read_snippets()
+            return self._snippets
         end
-        return M._snippets[key]
-    end,
-    __newindex = function(_, scope, snippets)
-        M._user_snippets[scope] = util.normalize_snippets(snippets)
-        M.clear_cache()
     end,
 })
 
@@ -575,6 +571,26 @@ end
 ---@return boolean
 function M.is_active()
     return buf.state().active
+end
+
+---Adds a set of snippets by scope
+---These will have higher priority by default
+---@param scope string Scope, normally a `filetype`, to add snippets to
+---@param snippets table
+---@param opts? table
+function M.add_snippets(scope, snippets, opts)
+    snippets = util.normalize_snippets(snippets, opts)
+    M._user_snippets[scope] = util.merge_snippets(M._user_snippets[scope] or {}, snippets)
+end
+
+---Retrieves a list of snippets
+---@param scope string? If empty, returns all snippets
+---@return table # Can be either a dictionary of `<scope, snippets>` or `<trigger, snippet>`, depending on whether a scope is provided
+---@nodiscard
+function M.get_snippets(scope)
+    M.read_snippets()
+    local snippets = scope and M.snippets[scope] or M.snippets
+    return vim.deepcopy(snippets, true)
 end
 
 -- Setup
