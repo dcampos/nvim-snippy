@@ -152,7 +152,7 @@ local snipmate_rules = {
     end,
 
     -- No special values in the replacement format
-    replacement = text('/}'),
+    replacement = text_clean('/}')^0 / function(t) return t and t or '' end,
 
     -- Account for backticks in inner/outer text
     outer_text = text('$`'),
