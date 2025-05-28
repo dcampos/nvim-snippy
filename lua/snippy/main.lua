@@ -573,6 +573,10 @@ function M.is_active()
     return buf.state().active
 end
 
+function M.finish()
+    buf.clear_state()
+end
+
 ---Adds a set of snippets by scope
 ---These will have higher priority by default
 ---@param scope string Scope, normally a `filetype`, to add snippets to
