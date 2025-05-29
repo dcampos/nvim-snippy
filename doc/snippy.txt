@@ -251,6 +251,12 @@ you tell Snippy to load them for a filetype using the `scopes` setup option.
 The global scope is identified by an underscore (`_`). Snippets in the global
 scope will be loaded for every filetype.
 
+                                                     *snippet-usage-lua-added*
+
+Another way to add snippets is by using the available Lua API function
+|snippy.add_snippets()|. This may be convenient for adding temporary snippets,
+testing snippet ideas, or for user who just may prefer it over editing
+`.snippets` files.
 
 ==============================================================================
 SNIPPET SYNTAX                                         *snippy-snippet-syntax*
@@ -262,7 +268,8 @@ supported for compatibility.
 Currently the parser for a particular snippet is chosen based on the source
 the snippet was loaded from. If it was loaded from a SnipMate file, the
 SnipMate-style parser will be used. When expanding LSP snippets from
-completion items, the behavior is to parse using the LSP syntax parser.
+completion items, the default behavior is to parse using the LSP syntax
+parser.
 
 ------------------------------------------------------------------------------
 LSP Snippet Syntax                                         *snippy-lsp-syntax*
@@ -276,11 +283,13 @@ Javascript regex parsing. Instead we support Vim-based regular expressions and
 a simplified format, which see |snippy-snipmate-transform| below for more
 details.
 
-Note: the LSP syntax is only supported when expanding LSP provided completion
-items. This prevents incorrect expansion of eval blocks, for example. When
-expanding snippets defined in `.snippet(s)` files, SnipMate's syntax is used
-instead.
+Note: the LSP syntax  is only supported when expanding LSP provided
+completion items. This prevents incorrect expansion of eval blocks, for
+example. When expanding snippets defined in `.snippet(s)` files, SnipMate's
+syntax is used instead.
 
+When adding snippets programmatically via |snippy.add_snippets()|, the `kind`
+field can be used to specify the syntax.
 
 ------------------------------------------------------------------------------
 SnipMate's Syntax                                     *snippy-snipmate-syntax*
@@ -388,13 +397,16 @@ snippy.cut_text({mode}, {visual})                          *snippy.cut_text()*
 snippy.is_active()                                        *snippy.is_active()*
     Checks whether there is an active snippet.
 
+snippy.finish()                                              *snippy.finish()*
+    Finishes the currently active snippet.
+
 snippy.get_completion_items()                  *snippy.get_completion_items()*
     Returns a list of all completion items available in the current scope.
 
 snippy.complete()                                          *snippy.complete()*
     Shows a basic completion menu at the current location.
 
-    Suggested mapping:
+    Example mapping:
 >vim
     inoremap <c-r><tab> <cmd>lua require'snippy'.complete()<CR>
 <
@@ -406,6 +418,42 @@ snippy.complete_done()                                *snippy.complete_done()*
 >vim
     autocmd snip_comp_done CompleteDone * lua require 'snippy'.complete_done()
 <
+
+snippy.add_snippets({scope}, {snippets}[, {opts})      *snippy.add_snippets()*
+    Adds new snippets to the given {scope}. Snippets added this way are
+    assigned a higher priority value by default.
+
+    {scope} is a string identifying the scope to add the snippets to.
+
+    {snippets} is a table, with snippet triggers as keys and the corresponding
+    snippet as values. Snippet can be a `string` or a table containing some
+    fields:
+        - `priority`: defaults to 999.
+        - `prefix`: snippet trigger. Defaults to the table key.
+        - `body`: `string` or list of `string`s.
+        - `kind`: either "snipmate" or "lsp". See |snippy-snippet-syntax|.
+        - `description`
+        - `option`: see |snippy-snippet-options|.
+
+    Example:
+>lua
+    snippy.add_snippets('python', {
+        ['for'] = "for $1 in $2: $3",
+        ['while'] = { 
+            body = "while $1: $2",
+            priority = 1000
+        }
+    })
+<
+    {opts} is an optional table with the following options:
+        - `priority`: number indicating the snippet priority. Defaults to 999.
+
+snippy.get_snippets([{scope}])                         *snippy.get_snippets()*
+    Returns a table with all available snippets.
+
+    {scope} is an optional string to filter by scope. See
+    |snippy-usage-scopes|.
+
 Some Vimscript |autoload| functions are also provided for convenience,
 specially for mappings:
 

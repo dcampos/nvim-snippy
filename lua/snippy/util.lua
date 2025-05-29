@@ -93,7 +93,7 @@ function M.normalize_snippets(snippets, opts)
                 body = { snippet.body, { 'string', 'table' } },
                 priority = { snippet.priority, 'number', true },
                 kind = { snippet.kind, 'sring', true },
-                opts = { snippet.priority, 'table', true },
+                option = { snippet.option, 'table', true },
             })
         else
             -- Text snippets - add defaults
@@ -102,7 +102,7 @@ function M.normalize_snippets(snippets, opts)
                 body = snippet,
             }
         end
-        snippet.kind = snippet.kind or 'snipmate'
+        snippet.kind = snippet.kind or opts.kind or 'snipmate'
         snippet.priority = snippet.priority or opts.priority or 999
         snippets[trigger] = snippet
     end
