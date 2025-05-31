@@ -57,7 +57,19 @@ M.previous = function(fallback)
     end
 end
 
+M.finish = function(fallback)
+    return function()
+        if snippy.is_active() then
+            snippy.finish()
+        else
+            feedkey(fallback)
+        end
+    end
+end
+
 M.cut_text = '<Plug>(snippy-cut-text)'
+
+M.nop = '<Nop>'
 
 local function create_rhs(rhs, lhs)
     if type(M[rhs]) == 'function' then
@@ -67,8 +79,10 @@ local function create_rhs(rhs, lhs)
     end
 end
 
-function M.init()
-    local mappings = shared.config.mappings
+---Registers user keymaps
+---@param bufnr integer? Must be a valid buffer number if not nil
+function M.init(bufnr)
+    local mappings = bufnr and shared.config.session_mappings or shared.config.mappings
     if not mappings then
         return
     end
@@ -78,7 +92,32 @@ function M.init()
         for _, mode in ipairs(modes) do
             for lhs, _rhs in pairs(mapping) do
                 local rhs, opt = create_rhs(_rhs, lhs)
-                api.nvim_set_keymap(mode, lhs, rhs, opt)
+                if bufnr then
+                    api.nvim_buf_set_keymap(bufnr, mode, lhs, rhs, opt)
+                else
+                    api.nvim_set_keymap(mode, lhs, rhs, opt)
+                end
+            end
+        end
+    end
+end
+
+---Clears existing keymaps
+---@param bufnr integer? Must be a valid buffer number if not nil
+function M.clear(bufnr)
+    local mappings = bufnr and shared.config.session_mappings or shared.config.mappings
+    if not mappings then return end
+
+    for modes, mapping in pairs(mappings) do
+        modes = type(modes) == 'table' and modes or vim.split(modes, '')
+
+        for _, mode in ipairs(modes) do
+            for lhs, _ in pairs(mapping) do
+                if bufnr then
+                    pcall(api.nvim_buf_del_keymap, bufnr, mode, lhs)
+                else
+                    pcall(api.nvim_del_keymap, mode, lhs)
+                end
             end
         end
     end

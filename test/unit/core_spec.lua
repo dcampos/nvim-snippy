@@ -22,5 +22,4 @@ describe('Core', function()
         assert.is_same(2, vim.tbl_count(snippets))
         assert.is_same(1000, snippets.hello.priority)
     end)
-
 end)

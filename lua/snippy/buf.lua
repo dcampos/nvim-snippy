@@ -261,7 +261,16 @@ function M.clear_state()
     M.state().before = nil
     M.state().active = false
     M.clear_autocmds()
+    M.clear_session_mappings()
     api.nvim_exec_autocmds('User', { pattern = 'SnippyFinished' })
+end
+
+function M.setup()
+    if not M.state().active then
+        return
+    end
+    M.setup_autocmds()
+    M.setup_session_mappings()
 end
 
 function M.setup_autocmds()
@@ -299,6 +308,14 @@ function M.setup_autocmds()
             require('snippy')._handle_BufWritePost()
         end,
     })
+end
+
+function M.setup_session_mappings()
+    require('snippy.mapping').init(vim.api.nvim_get_current_buf())
+end
+
+function M.clear_session_mappings()
+    require('snippy.mapping').clear(vim.api.nvim_get_current_buf())
 end
 
 function M.clear_autocmds()

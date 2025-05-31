@@ -40,6 +40,8 @@ local default_config = {
     scopes = {},
     ---@type table
     mappings = {},
+    --@type table
+    session_mappings = {},
     ---@type integer?
     choice_delay = 100,
     ---@type boolean

@@ -79,7 +79,7 @@ end
 ---@return table
 function M.normalize_snippets(snippets, opts)
     M.validate({ snippets = { snippets, 'table' } })
-    M.validate({ opts = { opts, 'table', true }, })
+    M.validate({ opts = { opts, 'table', true } })
 
     opts = opts or {}
 
