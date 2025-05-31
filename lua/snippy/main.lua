@@ -32,8 +32,8 @@ local function ensure_normal_mode()
 end
 
 local function cursor_placed()
-    -- The autocmds must be set up only after the cursor jumps to the tab stop
-    api.nvim_feedkeys(t("<cmd>lua require('snippy.buf').setup_autocmds()<CR>"), 'n', true)
+    -- We need to make sure the cursor is correctly positioned before doing any postion checking
+    api.nvim_feedkeys(t("<cmd>lua require('snippy.buf').end_jump()<CR>"), 'n', true)
 end
 
 local function move_cursor_to(row, col, after)
@@ -377,8 +377,8 @@ function M._jump(stop)
     end
     local should_finish = false
     if #stops >= stop and stop > 0 then
-        -- Disable autocmds so we can move freely
-        buf.clear_autocmds()
+        -- Position checking is disabled while jumping
+        buf.begin_jump()
 
         buf.activate_stop(stop)
         buf.mirror_stop(stop)
@@ -415,8 +415,11 @@ function M._jump(stop)
     return true
 end
 
--- Check if the cursor is inside any stop. Otherwise, clears the current snippet.
+-- Checks if the cursor is inside any stop. Otherwise, clears the current snippet.
 function M._check_position()
+    if buf.jumping() then
+        return
+    end
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
@@ -506,6 +509,7 @@ function M.expand_snippet(snippet, word)
     place_stops(stops)
     api.nvim_exec_autocmds('User', { pattern = 'SnippyExpanded' })
     M.next()
+    buf.setup()
     return true
 end
 

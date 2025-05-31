@@ -322,4 +322,16 @@ function M.clear_autocmds()
     pcall(vim.api.nvim_clear_autocmds, { group = 'SnippyLocal', buffer = 0 })
 end
 
+function M.begin_jump()
+    M.state().jumping = true
+end
+
+function M.end_jump()
+    M.state().jumping = false
+end
+
+function M.jumping()
+    return M.state().jumping == true
+end
+
 return M
