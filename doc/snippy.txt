@@ -419,15 +419,13 @@ snippy.complete_done()                                *snippy.complete_done()*
     autocmd snip_comp_done CompleteDone * lua require 'snippy'.complete_done()
 <
 
-snippy.add_snippets({scope}, {snippets}[, {opts})      *snippy.add_snippets()*
+snippy.add_snippets({snippets}[, {opts})      *snippy.add_snippets()*
     Adds new snippets to the given {scope}. Snippets added this way are
     assigned a higher priority value by default.
 
-    {scope} is a string identifying the scope to add the snippets to.
-
-    {snippets} is a table, with snippet triggers as keys and the corresponding
-    snippet as values. Snippet can be a `string` or a table containing some
-    fields:
+    {snippets} is a table, mapping scopes to tables of snippets, each table
+    having triggers as keys and the corresponding snippets as values. Snippet
+    can be a `string` or a table containing some fields:
         - `priority`: defaults to 999.
         - `prefix`: snippet trigger. Defaults to the table key.
         - `body`: `string` or list of `string`s.
@@ -437,13 +435,16 @@ snippy.add_snippets({scope}, {snippets}[, {opts})      *snippy.add_snippets()*
 
     Example:
 >lua
-    snippy.add_snippets('python', {
-        ['for'] = "for $1 in $2: $3",
-        ['while'] = { 
-            body = "while $1: $2",
-            priority = 1000
-        }
-    })
+    snippy.add_snippets(
+        { python = {
+            ['for'] = "for $1 in $2: $3",
+            ['while'] = { 
+                body = "while $1: $2",
+                priority = 1000
+            }
+        } },
+        { priority = 100, kind = 'lsp' }
+    )
 <
     {opts} is an optional table with the following options:
         - `priority`: number indicating the snippet priority. Defaults to 999.

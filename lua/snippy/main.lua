@@ -583,16 +583,17 @@ end
 
 ---Adds a set of snippets by scope
 ---These will have higher priority by default
----@param scope string Scope, normally a `filetype`, to add snippets to
----@param snippets table
----@param opts? table
-function M.add_snippets(scope, snippets, opts)
-    snippets = util.normalize_snippets(snippets, opts)
-    M._user_snippets[scope] = util.merge_snippets(M._user_snippets[scope] or {}, snippets)
+---@param snippets table A table, with each key mapping a scope to a table of snippets
+---@param opts? table A table containing options to be applied to all snippets. Currently valid options are `priority` and `kind'
+function M.add_snippets(snippets, opts)
+    for scope, snips in pairs(snippets) do
+        snippets = util.normalize_snippets(snips, opts)
+        M._user_snippets[scope] = util.merge_snippets(M._user_snippets[scope] or {}, snips)
+    end
 end
 
 ---Retrieves a list of snippets
----@param scope string? If empty, returns all snippets
+---@param scope string? When empty, all snippets are returned
 ---@return table # Can be either a dictionary of `<scope, snippets>` or `<trigger, snippet>`, depending on whether a scope is provided
 ---@nodiscard
 function M.get_snippets(scope)

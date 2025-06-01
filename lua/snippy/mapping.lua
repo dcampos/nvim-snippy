@@ -106,7 +106,9 @@ end
 ---@param bufnr integer? Must be a valid buffer number if not nil
 function M.clear(bufnr)
     local mappings = bufnr and shared.config.session_mappings or shared.config.mappings
-    if not mappings then return end
+    if not mappings then
+        return
+    end
 
     for modes, mapping in pairs(mappings) do
         modes = type(modes) == 'table' and modes or vim.split(modes, '')
