@@ -96,6 +96,8 @@ in the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
+                                                         *snippy-usage-visual*
+
 To use these mappings, follow these steps:
 
     1. Select text in visual mode.
@@ -550,16 +552,32 @@ mappings ~
             }
         }
 <
-    Valid string LHS values and corresponding enum values are the following:
+    Valid string LHS values are the following:
 
-    | String              | Enum                             | ~
+    | String              | Description                      | ~
     +---------------------+----------------------------------+ ~
-    | expand_or_advance   | snippy.mapping.ExpandOrAdvance   |
-    | expand              | snippy.mapping.Expand            |
-    | next                | snippy.mapping.Next              |
-    | previous            | snippy.mapping.Previous          |
-    | cut_text            | snippy.mapping.CutText           |
+    | expand_or_advance   | Expand snippet or jump forward   |
+    | expand              | Expand snippet                   |
+    | next                | Jump forward                     |
+    | previous            | Jump backwards                   |
+    | cut_text            | Cut text for $VISUAL             |
+    | finish              | Finish snippet session           |
+    | nop                 | <Nop>                            |
 
+session_mappings ~
+    Same as `mappings`, but only during the current snippet session. Useful
+    for mapping keys that only make sense when a snippet is active.
+        Type: `Table`
+        Default: {}
+        Example:
+>lua
+        session_mappings = {
+            -- Finish current snippet with <Esc> in normal mode
+            n = { ['<Esc>'] = "finish" },
+            -- Disable <Esc> in insert/select modes (press <C-c> to escape)
+            is = { ['<Esc>'] = "nop" },
+        }
+<
 expand_options ~
     Add new `option`s to limit triggering in certain scenarios. See
     |snippy-snippet-options|.
