@@ -46,7 +46,7 @@ local function parse_options(prefix, line)
     }
 end
 
-local function parser_header(line)
+local function parse_header(line)
     local parts = vim.split(line, '%s+')
     local prefix = parts[2]
     assert(parts[1] == 'snippet')
@@ -72,7 +72,7 @@ local function read_snippets_file(snippets_file)
 
     local function parse_snippet()
         local line = lines[i]
-        local prefix, description, option = parser_header(line)
+        local prefix, description, option = parse_header(line)
         assert(prefix, 'prefix is nil: ' .. line .. ', file: ' .. snippets_file)
         if option.auto_trigger and not shared.config.enable_auto then
             local msg = [[[Snippy] Warning: you seem to have autotriggered snippets,]]
@@ -127,13 +127,13 @@ local function read_snippets_file(snippets_file)
             i = i + 1
         elseif line:sub(1, 8) == 'priority' then
             local prio = vim.trim(line:sub(9))
-            if not prio or not prio:match('%-?%d+') or not prio:match('+?%d+') then
-                error(string.format('Invalid priority in file %s, at line %s: %s', snippets_file, i, prio))
+            if not prio or not (prio:match('^%-?%d+$') or prio:match('^%+?%d+$')) then
+                error(string.format('Invalid priority in file %s, at line %s: <%s>', snippets_file, i, prio))
             end
-            priority = tonumber(prio)
+            priority = assert(tonumber(prio))
             i = i + 1
         elseif line:sub(1, 1) == '#' or vim.trim(line) == '' then
-            -- Skip empty lines or comments
+            -- Skip empty lines between snippets or comments
             i = i + 1
         else
             error(string.format('Unrecognized syntax in snippets file %s, at line %s: %s', snippets_file, i, line))
@@ -168,31 +168,43 @@ local function read_snippet_file(snippet_file, scope)
     }
 end
 
+--- Returns a list of directories containing snippets
+---@return string[]
 local function list_dirs()
-    local dirs = shared.config.snippet_dirs
-    if not dirs then
+    local snippet_dirs = shared.config.snippet_dirs
+    if snippet_dirs then
+        -- If the user has snippet_dirs configured, rtp paths are ignored
+        snippet_dirs = type(snippet_dirs) == 'string' and vim.split(snippet_dirs, ',') or snippet_dirs
+    else
+        -- Runtime path snippet directories
         local rtp = table.concat(vim.api.nvim_list_runtime_paths(), ',')
-        dirs = vim.fn.globpath(rtp, 'snippets/', 0, 1)
+        snippet_dirs = vim.fn.globpath(rtp, 'snippets', 0, true)
+
+        -- Put user config dirs at the end for higher priority
+        table.sort(snippet_dirs, function(a, _)
+            return not vim.startswith(a, vim.fn.stdpath('config'))
+        end)
     end
+
+    -- Local snippet directory
     local local_dir = shared.config.local_snippet_dir
     if local_dir and fn.isdirectory(local_dir) == 1 then
-        table.insert(dirs, 1, fn.fnamemodify(local_dir, ':p'))
+        table.insert(snippet_dirs, fn.fnamemodify(local_dir, ':p'))
     end
-    for key, dir in ipairs(dirs) do
-        dirs[key] = vim.fn.substitute(dir, '\\\\$', '', 'g')
+
+    for key, dir in ipairs(snippet_dirs) do
+        snippet_dirs[key] = vim.fn.substitute(dir, '\\\\$', '', 'g')
     end
-    if type(dirs) ~= 'string' then
-        dirs = table.concat(dirs, ',')
-    end
-    return dirs
+
+    return snippet_dirs
 end
 
 local function list_files(ftype)
     local all = {}
-    local dirs = list_dirs()
+    local dirs = table.concat(list_dirs(), ',')
     for _, expr in ipairs(exprs) do
         local e = expr:format(ftype)
-        local paths = fn.globpath(dirs, e, 0, 1)
+        local paths = fn.globpath(dirs, e, 0, true)
         all = vim.list_extend(all, paths)
     end
     return vim.tbl_map(util.normalize_path, all)
@@ -228,7 +240,7 @@ local function load_scope(scope, stack)
 end
 
 function M.list_available_scopes()
-    local dirs = vim.split(list_dirs(), ',', true)
+    local dirs = list_dirs()
     local patterns = {
         '/(.-)/.-%.snippets',
         '/(.-)/.-%.snippet',
@@ -241,7 +253,7 @@ function M.list_available_scopes()
     for _, expr in ipairs(exprs) do
         local e = expr:format('*')
         for _, dir in ipairs(dirs) do
-            local paths = fn.globpath(dir, e, 0, 1)
+            local paths = fn.globpath(dir, e, 0, true)
             for _, path in ipairs(paths) do
                 path = path:sub(#dir)
                 for _, pat in ipairs(patterns) do
