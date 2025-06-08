@@ -8,42 +8,79 @@ on:
     - cron: 0 0 * * *
 
 jobs:
-  linux:
+  test:
     strategy:
       matrix:
-        version: [v0.10.4, v0.7.0, nightly]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        version: [v0.11.2, v0.7.0, nightly]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     env:
       NVIM_TEST_VERSION: ${{ matrix.version }}
 
     steps:
-
       - uses: actions/checkout@v3
 
-      - name: Setup lua
-        uses: leafo/gh-actions-lua@v10
-        with:
-          luaVersion: "luajit-openresty"
-
-      - name: Setup luarocks
-        uses: leafo/gh-actions-luarocks@v4
-
-      - name: Setup vusted
+      - name: Setup LuaJIT on Linux
+        if: runner.os == 'Linux'
         run: |
-          luarocks install vusted
+          sudo apt-get update
+          sudo apt-get -y install luajit libluajit-5.1-dev luarocks
+
+      - name: Setup LuaJIT on macOS
+        if: runner.os == 'macOS'
+        run: |
+          brew install luajit luarocks
+
+      - name: Install WinGet
+        if: runner.os == 'Windows'
+        uses: Cyberboss/install-winget@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup LuaJIT on Windows
+        if: runner.os == 'Windows'
+        run: |
+          # Install LuaJIT using winget
+          winget install --id DEVCOM.LuaJIT --silent --accept-package-agreements --accept-source-agreements
+          
+          # Add LuaJIT to PATH
+          echo "C:\Program Files\LuaJIT\bin" >> $GITHUB_PATH
+          
+          # Install LuaRocks manually since winget package includes it
+          refreshenv
+
+      - name: Setup vusted (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          luarocks install --local vusted
+          echo "$HOME/.luarocks/bin" >> $GITHUB_PATH
+
+      - name: Setup vusted (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          luarocks install --local vusted
+          echo %USERPROFILE%\.luarocks\bin>> %GITHUB_PATH%
 
       - name: Run functional tests
         env:
           NVIM_TEST_VERSION: ${{ matrix.version }}
-          NVIM_RUNNER_VERSION: v0.10.2
+          NVIM_RUNNER_VERSION: v0.11.2
         run: |
           make functionaltest
 
       - name: Run unit tests
+        env:
+          VUSTED_USE_LOCAL: 1
+        shell: bash
         run: |
-          export VUSTED_NVIM=$HOME/.data/nvim-test/nvim-test-${{ matrix.version }}/bin/nvim
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            export VUSTED_NVIM=$USERPROFILE/.data/nvim-test/nvim-test-${{ matrix.version }}/bin/nvim.exe
+          else
+            export VUSTED_NVIM=$HOME/.data/nvim-test/nvim-test-${{ matrix.version }}/bin/nvim
+          fi
           make unittest
 
       - name: Check formatting
