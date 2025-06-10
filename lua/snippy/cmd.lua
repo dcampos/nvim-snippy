@@ -17,7 +17,7 @@ local function insert_template(lines)
     end
 
     local S = require('snippy.main')
-    local snippet = S.snippets['snippets'] and S.snippets['snippets']['snippet'] or DEFAULT_SNIPPET
+    local snippet = vim.tbl_get(S.snippets, 'snippets', 'snippet') or DEFAULT_SNIPPET
     S.expand_snippet(snippet, '')
 
     -- Center cursor vertically
