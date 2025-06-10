@@ -631,6 +631,17 @@ COMMANDS                                                     *snippy-commands*
     |<mods>|). Completion available. Passing an empty {file} opens the default
     snippets file for the current filetype.
 
+    When running this command with a |<range>|, Snippy automatically creates a
+    new snippet using the lines contained in the specified range. You can
+    customize the default snippet template by creating a snippet named
+    `snippet` within the `snippets` scope. Example:
+>
+    snippet snippet
+    	snippet ${1:trigger} "${2:description}"
+    		${3:$VISUAL}
+<
+    Where `$VISUAL` will be expanded to the selected lines in the range.
+
 :SnippyReload                                                  *:SnippyReload*
 
     Invalidates current cache, allowing newly added/edited snippets to be
