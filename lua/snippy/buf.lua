@@ -177,10 +177,11 @@ function M.add_stop(spec, pos)
     local function is_traversable()
         for _, stop in ipairs(M.state().stops) do
             if stop.id == spec.id then
+                assert(spec.is_mirror, vim.inspect(spec))
                 return false
             end
         end
-        return spec.type == 'tabstop' or spec.type == 'placeholder' or spec.type == 'choice'
+        return (spec.type == 'tabstop' or spec.type == 'placeholder' or spec.type == 'choice') and not spec.is_mirror
     end
     local startrow = spec.startpos[1] - 1
     local startcol = spec.startpos[2]
@@ -199,7 +200,7 @@ function M.add_stop(spec, pos)
 end
 
 --- Change the extmark's gravity to allow the tabstop to expand on change.
----@p number number Stop number/index
+---@param number number Stop number/index
 function M.activate_stop(number)
     activate_stop_and_parents(number)
     local value = M.state().stops[number]

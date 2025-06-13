@@ -2,15 +2,12 @@ local main = require('snippy.main')
 
 describe('Core', function()
     setup(function()
-        main.add_snippets(
-            {
-                lua = {
-                    ['hello'] = 'Hello, snippy!',
-                    ['multiline'] = 'Line1\nLine2',
-                },
+        main.add_snippets({
+            lua = {
+                ['hello'] = 'Hello, snippy!',
+                ['multiline'] = 'Line1\nLine2',
             },
-            { priority = 1000 }
-        )
+        }, { priority = 1000 })
     end)
 
     it('get snippets', function()

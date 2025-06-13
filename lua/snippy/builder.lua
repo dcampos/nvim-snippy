@@ -78,7 +78,7 @@ local varmap = {
         return fn.strftime('%S')
     end,
     CURRENT_SECONDS_UNIX = function()
-        return fn.localtime()
+        return tostring(fn.localtime())
     end,
     RANDOM = function()
         return string.format('%06d', math.random(999999))
@@ -100,12 +100,25 @@ local varmap = {
     end,
 }
 
+---@class snippy.NodeSpec
+---@field type string
+---@field id number?
+---@field startpos [integer, integer]
+---@field endpos [integer, integer]
+---@field children snippy.NodeSpec[]?
+---@field transform table?
+---@field choices string[]?
+---@field parent snippy.NodeSpec
+---@field content string?
+---@field is_mirror boolean?
+
 ---@class snippy.Builder Snippet renderer/builder
 ---@field row integer Current row
 ---@field col integer Current row
 ---@field indent string Current indent level
 ---@field extra_indent string
----@field stops table Tabstops/variables being built
+---@field nodes snippy.NodeSpec[] Tabstops/variables being built
+---@field node_lookup table<integer, table> Tabstops/variables being built
 ---@field result string Snippet being rendered
 local Builder = {
     row = 0,
@@ -119,7 +132,8 @@ local Builder = {
 ---@return snippy.Builder
 function Builder.new(o)
     local builder = setmetatable(o or {}, { __index = Builder })
-    builder.stops = {}
+    builder.nodes = {}
+    builder.node_lookup = {}
     builder.result = ''
     return builder
 end
@@ -128,6 +142,21 @@ end
 ---@param content string
 function Builder:add(content)
     self.result = self.result .. content
+    return content
+end
+
+---Normalizes evaluation results to strings
+---@param result any
+---@return string
+local function normalize_eval_result(result)
+    local result_type = type(result)
+    if result_type == 'number' then
+        return tostring(result)
+    elseif result_type == 'string' then
+        return result
+    else
+        return ''
+    end
 end
 
 ---Evaluates Vimscript code
@@ -136,15 +165,10 @@ end
 function Builder:eval_vim(code)
     local ok, result = pcall(fn.eval, code)
     if ok then
-        local tp = type(result)
-        if tp == 'number' then
-            result = tostring(result)
-        elseif tp ~= 'table' and tp ~= 'string' then
-            result = ''
-        end
+        result = normalize_eval_result(result)
         return result
     else
-        util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+        util.print_error(string.format('Invalid Vim code `%s`: %s', code, result))
         return ''
     end
 end
@@ -155,16 +179,10 @@ end
 function Builder:eval_lua(code)
     local ok, result = pcall(fn.luaeval, code)
     if ok then
-        local tp = type(result)
-        if tp == 'number' then
-            result = tostring(result)
-        elseif tp ~= 'table' and tp ~= 'string' then
-            result = ''
-        end
-        ---@cast result string
+        result = normalize_eval_result(result)
         return result
     else
-        util.print_error(string.format('Invalid eval code `%s` at %d:%d: %s', code, self.row, self.col, result))
+        util.print_error(string.format('Invalid Lua code `%s`: %s', code, result))
         return ''
     end
 end
@@ -195,108 +213,228 @@ end
 ---Appends a sequence of characters to the result
 ---@param text string|string[] Text to be appended
 ---@param is_expansion? boolean True during eval/variable expansion
-function Builder:append_text(text, is_expansion)
-    local lines = type(text) == 'string' and vim.split(text, '\n', true) or text
+---@return table
+function Builder:process_text(text, is_expansion)
+    local lines = type(text) == 'string' and vim.split(text, '\n', { plain = true }) or text
     ---@cast lines string[]
     lines = self:indent_lines(lines, is_expansion or false)
-    self.row = self.row + #lines - 1
-    if #lines > 1 then
-        self.col = #lines[#lines] -- fn.strchars(lines[#lines])
-    else
-        self.col = self.col + #lines[1] -- fn.strchars(lines[1])
-    end
-    self:add(table.concat(lines, '\n'))
+    local result, row, col = table.concat(lines, '\n'), #lines - 1, #lines[#lines]
+    return { type = 'text', content = result, endpos = { row, col } }
 end
 
 ---Evaluates a variable and possibly its children
 ---@param variable table Variable node
+---@return table
 function Builder:evaluate_variable(variable)
     if not varmap[variable.name] then
-        self:append_text(string.format('$%s', variable.name), false)
-        return
+        return self:process_text(string.format('$%s', variable.name), false)
     end
     local result = varmap[variable.name] and varmap[variable.name]()
     if not result then
-        self:process_structure(variable.children)
+        return self:process_nodes(variable.children)
     else
-        self:append_text(result, true)
+        return self:process_text(result, true)
     end
 end
 
----Processes the snippet structure
----@param structure table|string The structure or string to process
----@param parent any Parent node
-function Builder:process_structure(structure, parent)
-    if type(structure) == 'table' then
-        for _, value in ipairs(structure) do
+---Processes nodes and returns an intermediate structure
+---@param node table
+---@param parent integer? Parent ID/index
+---@return table
+function Builder:process_nodes(node, parent)
+    local result = {}
+    if type(node) == 'table' then
+        for _, value in ipairs(node) do
             if type(value) == 'table' then
                 if value.type == 'tabstop' then
-                    table.insert(self.stops, {
+                    local content = {}
+                    local is_mirror = (self.node_lookup[value.id] or value.transform) and true or false
+                    local n = {
                         type = value.type,
                         id = value.id,
-                        startpos = { self.row, self.col },
-                        endpos = { self.row, self.col },
                         transform = value.transform,
                         parent = parent,
-                    })
+                        children = content,
+                        is_mirror = is_mirror,
+                    }
+                    table.insert(result, n)
+                    if not is_mirror then
+                        self.node_lookup[value.id] = n
+                    end
                 elseif value.type == 'placeholder' then
-                    local startrow, startcol = self.row, self.col
-                    self:process_structure(value.children, value.id)
-                    table.insert(self.stops, {
+                    local content = self:process_nodes(value.children, value.id)
+                    local is_mirror = self.node_lookup[value.id] and true or false
+                    local n = {
                         type = value.type,
                         id = value.id,
-                        startpos = { startrow, startcol },
-                        endpos = { self.row, self.col },
                         parent = parent,
-                    })
-                elseif value.type == 'variable' then
-                    self:evaluate_variable(value)
+                        children = content,
+                        is_mirror = is_mirror,
+                    }
+                    table.insert(result, n)
+                    if not is_mirror then
+                        self.node_lookup[value.id] = n
+                    end
                 elseif value.type == 'choice' then
                     local choice = value.children[1]
-                    local startrow, startcol = self.row, self.col
-                    self:append_text(choice)
-                    table.insert(self.stops, {
+                    local content = self:process_text(choice)
+                    local n = {
                         type = value.type,
                         id = value.id,
-                        startpos = { startrow, startcol },
-                        endpos = { self.row, self.col },
                         choices = value.choices,
                         parent = parent,
-                    })
+                        children = { content },
+                        is_mirror = false,
+                    }
+                    table.insert(result, n)
+                    self.node_lookup[value.id] = n
+                elseif value.type == 'variable' then
+                    local r = self:evaluate_variable(value)
+                    table.insert(result, r)
                 elseif value.type == 'eval' then
                     local code = value.children[1].raw
                     local lang = value.lang
-                    local result
+                    local content
                     if lang == EvalLang.Vimscript then
-                        result = self:eval_vim(code)
+                        content = self:eval_vim(code)
                     else
-                        result = self:eval_lua(code)
+                        content = self:eval_lua(code)
                     end
-                    self:append_text(result, true)
+                    table.insert(result, self:process_text(content, true))
                 elseif value.type == 'text' then
                     local text = value.escaped
-                    self:append_text(text)
+                    table.insert(result, self:process_text(text))
                 else
-                    util.print_error(string.format('Unsupported element "%s" at %d:%d', value.type, self.row, self.col))
+                    util.print_error(string.format('Unsupported element "%s"', vim.inspect(value)))
                 end
             else
-                self:append_text(value)
+                -- Text node
+                table.insert(result, self:process_text(value))
             end
         end
     else
-        self:append_text(structure)
+        table.insert(result, self:process_text(node))
     end
+
+    return result
+end
+
+---Helper function to apply transformation to content
+---@param content string
+---@param transform table Transformation to be applied
+local function apply_transform(content, transform)
+    if not transform then
+        return content
+    end
+    return fn.substitute(content, transform.regex, transform.format, transform.flags)
+end
+
+---Calculates the new position after `content` is added
+---@param content string
+---@param start_row integer
+---@param start_col integer
+---@return integer, integer
+local function calculate_position(content, start_row, start_col)
+    local lines = vim.split(content, '\n', { plain = true })
+    local new_row = start_row + #lines - 1
+    local new_col = (#lines > 1 and #lines[#lines]) or (start_col + #content)
+    return new_row, new_col
+end
+
+---Resolves mirror content. There are two kinds of mirrors:
+--- - Backward references: the target node comes before. Just fetch the content and do any transformation.
+--- - Forward referentes: these need to evaluate their target nodes without appending any content or node.
+---@param node table Mirror node
+---@return string
+function Builder:resolve_mirror_content(node)
+    local target = assert(self.node_lookup[node.id], string.format('Mirror target not found for id: %s', node.id))
+
+    local content = target.content or self:resolve_content(target, true)
+
+    if node.transform then
+        content = apply_transform(content, node.transform)
+    end
+
+    return content
+end
+
+---Resolves content for a node or list of nodes
+---@param node table
+---@param for_mirror boolean? Whether it is content for a mirror
+---@return string
+function Builder:resolve_content(node, for_mirror)
+    local content = ''
+
+    if not node.type then
+        -- Multiple nodes
+        for _, child in ipairs(node) do
+            content = content .. self:resolve_content(child, for_mirror)
+        end
+    elseif node.type == 'text' then
+        -- Text nodes
+        content = node.content
+        local rows, chars = unpack(node.endpos)
+        self.row = self.row + rows
+        self.col = (rows > 0 and chars) or (self.col + chars)
+        if not for_mirror then
+            self:add(content)
+        end
+    else
+        -- Tabstop, placeholder or choice
+
+        assert(type(node) == 'table', string.format('Expected node as table, got %s', type(node)))
+
+        -- Store starting position
+        local start_row, start_col = self.row, self.col
+        node.startpos = { start_row, start_col }
+
+        if node.is_mirror then
+            content = self:resolve_mirror_content(node)
+            self.row, self.col = calculate_position(content, start_row, start_col)
+
+            if not for_mirror then
+                self:add(content)
+            end
+        else
+            assert(
+                type(node.children) == 'table',
+                string.format('Expected node children as table, got %s', type(node.children))
+            )
+
+            -- Process children nodes
+            content = content .. self:resolve_content(node.children, for_mirror)
+        end
+
+        node.endpos = { self.row, self.col }
+        node.content = content
+
+        if not for_mirror then
+            table.insert(self.nodes, node)
+        end
+    end
+
+    return content
+end
+
+---Processes structure and assembles the final snippet (text and nodes)
+---@param structure table
+function Builder:process_structure(structure)
+    -- Preprocess nodes, evaluating code blocks and variables in the way
+    local result = self:process_nodes(structure)
+
+    -- Assemble the final snippet
+    self:resolve_content(result)
 end
 
 ---Adds a final ($0) tabstop if none is found
 function Builder:fix_ending()
-    for _, stop in ipairs(self.stops) do
+    for _, stop in ipairs(self.nodes) do
         if stop.id == 0 then
             return
         end
     end
     table.insert(
-        self.stops,
+        self.nodes,
         { type = 'tabstop', id = 0, startpos = { self.row, self.col }, endpos = { self.row, self.col } }
     )
 end
@@ -310,9 +448,10 @@ function Builder:build_snip(structure, preview)
     self:process_structure(structure)
     self:fix_ending()
     if not preview then
+        -- Empty current selection
         shared.set_selection()
     end
-    return self.result, self.stops
+    return self.result, self.nodes
 end
 
 return Builder

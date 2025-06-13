@@ -19,6 +19,8 @@ describe('Core', function()
         screen:detach()
     end)
 
+    -- Tip: use screen:snapshot_util() to get current screen state
+
     it('can detect current scope', function()
         command('set filetype=lua')
         eq({ _ = {}, lua = {} }, exec_lua([[return snippy.snippets]]))
@@ -80,7 +82,6 @@ describe('Core', function()
         feed('a')
         eq(true, exec_lua([[return snippy.can_expand()]]))
         feed('<plug>(snippy-expand)')
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
         local ^v{3:ar} =                                       |
@@ -327,6 +328,80 @@ describe('Core', function()
         ]],
         })
         neq(true, exec_lua([[return snippy.is_active()]]))
+    end)
+
+    it('mirrors should start with content', function()
+        exec_lua('snippy.expand_snippet([[${1:snip} | ${2:snap} | ${2/./\\u\\0/g}]])')
+        screen:expect({
+            grid = [[
+            ^s{3:nip} | snap | SNAP                                |
+            {1:~                                                 }|
+            {1:~                                                 }|
+            {1:~                                                 }|
+            {2:-- SELECT --}                                      |
+        ]],
+        })
+    end)
+
+    it('mirrors should override placeholders', function()
+        exec_lua('snippy.expand_snippet([[${1:snip} | ${2:snap} | ${2:ignored}]])')
+        screen:expect({
+            grid = [[
+            ^s{3:nip} | snap | snap                                |
+            {1:~                                                 }|
+            {1:~                                                 }|
+            {1:~                                                 }|
+            {2:-- SELECT --}                                      |
+        ]],
+        })
+    end)
+
+    it('should mirror tabstop nested in another placeholder', function()
+        exec_lua('snippy.expand_snippet([[${1:snip} | ${2/.*/\\U\\0/} | ${3:aaa${2:nested}}]])')
+        screen:expect({
+            grid = [[
+          ^s{3:nip} | NESTED | aaanested                         |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
+        ]],
+        })
+
+        feed('<plug>(snippy-next)')
+        feed('zzz')
+        screen:expect({
+            grid = [[
+          snip | ZZZ | aaazzz^                               |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
+    end)
+
+    it('should skip tranform mirrors that come first', function()
+        exec_lua('snippy.expand_snippet([[${1:zzz} ${2/snip/SNAP} = ${2:snip}]])')
+        screen:expect({
+            grid = [[
+            ^z{3:zz} SNAP = snip                                   |
+            {1:~                                                 }|
+            {1:~                                                 }|
+            {1:~                                                 }|
+            {2:-- SELECT --}                                      |
+        ]],
+        })
+        feed('<plug>(snippy-next)')
+        screen:expect({
+            grid = [[
+          zzz SNAP = ^s{3:nip}                                   |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
+        ]],
+        })
     end)
 
     it('does nested expansion', function()
@@ -649,7 +724,6 @@ describe('Core', function()
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
         feed('<Esc>')
-        -- screen:snapshot_util()
         screen:expect({
             grid = [[
           snip                                              |
