@@ -48,7 +48,7 @@ function Stop:set_text(text)
         local transform = self.spec.transform
         text = fn.substitute(text, transform.regex, transform.format, transform.flags)
     end
-    local lines = vim.split(text, '\n', true)
+    local lines = vim.split(text, '\n', { plain = true })
     api.nvim_buf_set_text(0, startpos[1], startpos[2], endpos[1], endpos[2], lines)
 end
 

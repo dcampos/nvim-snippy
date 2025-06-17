@@ -3,7 +3,7 @@ local M = {}
 local function get_scopes()
     local scopes = { '_' }
     if vim.bo.filetype ~= '' then
-        vim.list_extend(scopes, vim.split(vim.bo.filetype, '.', true))
+        vim.list_extend(scopes, vim.split(vim.bo.filetype, '.', { plain = true }))
     end
 
     -- Check for global config
