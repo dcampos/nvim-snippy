@@ -57,6 +57,7 @@ local default_config = {
     virtual_markers = {
         enabled = false,
         empty = '',
+        choice = '',
         default = '',
         hl_group = 'SnippyMarker',
     },
@@ -92,7 +93,7 @@ function M.set_config(params)
         vim.validate('params', params, 'table')
     else
         vim.validate({
-            params = { params, 't' },
+            params = { params, 'table' },
         })
     end
     if params.snippet_dirs then
@@ -143,8 +144,8 @@ function M.set_buffer_config(bufnr, params)
         vim.validate('params', params, 'table')
     else
         vim.validate({
-            bufnr = { bufnr, 'n' },
-            params = { params, 't' },
+            bufnr = { bufnr, 'number' },
+            params = { params, 'table' },
         })
     end
     M.buffer_config[vim.fn.bufnr(bufnr)] = params

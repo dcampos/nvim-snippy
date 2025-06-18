@@ -4,7 +4,7 @@ local util = require('snippy.util')
 local api = vim.api
 local fn = vim.fn
 
----@class Stop
+---@class snippy.Stop
 ---@field id number
 ---@field order number
 ---@field traversable boolean
