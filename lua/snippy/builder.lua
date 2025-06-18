@@ -3,6 +3,59 @@ local shared = require('snippy.shared')
 local EvalLang = require('snippy.parser.common').EvalLang
 local fn = vim.fn
 
+-- =============================================================================
+-- Helper functions
+-- =============================================================================
+
+local function uuid()
+    local template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    local generated = template:gsub('[xy]', function(c)
+        local v = (c == 'x') and math.random(0, 15) or math.random(8, 11)
+        return string.format('%x', v)
+    end)
+    return generated
+end
+
+---Helper function to apply transformation to content
+---@param content string
+---@param transform table Transformation to be applied
+local function apply_transform(content, transform)
+    if not transform then
+        return content
+    end
+    return fn.substitute(content, transform.regex, transform.format, transform.flags)
+end
+
+---Calculates the new position after `content` is added
+---@param content string
+---@param start_row integer
+---@param start_col integer
+---@return integer, integer
+local function calculate_position(content, start_row, start_col)
+    local lines = vim.split(content, '\n', { plain = true })
+    local new_row = start_row + #lines - 1
+    local new_col = (#lines > 1 and #lines[#lines]) or (start_col + #content)
+    return new_row, new_col
+end
+
+---Normalizes evaluation results to strings
+---@param result any
+---@return string
+local function normalize_eval_result(result)
+    local result_type = type(result)
+    if result_type == 'number' then
+        return tostring(result)
+    elseif result_type == 'string' then
+        return result
+    else
+        return ''
+    end
+end
+
+-- =============================================================================
+-- Variable registry
+-- =============================================================================
+
 ---@type table<string, fun(): string?>
 local varmap = {
     TM_SELECTED_TEXT = function()
@@ -36,7 +89,7 @@ local varmap = {
         return fn.expand('%:p')
     end,
     CLIPBOARD = function()
-        return ''
+        return vim.fn.getreg(vim.v.register)
     end,
     WORKSPACE_NAME = function()
         return ''
@@ -86,9 +139,7 @@ local varmap = {
     RANDOM_HEX = function()
         return string.format('%06x', math.random(0x1000000))
     end,
-    UUID = function()
-        return nil
-    end,
+    UUID = uuid,
     BLOCK_COMMENT_START = function()
         return util.parse_comment_string()['start']
     end,
@@ -99,6 +150,10 @@ local varmap = {
         return util.parse_comment_string()['line']
     end,
 }
+
+-- =============================================================================
+-- Builder
+-- =============================================================================
 
 ---@class snippy.NodeSpec
 ---@field type string
@@ -120,18 +175,17 @@ local varmap = {
 ---@field nodes snippy.NodeSpec[] Tabstops/variables being built
 ---@field node_lookup table<integer, table> Tabstops/variables being built
 ---@field result string Snippet being rendered
-local Builder = {
-    row = 0,
-    col = 0,
-    word = '',
-    indent = '',
-    extra_indent = '',
-}
+local Builder = {}
 
 ---@param o table?
 ---@return snippy.Builder
 function Builder.new(o)
     local builder = setmetatable(o or {}, { __index = Builder })
+    builder.row = builder.row or 0
+    builder.col = builder.col or 0
+    builder.word = builder.word or ''
+    builder.indent = builder.indent or ''
+    builder.extra_indent = ''
     builder.nodes = {}
     builder.node_lookup = {}
     builder.result = ''
@@ -143,20 +197,6 @@ end
 function Builder:add(content)
     self.result = self.result .. content
     return content
-end
-
----Normalizes evaluation results to strings
----@param result any
----@return string
-local function normalize_eval_result(result)
-    local result_type = type(result)
-    if result_type == 'number' then
-        return tostring(result)
-    elseif result_type == 'string' then
-        return result
-    else
-        return ''
-    end
 end
 
 ---Evaluates Vimscript code
@@ -246,27 +286,13 @@ function Builder:process_nodes(node, parent)
     if type(node) == 'table' then
         for _, value in ipairs(node) do
             if type(value) == 'table' then
-                if value.type == 'tabstop' then
-                    local content = {}
+                if value.type == 'tabstop' or value.type == 'placeholder' then
+                    local content = value.children and self:process_nodes(value.children, value.id) or {}
                     local is_mirror = (self.node_lookup[value.id] or value.transform) and true or false
                     local n = {
                         type = value.type,
                         id = value.id,
                         transform = value.transform,
-                        parent = parent,
-                        children = content,
-                        is_mirror = is_mirror,
-                    }
-                    table.insert(result, n)
-                    if not is_mirror then
-                        self.node_lookup[value.id] = n
-                    end
-                elseif value.type == 'placeholder' then
-                    local content = self:process_nodes(value.children, value.id)
-                    local is_mirror = self.node_lookup[value.id] and true or false
-                    local n = {
-                        type = value.type,
-                        id = value.id,
                         parent = parent,
                         children = content,
                         is_mirror = is_mirror,
@@ -317,28 +343,6 @@ function Builder:process_nodes(node, parent)
     end
 
     return result
-end
-
----Helper function to apply transformation to content
----@param content string
----@param transform table Transformation to be applied
-local function apply_transform(content, transform)
-    if not transform then
-        return content
-    end
-    return fn.substitute(content, transform.regex, transform.format, transform.flags)
-end
-
----Calculates the new position after `content` is added
----@param content string
----@param start_row integer
----@param start_col integer
----@return integer, integer
-local function calculate_position(content, start_row, start_col)
-    local lines = vim.split(content, '\n', { plain = true })
-    local new_row = start_row + #lines - 1
-    local new_col = (#lines > 1 and #lines[#lines]) or (start_col + #content)
-    return new_row, new_col
 end
 
 ---Resolves mirror content. There are two kinds of mirrors:
