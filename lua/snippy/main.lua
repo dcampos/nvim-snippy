@@ -599,7 +599,7 @@ end
 function M.get_snippets(scope)
     M.read_snippets()
     local snippets = scope and M.snippets[scope] or M.snippets
-    return vim.deepcopy(snippets, true)
+    return vim.deepcopy(snippets)
 end
 
 -- Setup

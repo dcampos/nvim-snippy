@@ -64,7 +64,7 @@ end
 
 function M.validate(rules)
     -- Use vim.validade(table) if neovim >= 0.11, or the new form if not available
-    if vim.fn.has('nvim-0.11') == 0 then
+    if vim.fn.has('nvim-0.11') == 1 then
         for key, value in pairs(rules) do
             vim.validate(key, value[1], value[2])
         end
