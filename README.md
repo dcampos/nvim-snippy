@@ -1,11 +1,6 @@
 # Snippy
 
-A snippets plugin for Neovim **0.7.0+** written in Lua.
-
-## Status
-
-The plugin is mostly stable and feature complete as a minimal and simple snippets manager.
-Also, see the [FAQ](#faq) section.
+A minimalist snippets plugin for Neovim **0.7.0+** written in Lua.
 
 ## Features
 
@@ -100,11 +95,12 @@ snippet repeat
 	while ${1:condition}
 ```
 
-You can find example snippets in the [honza/vim-snippets][3] repository, which,
-if installed, Snippy will also use automatically as a source of snippets.
+You can find extensive example snippets in the [honza/vim-snippets][3]
+repository, which, if installed, Snippy will also automatically recognize as a
+source of snippets.
 
-See `:help snippy-usage-snippets` and `:help snippy-snippet-syntax` for more
-information.
+See `:help snippy-usage-snippets` and `:help snippy-snippet-syntax` for the
+details.
 
 ## Expanding LSP snippets
 
@@ -136,10 +132,10 @@ You need to have [`vusted`][4] installed for running the unit tests.
 These are some of the advantages of this plugin when compared with other snippet plugins for Vim/Neovim:
 
 * Core Neovim only, no external dependencies.
-* Uses built-in `extmarks` feature, avoiding insertion of markers in the text.
-* Simple snippet file format, no need to edit JSON files by hand.
-* No need to define snippets in Lua or Vimscript code.
-* Simple and standard snippet syntax.
+* Built-in `extmarks` integration, avoiding insertion of markers in the text.
+* Straighforward snippet file format: no need to edit JSON files by hand.
+* Eliminates the need to define snippets in Lua or Vimscript code.
+* Clean and standard snippet syntax.
 
 ## FAQ
 
@@ -163,7 +159,8 @@ order to improve usability.
 
 ## Acknowledgements
 
-The snippet parsing code is based on [vsnip][5].
+* The legacy snippet parsing code is based on [vsnip][5]'s.
+* This plugin would not be possible without all the foundation provided by [SnipMate][7].
 
 ## License
 
@@ -175,4 +172,5 @@ MIT license.
 [4]: https://github.com/notomo/vusted
 [5]: https://github.com/hrsh7th/vim-vsnip
 [6]: https://github.com/dcampos/cmp-snippy
+[7]: https://github.com/garbas/vim-snipmate
 [~question]: https://img.shields.io/github/labels/dcampos/nvim-snippy/question
