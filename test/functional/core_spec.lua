@@ -153,7 +153,8 @@ describe('Core', function()
     it('applies transform', function()
         command('set filetype=')
         feed('i')
-        command('lua snippy.expand_snippet([[local ${1:var} = ${1/snip/snap/g}]])')
+        -- TODO: this should work only for snipmate snippets
+        exec_lua('snippy.expand_snippet([[local ${1:var} = ${1/snip/snap/g}]])')
         screen:expect({
             grid = [[
         local ^v{3:ar} = var                                   |
@@ -180,7 +181,8 @@ describe('Core', function()
     it('applies transform with escaping', function()
         command('set filetype=')
         feed('i')
-        command('lua snippy.expand_snippet([[local ${1:var} = ${1/\\w\\+/\\U\\0/g}]])')
+        -- TODO: this should work only for snipmate snippets
+        exec_lua('snippy.expand_snippet([[local ${1:var} = ${1/\\w\\+/\\U\\0/g}]])')
         eq(true, exec_lua([[return snippy.is_active()]]))
         feed('snippy')
         screen:expect({
@@ -193,6 +195,22 @@ describe('Core', function()
         ]],
         })
         eq(true, exec_lua([[return snippy.is_active()]]))
+    end)
+
+    it('applies transform to variables', function()
+        command('file test.lua')
+        feed('i')
+        -- TODO: this should work only for snipmate snippets
+        exec_lua('snippy.expand_snippet([[${TM_FILENAME_BASE/./\\u&/}]])')
+        screen:expect({
+            grid = [[
+          Test^                                              |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
     end)
 
     it('clears state on move', function()

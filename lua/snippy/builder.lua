@@ -273,6 +273,9 @@ function Builder:evaluate_variable(variable)
     if not result then
         return self:process_nodes(variable.children)
     else
+        if variable.transform then
+            result = apply_transform(result, variable.transform)
+        end
         return self:process_text(result, true)
     end
 end
