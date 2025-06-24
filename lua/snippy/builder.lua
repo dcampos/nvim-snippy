@@ -208,7 +208,7 @@ function Builder:eval_vim(code)
         result = normalize_eval_result(result)
         return result
     else
-        util.print_error(string.format('Invalid Vim code `%s`: %s', code, result))
+        vim.notify(string.format('Invalid Vim code `%s`: %s', code, result), vim.log.levels.ERROR)
         return ''
     end
 end
@@ -222,7 +222,7 @@ function Builder:eval_lua(code)
         result = normalize_eval_result(result)
         return result
     else
-        util.print_error(string.format('Invalid Lua code `%s`: %s', code, result))
+        vim.notify(string.format('Invalid Lua code `%s`: %s', code, result), vim.log.levels.ERROR)
         return ''
     end
 end
@@ -334,7 +334,7 @@ function Builder:process_nodes(node, parent)
                     local text = value.escaped
                     table.insert(result, self:process_text(text))
                 else
-                    util.print_error(string.format('Unsupported element "%s"', vim.inspect(value)))
+                    vim.notify(string.format('Unsupported element "%s"', vim.inspect(value)), vim.log.levels.ERROR)
                 end
             else
                 -- Text node
