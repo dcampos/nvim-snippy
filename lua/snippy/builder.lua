@@ -217,7 +217,12 @@ end
 ---@param code string
 ---@return string # Evaluation result
 function Builder:eval_lua(code)
-    local ok, result = pcall(fn.luaeval, code)
+    local func, err = loadstring('return ' .. code)
+    if not func then
+        vim.notify('Lua compile error: ' .. err, vim.log.levels.ERROR)
+        return ''
+    end
+    local ok, result = pcall(func)
     if ok then
         result = normalize_eval_result(result)
         return result
