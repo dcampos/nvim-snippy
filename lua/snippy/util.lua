@@ -23,7 +23,7 @@ function M.t(input)
 end
 
 function M.normalize_path(path)
-    path = vim.fs and vim.fs.normalize(path) or vim.fn.fnamemodify(path, ':p:gs?/\\+?/?')
+    path = vim.fs and vim.fs.normalize(path) or vim.fn.fnamemodify(path, [[:p:gs?\?/?:gs?/\+?/?]])
     return path
 end
 
@@ -62,11 +62,81 @@ function M.merge_snippets(current, added)
     return result
 end
 
+function M.validate(rules)
+    -- Use vim.validade(table) if neovim >= 0.11, or the new form if not available
+    if vim.fn.has('nvim-0.11') == 1 then
+        for key, value in pairs(rules) do
+            vim.validate(key, value[1], value[2])
+        end
+    else
+        vim.validate(rules)
+    end
+end
+
+---Normalizes user-added snippets
+---@param snippets table A table containing `{ scope = snippets }` definitions
+---@param opts table? Currently only priority can be passed
+---@return table
+function M.normalize_snippets(snippets, opts)
+    M.validate({ snippets = { snippets, 'table' } })
+    M.validate({ opts = { opts, 'table', true } })
+
+    opts = opts or {}
+
+    for trigger, snippet in pairs(snippets) do
+        M.validate({
+            trigger = { trigger, 'string' },
+            snippet = { snippet, { 'string', 'table' } },
+        })
+        if type(snippet) == 'table' then
+            M.validate({
+                body = { snippet.body, { 'string', 'table' } },
+                priority = { snippet.priority, 'number', true },
+                kind = { snippet.kind, 'sring', true },
+                option = { snippet.option, 'table', true },
+            })
+        else
+            -- Text snippets - add defaults
+            snippet = {
+                trigger = trigger,
+                body = snippet,
+            }
+        end
+        snippet.kind = snippet.kind or opts.kind or 'snipmate'
+        snippet.priority = snippet.priority or opts.priority or 999
+        snippets[trigger] = snippet
+    end
+
+    return snippets
+end
+
 function M.expand_virtual_marker(marker_text, number)
     -- Use %n to insert the stop number
     local result = marker_text:gsub('([^%%]-)%%n', '%1' .. number)
     result = result:gsub('%%%%', '%')
     return result
+end
+
+---Converts spaces to tabs based on shiftwidth
+---@param lines table
+---@return table
+function M.normalize_indent(lines)
+    local leading = ''
+    for i, line in ipairs(lines) do
+        if i == 1 then
+            leading = line:match('^%s*')
+        end
+
+        -- Remove leading spaces from all lines
+        line = line:gsub('^' .. leading, '')
+
+        lines[i] = line:gsub('^%s+', function(spaces)
+            local sw = vim.fn.shiftwidth()
+            local tabs = math.floor(#spaces / sw)
+            return string.rep('\t', tabs) .. spaces:sub(tabs * sw + 1)
+        end)
+    end
+    return lines
 end
 
 return M

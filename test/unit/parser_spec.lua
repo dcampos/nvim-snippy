@@ -1,4 +1,5 @@
 local parser = require('snippy.parser')
+local EvalLang = require('snippy.parser.common').EvalLang
 
 describe('Parser', function()
     it('Parse a basic snippet', function()
@@ -119,7 +120,7 @@ describe('Parser', function()
         assert.is_true(ok)
         assert.is_same(pos, #snip + 1)
         local eval = result[#result]
-        assert.is_same(parser.EvalLang.Vimscript, eval.lang)
+        assert.is_same(EvalLang.Vimscript, eval.lang)
         assert.is_same('eval', eval.type)
         assert.is_same({ [1] = { type = 'text', raw = 'g:snips_author', escaped = 'g:snips_author' } }, eval.children)
     end)
@@ -129,7 +130,7 @@ describe('Parser', function()
         assert.is_true(ok)
         assert.is_same(pos, #snip + 1)
         local eval = result[#result]
-        assert.is_same(parser.EvalLang.Lua, eval.lang)
+        assert.is_same(EvalLang.Lua, eval.lang)
         assert.is_same('eval', eval.type)
         assert.is_same('40+2', eval.children[1].raw)
     end)
