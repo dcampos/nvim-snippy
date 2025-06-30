@@ -5,8 +5,8 @@ A minimalist snippets plugin for Neovim **0.7.0+** written in Lua.
 ## Features
 
 * Uses the built-in `extmarks` feature
-* Support for defining multiple snippets in a single file
-* Support for expanding LSP provided snippets
+* Supports defining multiple snippets in a single file
+* Supports for expanding LSP-provided snippets
 * Full support for the syntax and file format used by SnipMate
 * No dependencies
 
@@ -14,7 +14,7 @@ A minimalist snippets plugin for Neovim **0.7.0+** written in Lua.
 
 Install using your favorite plugin manager.
 
-Using vim-plug:
+For example, using vim-plug:
 
 ```vim
 Plug 'dcampos/nvim-snippy'
@@ -35,7 +35,7 @@ If you want to use Snippy with [nvim-cmp][2], please install and configure
 Snippy comes with no mappings activated by default, so you need to define
 some.
 
-For example, to use `<Tab>` to expand and jump forward, `<S-Tab` to jump back:
+For example, to use `<Tab>` to expand and jump forward, `<S-Tab>` to jump back:
 
 ```vim
 imap <expr> <Tab> snippy#can_expand_or_advance() ? '<Plug>(snippy-expand-or-advance)' : '<Tab>'
@@ -46,24 +46,33 @@ xmap <Tab> <Plug>(snippy-cut-text)
 ```
 
 When using Lua, you can wrap the above block in a `vim.cmd([[...]])` call, or
-call the `snippy.setup()` function passing your mapping options:
+use standard `:h vim.keymap.set()` with Lua functions:
 
 ```lua
-require('snippy').setup({
-    mappings = {
-        is = {
-            ['<Tab>'] = 'expand_or_advance',
-            ['<S-Tab>'] = 'previous',
-        },
-        nx = {
-            ['<leader>x'] = 'cut_text',
-        },
-    },
-})
+local map = vim.keymap.set
+
+map({ 'i', 's' }, '<Tab>', function()
+    return require('snippy').can_expand_or_advance() and '<Plug>(snippy-expand-or-advance)' or '<Tab>'
+end, { expr = true })
+map({ 'i', 's' }, '<S-Tab>', function()
+    return require('snippy').can_jump(-1) and '<Plug>(snippy-previous)' or '<S-Tab>'
+end, { expr = true })
+map('x', '<Tab>', '<Plug>(snippy-cut-text)')
 ```
 
 You can also define separate mappings to expand and jump forward. See `:help snippy-usage`
 and also the [mapping examples](../../wiki/Mappings) on the Wiki.
+
+## Configuration
+
+Snippy provides an optional `setup()` function for customization. See `:help
+snippy-usage-setup` for the available options.
+
+```lua
+require('snippy').setup({
+    -- Custom options
+})
+```
 
 ## Adding snippets
 
@@ -71,7 +80,7 @@ Normally, you should place your custom snippets in
 `$XDG_CONFIG_HOME/nvim/snippets`. However, any `snippets` directory in
 `runtimepath` will be searched for snippets. Files with the `.snippet`
 extension contain a single snippet, while files with the `.snippets`
-extension can be used to declare multiple snippets.
+extension (most common) can be used to declare multiple snippets.
 
 A basic `lua.snippets` file for Lua, demonstrating some of the plugin's
 features, would look like this:
@@ -82,12 +91,18 @@ snippet fun
 	function ${1:name}(${2:params})
 		${0:$VISUAL}
 	end
+# Tabstop transformations
 snippet upcase
 	local ${1:var} = '${1/.*/\U\0/g}'
+# Selection menu for predefined choices
 snippet choices
 	print('My favorite language is: ${1|JavaScript,Lua,Rust|}')
+# Eval blocks (Vimscript)
 snippet date
 	Current date is `strftime('%c')`
+# Eval blocks (Lua)
+snippet date
+	Current date is `!lua os.date()`
 # Custom tabstop order
 snippet repeat
 	repeat
@@ -141,12 +156,18 @@ These are some of the advantages of this plugin when compared with other snippet
 
 #### Is feature X from Ultisnips available?
 
-This question is very frequently asked and the answer is usually no. UltiSnips
-is a great snippet manager for those who want to use advanced snippet features,
-such as Python code evaluation, but that comes with the cost of being heavy and
-complex, whereas Snippy aims to be minimal and simple. That said, UltiSnips has
-some useful features, like auto-trigger, that have been added to Snippy in
-order to improve usability.
+This question is sometimes asked, and the answer is usually no. UltiSnips is a
+great snippet manager for those who want advanced snippet features, such as
+Python code evaluation. However, this comes with the cost of being heavy and
+complex, whereas Snippy aims to be minimal and simple. That said, UltiSnips
+does have some useful features—like auto-trigger—that have been or may be added
+in the future to Snippy to improve usability.
+
+#### How can I make Select mode work as in other editors?
+
+In Select mode, some keys may behave differently than in other editors (see
+`:help Select-mode`). Check our Wiki section for tips to improve the
+experience: [Select mode mappings](../../wiki/Mappings#select-mode-mappings).
 
 **See also:** issues with label [![label: question][~question]](https://github.com/dcampos/nvim-snippy/issues?q=label%3Aquestion).
 

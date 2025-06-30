@@ -153,7 +153,7 @@ part of the description:
     	This is the first line.
     	This is the second line.
 <
-Please be aware that the legacy syntax doesn't support snippet options.
+Please be aware that this legacy syntax doesn't support snippet options.
 
 A single empty line at the end of the snippet body is discarded, regardless of
 being indented. This is for maintaining compatibility with SnipMate, but also
@@ -204,7 +204,7 @@ there is no mixing of tabs and spaces. If you want Neovim to indent your
 custom snippets with two spaces, for example, create a file
 `after/ftplugin/snippets.vim` and add the following:
 >vim
-    setlocal expandtab tabstop=2 sw=2 
+    setlocal expandtab tabstop=2 sw=2
 <
 This could also be achieved with an |autocmd|. Indenting with spaces is a
 Snippy-specific feature and might not be compatible with other snippet plugins
@@ -297,16 +297,79 @@ field can be used to specify the syntax.
 ------------------------------------------------------------------------------
 SnipMate Syntax                                       *snippy-snipmate-syntax*
 
-SnipMate syntax is also based on the TextMate syntax and so largely compatible
+The SnipMate syntax is also based on the TextMate syntax and so largely compatible
 with the LSP syntax. A basic SniMate-style snippet body looks like this:
 >
     for (${1:i} = 0; $1 < ${2:limit}; $1++) {
     	System.out.println($1);
     }
 <
+Snippy supports the following elements:
+
+Tabstops ~
+
+Tabstops like `$1` and `${1}` are the simplest snippet element. They allow
+inserting text at a certain location in the text. The numberis the order in
+which the tabstops should be visited when the snippet is expanded. So when you
+expand the example snippet, the cursor will jump to the first tabstop (`$1`),
+then to the second (`$2`), and so on.
+
+The number `0` represents the final cursor position after all other tabstops
+have been visited. If there is no final tabstop, Snippy includes one
+implicitly at the end.
+
+Placeholders ~
+
+Placeholders are similar to tabstops, but they include some default text.
+This default text will be selected when the tabstop is reached. For example:
+>
+    Hello, ${1:name}!
+<
+If the snippet is expanded, the cursor will jump to `name` and `name` will be
+selected, so that you can type the name without having to delete the default
+text.
+
+The default text can include any other snippet elements, like tabstops,
+variables, eval blocks or even nested placeholders.
+
+Variables ~
+
+You can include expandable variables using the `$VARIABLE` or `${VARIABLE}`
+syntax. Some of those variables are the following:
+
+    - `$VISUAL` or `$TM_SELECTED_TEXT`: contains the text selected before
+      expanding the snippet.
+    - `$CLIPBOARD`: the contents of the clipboard.
+    - `$CURRENT_DATE`: current date.
+    - `$CURRENT_SECOND`: seconds since the Unix epoch.
+    - `$TM_FILENAME`: name of the current file.
+    - `$TM_FILENAME_BASE`: name of the current file without extension.
+
+Variables can also hava a default text, just like placeholders.
+
+                                                      *snippy-snipmate-visual*
+
+The special variable `$VISUAL`, inherited form SnipMate, holds text previously
+selected and stored using the `snippy.cut_text()` function or the
+`<plug>(snippy-cut-text)` mapping. This is equivalent to the
+`$TM_SELECTED_TEXT` variable defined by the TextMate/LSP syntax.
+
+Note: for convenience, the SnipMate parser does expand any LSP variables
+(`$TM_SELECTED_TEXT`, etc.) present in the snippet body, in addition to
+`$VISUAL`.
+
+Choice ~
+
+Choice nodes allow the user to select one of several options. Currently,
+only text can be present in a choice. Example:
+>
+    Today is ${1|sunday,monday,tuesday,other|}.
+<
                                                         *snippy-snipmate-eval*
 
-This syntax also allows Vim code to be evaluated inside backticks (``):
+Eval Blocks ~
+
+This syntax also allows Vim code to be evaluated inside backticks (``): 
 >
     Current date is `strftime('%c')`
 <
@@ -319,6 +382,8 @@ It is also possible to write `!vim` or `!v` to explicitly mean Vimscript,
 which is the default when no language is indicated.
 
                                                    *snippy-snipmate-transform*
+
+Transformations ~
 
 Transformations are supported for tabstops and variables, with the caveat that
 Vim regular expressions are to be used instead of Javascript ones. The
@@ -335,17 +400,6 @@ The transformation has the following syntax:
     ${<stop or variable>/<replacement>/<flags>}
 <
 The `replacement` and `flags` parts may be empty.
-
-                                                      *snippy-snipmate-visual*
-
-The special variable `$VISUAL` holds text previously selected and stored using
-the `snippy.cut_text()` function or the `<plug>(snippy-cut-text)` mapping.
-This is equivalent to the `$TM_SELECTED_TEXT` variable defined by the
-TextMate/LSP syntax.
-
-Note: for convenience, the SnipMate parser does expand any LSP variables
-(`$TM_SELECTED_TEXT`, etc.) present in the snippet body, in addition to
-`$VISUAL`.
 
 
 ==============================================================================
