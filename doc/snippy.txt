@@ -724,6 +724,16 @@ Example of using |SnippyFinished| to exit insert mode:
 <
 
 ==============================================================================
+HIGHLIGHT                                                   *snippy-highlight*
+
+SnippyPlaceholder                                           *SnippyPlaceholder*
+    Highlight group used for placeholders.
+
+SnippyMarker                                                  *SnippyMarker*
+    Highlight group used for virtual text markers.
+
+
+==============================================================================
 LICENCE                                                       *snippy-license*
 
 Snippy is licensed under the MIT license.
