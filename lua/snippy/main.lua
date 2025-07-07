@@ -510,6 +510,8 @@ function M.expand_snippet(snippet, word)
     api.nvim_exec_autocmds('User', { pattern = 'SnippyExpanded' })
     M.next()
     buf.setup()
+    -- Recursively open all folds within the snippet range
+    vim.cmd(string.format('silent! %s,%s foldopen!', row, row + #lines - 1))
     return true
 end
 
