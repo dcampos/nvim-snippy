@@ -114,10 +114,11 @@ end
 
 --- Gets the ordering number for the next added tabstop.
 ---@return integer
-local function next_order()
+local function update_order()
     local n = 1
     for _, stop in ipairs(M.state().stops) do
         if stop.traversable then
+            stop.order = n
             n = n + 1
         end
     end
@@ -208,13 +209,15 @@ function M.add_stop(spec, pos)
     local endrow = spec.endpos[1] - 1
     local endcol = spec.endpos[2]
     local traversable = is_traversable()
-    local order = traversable and next_order() or -1
     local smark = add_mark(nil, startrow, startcol, endrow, endcol, true, true)
-    local stop = Stop.new({ id = spec.id, order = order, traversable = traversable, mark = smark, spec = spec })
+    local stop = Stop.new({ id = spec.id, order = -1, traversable = traversable, mark = smark, spec = spec })
+    table.insert(M.state().stops, pos, stop)
+    if traversable then
+        update_order()
+    end
     local opts = prepare_mark_opts(stop, false)
     -- Update extmark to set virtual markers correctly
     add_mark(smark, startrow, startcol, endrow, endcol, true, true, opts)
-    table.insert(M.state().stops, pos, stop)
 end
 
 --- Change the extmark's gravity to allow the tabstop to expand on change.
