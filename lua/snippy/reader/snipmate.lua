@@ -180,7 +180,6 @@ local function list_dirs()
         local rtp = table.concat(vim.api.nvim_list_runtime_paths(), ',')
         snippet_dirs = vim.fn.globpath(rtp, 'snippets', 0, true)
 
-
         snippet_dirs = vim.tbl_map(util.normalize_path, snippet_dirs)
 
         -- Put user config dirs at the end for higher priority
