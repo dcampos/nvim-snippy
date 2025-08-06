@@ -87,9 +87,13 @@ local function make_completion_choices(choices)
     return items
 end
 
-local function present_choices(stop, startpos)
+local function present_choices(stop, startpos, endpos)
     vim.defer_fn(function()
-        fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
+        local row, col = unpack(api.nvim_win_get_cursor(0))
+        -- Ensure the cursor is at the expected position before triggering completion
+        if row == endpos[1] + 1 and col == endpos[2] then
+            fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
+        end
     end, shared.config.choice_delay)
 end
 
@@ -394,7 +398,7 @@ function M._jump(stop)
                 start_insert(endpos[1] + 1, endpos[2])
             end
             if value.spec.type == 'choice' then
-                present_choices(value, startpos)
+                present_choices(value, startpos, endpos)
             end
         else
             select_stop(startpos, endpos)
