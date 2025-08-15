@@ -12,12 +12,12 @@ local t = util.t
 
 local M = {}
 
+M._user_snippets = {}
+
 setmetatable(M, {
     __index = function(self, key)
         if key == 'snippets' then
-            if #self._snippets == 0 then
-                self.read_snippets()
-            end
+            self.read_snippets()
             return self._snippets
         end
     end,
@@ -32,8 +32,8 @@ local function ensure_normal_mode()
 end
 
 local function cursor_placed()
-    -- The autocmds must be set up only after the cursor jumps to the tab stop
-    api.nvim_feedkeys(t("<cmd>lua require('snippy.buf').setup_autocmds()<CR>"), 'n', true)
+    -- We need to make sure the cursor is correctly positioned before doing any postion checking
+    api.nvim_feedkeys(t("<cmd>lua require('snippy.buf').end_jump()<CR>"), 'n', true)
 end
 
 local function move_cursor_to(row, col, after)
@@ -87,9 +87,13 @@ local function make_completion_choices(choices)
     return items
 end
 
-local function present_choices(stop, startpos)
+local function present_choices(stop, startpos, endpos)
     vim.defer_fn(function()
-        fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
+        local row, col = unpack(api.nvim_win_get_cursor(0))
+        -- Ensure the cursor is at the expected position before triggering completion
+        if row == endpos[1] + 1 and col == endpos[2] then
+            fn.complete(startpos[2] + 1, make_completion_choices(stop.spec.choices))
+        end
     end, shared.config.choice_delay)
 end
 
@@ -176,21 +180,19 @@ local function get_snippet_at_cursor(auto_trigger)
                 if scope and M.snippets[scope] then
                     if M.snippets[scope][word] then
                         local snippet = M.snippets[scope][word]
-                        if
-                            auto_trigger and snippet.option.auto_trigger
-                            or not auto_trigger and not snippet.option.auto_trigger
-                        then
+                        local option = snippet.option or {}
+                        if auto_trigger and option.auto_trigger or not auto_trigger and not option.auto_trigger then
                             local custom_expand = true
-                            if snippet.option.custom then
-                                for _, v in pairs(snippet.option.custom) do
+                            if option.custom then
+                                for _, v in pairs(option.custom) do
                                     custom_expand = custom_expand and v()
                                 end
                             end
                             if custom_expand then
-                                if snippet.option.inword then
+                                if option.inword then
                                     -- Match inside word
                                     return word, snippet
-                                elseif snippet.option.beginning then
+                                elseif option.beginning then
                                     -- Match if word is first on line
                                     if word == current_line_to_col then
                                         return word, snippet
@@ -296,10 +298,11 @@ function M.get_completion_items()
 
     for _, scope in ipairs(scopes) do
         if scope and M.snippets[scope] then
-            for _, snip in pairs(M.snippets[scope]) do
+            for prefix, snip in pairs(M.snippets[scope]) do
+                prefix = snip.prefix or prefix
                 table.insert(items, {
-                    word = snip.prefix,
-                    abbr = snip.prefix,
+                    word = prefix,
+                    abbr = prefix,
                     kind = 'Snippet',
                     dup = 1,
                     user_data = {
@@ -378,8 +381,8 @@ function M._jump(stop)
     end
     local should_finish = false
     if #stops >= stop and stop > 0 then
-        -- Disable autocmds so we can move freely
-        buf.clear_autocmds()
+        -- Position checking is disabled while jumping
+        buf.begin_jump()
 
         buf.activate_stop(stop)
         buf.mirror_stop(stop)
@@ -395,7 +398,7 @@ function M._jump(stop)
                 start_insert(endpos[1] + 1, endpos[2])
             end
             if value.spec.type == 'choice' then
-                present_choices(value, startpos)
+                present_choices(value, startpos, endpos)
             end
         else
             select_stop(startpos, endpos)
@@ -416,8 +419,11 @@ function M._jump(stop)
     return true
 end
 
--- Check if the cursor is inside any stop. Otherwise, clears the current snippet.
+-- Checks if the cursor is inside any stop. Otherwise, clears the current snippet.
 function M._check_position()
+    if buf.jumping() then
+        return
+    end
     local stops = buf.stops
     local row, col = unpack(api.nvim_win_get_cursor(0))
     row = row - 1
@@ -458,7 +464,7 @@ function M.parse_snippet(snippet)
     local parser = require('snippy.parser')
     if type(snippet) == 'table' then
         -- Structured snippet
-        text = table.concat(snippet.body, '\n')
+        text = type(snippet.body) == 'table' and table.concat(snippet.body, '\n') or snippet.body
         if snippet.kind == 'snipmate' then
             ok, parsed, pos = parser.parse_snipmate(text, 1)
         else
@@ -501,12 +507,15 @@ function M.expand_snippet(snippet, word)
     local fixed_col = col -- fn.strchars(current_line:sub(1, col))
     local builder = Builder.new({ row = row, col = fixed_col, indent = indent, word = word })
     local content, stops = builder:build_snip(parsed)
-    local lines = vim.split(content, '\n', true)
+    local lines = vim.split(content, '\n', { plain = true })
     api.nvim_set_option('undolevels', api.nvim_get_option('undolevels'))
     api.nvim_buf_set_text(0, row - 1, col, row - 1, col + #word, lines)
     place_stops(stops)
     api.nvim_exec_autocmds('User', { pattern = 'SnippyExpanded' })
     M.next()
+    buf.setup()
+    -- Recursively open all folds within the snippet range
+    vim.cmd(string.format('silent! %s,%s foldopen!', row, row + #lines - 1))
     return true
 end
 
@@ -574,6 +583,31 @@ function M.is_active()
     return buf.state().active
 end
 
+function M.finish()
+    buf.clear_state()
+end
+
+---Adds a set of snippets by scope
+---These will have higher priority by default
+---@param snippets table A table, with each key mapping a scope to a table of snippets
+---@param opts? table A table containing options to be applied to all snippets. Currently valid options are `priority` and `kind'
+function M.add_snippets(snippets, opts)
+    for scope, snips in pairs(snippets) do
+        snippets = util.normalize_snippets(snips, opts)
+        M._user_snippets[scope] = util.merge_snippets(M._user_snippets[scope] or {}, snips)
+    end
+end
+
+---Retrieves a list of snippets
+---@param scope string? When empty, all snippets are returned
+---@return table # Can be either a dictionary of `<scope, snippets>` or `<trigger, snippet>`, depending on whether a scope is provided
+---@nodiscard
+function M.get_snippets(scope)
+    M.read_snippets()
+    local snippets = scope and M.snippets[scope] or M.snippets
+    return vim.deepcopy(snippets)
+end
+
 -- Setup
 
 M._snippets = {}
@@ -587,9 +621,10 @@ function M.read_snippets()
     local scopes = shared.get_scopes()
     for _, scope in ipairs(scopes) do
         if scope and scope ~= '' and not shared.cache[scope] then
+            M._snippets[scope] = M._user_snippets[scope] or {}
             for _, reader in ipairs(M.readers) do
                 local snips = reader.read_snippets(scope)
-                M._snippets[scope] = util.merge_snippets(M._snippets[scope] or {}, snips)
+                M._snippets[scope] = util.merge_snippets(M._snippets[scope], snips)
             end
             shared.cache[scope] = true
         end

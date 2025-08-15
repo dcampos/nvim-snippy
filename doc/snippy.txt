@@ -96,6 +96,8 @@ in the `$VISUAL` or `$TM_SELECTED_TEXT` variables:
     nmap g<Tab> <Plug>(snippy-cut-text)
     xmap <Tab> <Plug>(snippy-cut-text)
 <
+                                                         *snippy-usage-visual*
+
 To use these mappings, follow these steps:
 
     1. Select text in visual mode.
@@ -151,7 +153,7 @@ part of the description:
     	This is the first line.
     	This is the second line.
 <
-Please be aware that the legacy syntax doesn't support snippet options.
+Please be aware that this legacy syntax doesn't support snippet options.
 
 A single empty line at the end of the snippet body is discarded, regardless of
 being indented. This is for maintaining compatibility with SnipMate, but also
@@ -202,7 +204,7 @@ there is no mixing of tabs and spaces. If you want Neovim to indent your
 custom snippets with two spaces, for example, create a file
 `after/ftplugin/snippets.vim` and add the following:
 >vim
-    setlocal expandtab tabstop=2 sw=2 
+    setlocal expandtab tabstop=2 sw=2
 <
 This could also be achieved with an |autocmd|. Indenting with spaces is a
 Snippy-specific feature and might not be compatible with other snippet plugins
@@ -224,14 +226,14 @@ working with PHP files.
                                                        *snippy-usage-priority*
 
 Snippy follows the |runtimepath| order when loading snippets, which
-means snippets defined in folders coming later in the list will always
-override those loaded before. So, if you put your custom snippets in
-`after/snippets/`, they should override any snippets provided by plugins in
-case of name conflict.
+means snippets defined in folders coming later in the list will normally
+override those loaded before. However, snippet files located in the user's
+configuration path are automatically loaded later, which means they should
+override any snippets provided by plugins in case of name conflicts.
 
 Another way to determine which snippets should be loaded first is to use the
 `priority` directive, currently only possible in `.snippets` files. The
-default priority is 0, so you can set your own snippets' priority to a higher
+default priority is 0, so you can set your own snippets priority to a higher
 value, like 100, for them to override lower priority snippets. The priority
 directive affects all snippets listed after it:
 >
@@ -251,23 +253,31 @@ you tell Snippy to load them for a filetype using the `scopes` setup option.
 The global scope is identified by an underscore (`_`). Snippets in the global
 scope will be loaded for every filetype.
 
+                                                     *snippet-usage-lua-added*
+
+Another way to add snippets is by using the available Lua API function
+|snippy.add_snippets()|. This may be convenient for adding temporary snippets,
+testing snippet ideas, or for user who just may prefer it over editing
+`.snippets` files.
 
 ==============================================================================
 SNIPPET SYNTAX                                         *snippy-snippet-syntax*
 
-Snippy should be compatible with the full LSP snippet syntax, which in turn is
-based on the original TextMate syntax. Additionally, the SnipMate syntax is
-supported for compatibility.
+Snippy should be fully compatible with the LSP snippet syntax (except for
+transforms, see below), which in turn is based on the original TextMate
+syntax. Additionally, the SnipMate syntax is supported for compatibility and
+enhanced features like eval blocks.
 
 Currently the parser for a particular snippet is chosen based on the source
 the snippet was loaded from. If it was loaded from a SnipMate file, the
 SnipMate-style parser will be used. When expanding LSP snippets from
-completion items, the behavior is to parse using the LSP syntax parser.
+completion items, the default behavior is to parse using the LSP syntax
+parser.
 
 ------------------------------------------------------------------------------
 LSP Snippet Syntax                                         *snippy-lsp-syntax*
 
-The full LSP snippet syntax can be found at
+The full LSP snippet syntax specification can be found at
 https://github.com/Microsoft/language-server-protocol/blob/main/snippetSyntax.md.
 
 The only point where Snippy deviates from the LSP syntax in in the handling of
@@ -276,25 +286,90 @@ Javascript regex parsing. Instead we support Vim-based regular expressions and
 a simplified format, which see |snippy-snipmate-transform| below for more
 details.
 
-Note: the LSP syntax is only supported when expanding LSP provided completion
-items. This prevents incorrect expansion of eval blocks, for example. When
-expanding snippets defined in `.snippet(s)` files, SnipMate's syntax is used
-instead.
+Note: the LSP syntax  is only supported when expanding LSP provided
+completion items. This prevents incorrect expansion of eval blocks, for
+example. When expanding snippets defined in `.snippet(s)` files, SnipMate's
+syntax is used instead.
 
+When adding snippets programmatically via |snippy.add_snippets()|, the `kind`
+field can be used to specify the syntax.
 
 ------------------------------------------------------------------------------
-SnipMate's Syntax                                     *snippy-snipmate-syntax*
+SnipMate Syntax                                       *snippy-snipmate-syntax*
 
-SnipMate syntax is also based on the TextMate syntax and so largely compatible
+The SnipMate syntax is also based on the TextMate syntax and so largely compatible
 with the LSP syntax. A basic SniMate-style snippet body looks like this:
 >
     for (${1:i} = 0; $1 < ${2:limit}; $1++) {
     	System.out.println($1);
     }
 <
+Snippy supports the following elements:
+
+Tabstops ~
+
+Tabstops like `$1` and `${1}` are the simplest snippet element. They allow
+inserting text at a certain location in the text. The numberis the order in
+which the tabstops should be visited when the snippet is expanded. So when you
+expand the example snippet, the cursor will jump to the first tabstop (`$1`),
+then to the second (`$2`), and so on.
+
+The number `0` represents the final cursor position after all other tabstops
+have been visited. If there is no final tabstop, Snippy includes one
+implicitly at the end.
+
+Placeholders ~
+
+Placeholders are similar to tabstops, but they include some default text.
+This default text will be selected when the tabstop is reached. For example:
+>
+    Hello, ${1:name}!
+<
+If the snippet is expanded, the cursor will jump to `name` and `name` will be
+selected, so that you can type the name without having to delete the default
+text.
+
+The default text can include any other snippet elements, like tabstops,
+variables, eval blocks or even nested placeholders.
+
+Variables ~
+
+You can include expandable variables using the `$VARIABLE` or `${VARIABLE}`
+syntax. Some of those variables are the following:
+
+    - `$VISUAL` or `$TM_SELECTED_TEXT`: contains the text selected before
+      expanding the snippet.
+    - `$CLIPBOARD`: the contents of the clipboard.
+    - `$CURRENT_DATE`: current date.
+    - `$CURRENT_SECOND`: seconds since the Unix epoch.
+    - `$TM_FILENAME`: name of the current file.
+    - `$TM_FILENAME_BASE`: name of the current file without extension.
+
+Variables can also hava a default text, just like placeholders.
+
+                                                      *snippy-snipmate-visual*
+
+The special variable `$VISUAL`, inherited form SnipMate, holds text previously
+selected and stored using the `snippy.cut_text()` function or the
+`<plug>(snippy-cut-text)` mapping. This is equivalent to the
+`$TM_SELECTED_TEXT` variable defined by the TextMate/LSP syntax.
+
+Note: for convenience, the SnipMate parser does expand any LSP variables
+(`$TM_SELECTED_TEXT`, etc.) present in the snippet body, in addition to
+`$VISUAL`.
+
+Choice ~
+
+Choice nodes allow the user to select one of several options. Currently,
+only text can be present in a choice. Example:
+>
+    Today is ${1|sunday,monday,tuesday,other|}.
+<
                                                         *snippy-snipmate-eval*
 
-This syntax also allows Vim code to be evaluated inside backticks (``):
+Eval Blocks ~
+
+This syntax also allows Vim code to be evaluated inside backticks (``): 
 >
     Current date is `strftime('%c')`
 <
@@ -307,6 +382,8 @@ It is also possible to write `!vim` or `!v` to explicitly mean Vimscript,
 which is the default when no language is indicated.
 
                                                    *snippy-snipmate-transform*
+
+Transformations ~
 
 Transformations are supported for tabstops and variables, with the caveat that
 Vim regular expressions are to be used instead of Javascript ones. The
@@ -323,17 +400,6 @@ The transformation has the following syntax:
     ${<stop or variable>/<replacement>/<flags>}
 <
 The `replacement` and `flags` parts may be empty.
-
-                                                      *snippy-snipmate-visual*
-
-The special variable `$VISUAL` holds text previously selected and stored using
-the `snippy.cut_text()` function or the `<plug>(snippy-cut-text)` mapping.
-This is equivalent to the `$TM_SELECTED_TEXT` variable defined by the
-TextMate/LSP syntax.
-
-Note: for convenience, the SnipMate parser does expand any LSP variables
-(`$TM_SELECTED_TEXT`, etc.) present in the snippet body, in addition to
-`$VISUAL`.
 
 
 ==============================================================================
@@ -388,13 +454,16 @@ snippy.cut_text({mode}, {visual})                          *snippy.cut_text()*
 snippy.is_active()                                        *snippy.is_active()*
     Checks whether there is an active snippet.
 
+snippy.finish()                                              *snippy.finish()*
+    Finishes the currently active snippet.
+
 snippy.get_completion_items()                  *snippy.get_completion_items()*
     Returns a list of all completion items available in the current scope.
 
 snippy.complete()                                          *snippy.complete()*
     Shows a basic completion menu at the current location.
 
-    Suggested mapping:
+    Example mapping:
 >vim
     inoremap <c-r><tab> <cmd>lua require'snippy'.complete()<CR>
 <
@@ -406,6 +475,43 @@ snippy.complete_done()                                *snippy.complete_done()*
 >vim
     autocmd snip_comp_done CompleteDone * lua require 'snippy'.complete_done()
 <
+
+snippy.add_snippets({snippets}[, {opts})      *snippy.add_snippets()*
+    Adds new snippets to the given {scope}. Snippets added this way are
+    assigned a higher priority value by default.
+
+    {snippets} is a table, mapping scopes to tables of snippets, each table
+    having triggers as keys and the corresponding snippets as values. Snippet
+    can be a `string` or a table containing some fields:
+        - `priority`: defaults to 999.
+        - `prefix`: snippet trigger. Defaults to the table key.
+        - `body`: `string` or list of `string`s.
+        - `kind`: either "snipmate" or "lsp". See |snippy-snippet-syntax|.
+        - `description`
+        - `option`: see |snippy-snippet-options|.
+
+    Example:
+>lua
+    snippy.add_snippets(
+        { python = {
+            ['for'] = "for $1 in $2: $3",
+            ['while'] = { 
+                body = "while $1: $2",
+                priority = 1000
+            }
+        } },
+        { priority = 100, kind = 'lsp' }
+    )
+<
+    {opts} is an optional table with the following options:
+        - `priority`: number indicating the snippet priority. Defaults to 999.
+
+snippy.get_snippets([{scope}])                         *snippy.get_snippets()*
+    Returns a table with all available snippets.
+
+    {scope} is an optional string to filter by scope. See
+    |snippy-usage-scopes|.
+
 Some Vimscript |autoload| functions are also provided for convenience,
 specially for mappings:
 
@@ -501,16 +607,32 @@ mappings ~
             }
         }
 <
-    Valid string LHS values and corresponding enum values are the following:
+    Valid string LHS values are the following:
 
-    | String              | Enum                             | ~
+    | String              | Description                      | ~
     +---------------------+----------------------------------+ ~
-    | expand_or_advance   | snippy.mapping.ExpandOrAdvance   |
-    | expand              | snippy.mapping.Expand            |
-    | next                | snippy.mapping.Next              |
-    | previous            | snippy.mapping.Previous          |
-    | cut_text            | snippy.mapping.CutText           |
+    | expand_or_advance   | Expand snippet or jump forward   |
+    | expand              | Expand snippet                   |
+    | next                | Jump forward                     |
+    | previous            | Jump backwards                   |
+    | cut_text            | Cut text for $VISUAL             |
+    | finish              | Finish snippet session           |
+    | nop                 | <Nop>                            |
 
+session_mappings ~
+    Same as `mappings`, but only during the current snippet session. Useful
+    for mapping keys that only make sense when a snippet is active.
+        Type: `Table`
+        Default: {}
+        Example:
+>lua
+        session_mappings = {
+            -- Finish current snippet with <Esc> in normal mode
+            n = { ['<Esc>'] = "finish" },
+            -- Disable <Esc> in insert/select modes (press <C-c> to escape)
+            is = { ['<Esc>'] = "nop" },
+        }
+<
 expand_options ~
     Add new `option`s to limit triggering in certain scenarios. See
     |snippy-snippet-options|.
@@ -563,6 +685,17 @@ COMMANDS                                                     *snippy-commands*
     |<mods>|). Completion available. Passing an empty {file} opens the default
     snippets file for the current filetype.
 
+    When running this command with a |<range>|, Snippy automatically creates a
+    new snippet using the lines contained in the specified range. You can
+    customize the default snippet template by creating a snippet named
+    `snippet` within the `snippets` scope. Example:
+>
+    snippet snippet
+    	snippet ${1:trigger} "${2:description}"
+    		${3:$VISUAL}
+<
+    Where `$VISUAL` will be expanded to the selected lines in the range.
+
 :SnippyReload                                                  *:SnippyReload*
 
     Invalidates current cache, allowing newly added/edited snippets to be
@@ -589,6 +722,16 @@ Example of using |SnippyFinished| to exit insert mode:
 >vim
     autocmd User SnippyFinished call feedkeys("\<Esc>", 'n')
 <
+
+==============================================================================
+HIGHLIGHT                                                   *snippy-highlight*
+
+SnippyPlaceholder                                           *SnippyPlaceholder*
+    Highlight group used for placeholders.
+
+SnippyMarker                                                  *SnippyMarker*
+    Highlight group used for virtual text markers.
+
 
 ==============================================================================
 LICENCE                                                       *snippy-license*

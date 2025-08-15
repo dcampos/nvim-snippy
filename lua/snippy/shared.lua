@@ -3,7 +3,7 @@ local M = {}
 local function get_scopes()
     local scopes = { '_' }
     if vim.bo.filetype ~= '' then
-        vim.list_extend(scopes, vim.split(vim.bo.filetype, '.', true))
+        vim.list_extend(scopes, vim.split(vim.bo.filetype, '.', { plain = true }))
     end
 
     -- Check for global config
@@ -40,6 +40,8 @@ local default_config = {
     scopes = {},
     ---@type table
     mappings = {},
+    --@type table
+    session_mappings = {},
     ---@type integer?
     choice_delay = 100,
     ---@type boolean
@@ -55,6 +57,7 @@ local default_config = {
     virtual_markers = {
         enabled = false,
         empty = '',
+        choice = '',
         default = '',
         hl_group = 'SnippyMarker',
     },
@@ -73,15 +76,12 @@ M.last_char = ''
 
 function M.set_selection(value, mode)
     if mode == 'V' or mode == 'line' then
-        value = value:sub(1, #value - 1)
-        local lines = vim.split(value, '\n')
-        local indent = ''
-        for i, line in ipairs(lines) do
-            if i == 1 then
-                indent = line:match('^%s*')
-            end
-            lines[i] = line:gsub('^' .. indent, '')
+        local lines = value
+        if type(value) == 'string' then
+            value = value:sub(1, #value - 1)
+            lines = vim.split(value, '\n')
         end
+        lines = require('snippy.util').normalize_indent(lines)
         value = table.concat(lines, '\n')
     end
     M.selected_text = value
@@ -93,7 +93,7 @@ function M.set_config(params)
         vim.validate('params', params, 'table')
     else
         vim.validate({
-            params = { params, 't' },
+            params = { params, 'table' },
         })
     end
     if params.snippet_dirs then
@@ -144,8 +144,8 @@ function M.set_buffer_config(bufnr, params)
         vim.validate('params', params, 'table')
     else
         vim.validate({
-            bufnr = { bufnr, 'n' },
-            params = { params, 't' },
+            bufnr = { bufnr, 'number' },
+            params = { params, 'table' },
         })
     end
     M.buffer_config[vim.fn.bufnr(bufnr)] = params
