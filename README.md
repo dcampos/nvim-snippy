@@ -148,13 +148,13 @@ These are some of the advantages of this plugin when compared with other snippet
 
 * Core Neovim only, no external dependencies.
 * Built-in `extmarks` integration, avoiding insertion of markers in the text.
-* Straighforward snippet file format: no need to edit JSON files by hand.
+* Straightforward snippet file format: no need to edit JSON files by hand.
 * Eliminates the need to define snippets in Lua or Vimscript code.
 * Clean and standard snippet syntax.
 
 ## FAQ
 
-#### Is feature X from Ultisnips available?
+#### Is feature X from UltiSnips available?
 
 This question is sometimes asked, and the answer is usually no. UltiSnips is a
 great snippet manager for those who want advanced snippet features, such as
