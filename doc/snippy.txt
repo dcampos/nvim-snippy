@@ -7,10 +7,13 @@ CONTENTS                                                     *snippy-contents*
 
     INTRODUCTION.........................|snippy-introduction|
     USAGE................................|snippy-usage|
+    SNIPPET SYNTAX.......................|snippy-snippet-syntax|
     FUNCTIONS............................|snippy-functions|
     SETUP OPTIONS........................|snippy-setup-options|
+    BUFFER OPTIONS.......................|snippy-buffer-options|
     COMMANDS.............................|snippy-commands|
     AUTOCMDS.............................|snippy-autocmds|
+    HIGHLIGHT............................|snippy-highlight|
     LICENSE..............................|snippy-license|
 
 
