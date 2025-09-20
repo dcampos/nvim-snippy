@@ -479,7 +479,7 @@ snippy.complete_done()                                *snippy.complete_done()*
     autocmd snip_comp_done CompleteDone * lua require 'snippy'.complete_done()
 <
 
-snippy.add_snippets({snippets}[, {opts})      *snippy.add_snippets()*
+snippy.add_snippets({snippets}[, {opts})               *snippy.add_snippets()*
     Adds new snippets to the given {scope}. Snippets added this way are
     assigned a higher priority value by default.
 
@@ -682,7 +682,7 @@ scopes ~
 ==============================================================================
 COMMANDS                                                     *snippy-commands*
 
-:SnippyEdit {file}                                                *:SnippyEdit*
+:SnippyEdit {file}                                               *:SnippyEdit*
 
     Opens an existing snippet file in a new split by default (supports
     |<mods>|). Completion available. Passing an empty {file} opens the default
@@ -729,10 +729,10 @@ Example of using |SnippyFinished| to exit insert mode:
 ==============================================================================
 HIGHLIGHT                                                   *snippy-highlight*
 
-SnippyPlaceholder                                           *SnippyPlaceholder*
+SnippyPlaceholder                                          *SnippyPlaceholder*
     Highlight group used for placeholders.
 
-SnippyMarker                                                  *SnippyMarker*
+SnippyMarker                                                    *SnippyMarker*
     Highlight group used for virtual text markers.
 
 
