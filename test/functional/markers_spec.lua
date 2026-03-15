@@ -107,4 +107,38 @@ describe('Virtual markers', function()
         ]],
         })
     end)
+
+    it('show correct order with nested expansion', function()
+        if eval('has("nvim-0.10")') == 0 then
+            pending('feature requires nvim >= 0.10')
+            return true
+        end
+        exec_lua([[snippy.setup({
+            virtual_markers = {
+                enabled = true,
+                default = '%n:>',
+            }
+        })]])
+        exec_lua('snippy.expand_snippet([[local ${1} = ${2:snip}${3:snap}${0}]])')
+        screen:expect({
+            grid = [[
+          local ^ = 2:>snip3:>snap                           |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- INSERT --}                                      |
+        ]],
+        })
+        exec_lua('snippy.expand_snippet([[${1:a}, ${0:b}]])')
+        exec_lua([[snippy.next()]])
+        screen:expect({
+            grid = [[
+          local 2:>a, ^b = 4:>snip5:>snap                    |
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {1:~                                                 }|
+          {2:-- SELECT --}                                      |
+        ]],
+        })
+    end)
 end)
