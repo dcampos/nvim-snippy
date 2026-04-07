@@ -232,11 +232,11 @@ local function load_scope(scope, stack)
             error(
                 string.format(
                     'Recursive dependency found: %s',
-                    table.concat(vim.tbl_flatten({ stack, extended }), ' -> ')
+                    table.concat(vim.iter({ stack, extended }):flatten():totable(), ' -> ')
                 )
             )
         end
-        local result = load_scope(extended, vim.tbl_flatten({ stack, scope }))
+        local result = load_scope(extended, vim.iter({ stack, scope }):flatten():totable())
         snips = util.merge_snippets(snips, result)
     end
     return snips
