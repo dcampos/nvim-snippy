@@ -6,7 +6,7 @@ local cmd = vim.cmd
 local M = {}
 
 function M.print_error(...)
-    api.nvim_err_writeln(table.concat(vim.tbl_flatten({ ... }), ' '))
+    api.nvim_err_writeln(table.concat(vim.iter({ ... }):flatten():totable(), ' '))
     cmd('redraw')
 end
 
