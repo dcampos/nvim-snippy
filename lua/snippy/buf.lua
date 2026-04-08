@@ -63,7 +63,7 @@ local function prepare_mark_opts(stop, current)
     local order = stop.order
     local virtual_markers = shared.config.virtual_markers
     local opts = {}
-    if vim.fn.has('nvim-0.10') == 1 and virtual_markers.enabled then
+    if virtual_markers.enabled then
         local from, to = stop:get_range()
         if not current and order > 0 then
             opts.virt_text_pos = 'inline'

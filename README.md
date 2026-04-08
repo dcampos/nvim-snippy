@@ -1,6 +1,6 @@
 # Snippy
 
-A minimalist snippets plugin for Neovim **0.7.0+** written in Lua.
+A minimalist snippets plugin for Neovim **0.10+** written in Lua.
 
 ## Features
 
@@ -180,7 +180,6 @@ experience: [Select mode mappings](../../wiki/Mappings#select-mode-mappings).
 
 ## Acknowledgements
 
-* The legacy snippet parsing code is based on [vsnip][5]'s.
 * This plugin would not be possible without all the foundation provided by [SnipMate][7].
 
 ## License

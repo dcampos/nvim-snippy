@@ -1,7 +1,7 @@
 FILTER ?= .*
 
 NVIM_TEST_VERSION ?= v0.10.4
-NVIM_RUNNER_VERSION ?= v0.10.4
+NVIM_RUNNER_VERSION ?= v0.12.1
 
 nvim-test:
 	git clone --depth 1 https://github.com/lewis6991/nvim-test

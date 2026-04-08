@@ -48,10 +48,8 @@ H.before_each = function()
         [3] = { background = Screen.colors.LightGrey },
     }
 
-    if H.fn.has('nvim-0.10') > 0 then
-        H.command('colorscheme vim')
-        defaults[3] = { background = Screen.colors.LightGrey, foreground = Screen.colors.Black }
-    end
+    H.command('colorscheme vim')
+    defaults[3] = { background = Screen.colors.LightGrey, foreground = Screen.colors.Black }
 
     H.screen:set_default_attr_ids(defaults)
 
