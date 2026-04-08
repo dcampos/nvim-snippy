@@ -23,7 +23,7 @@ function M.t(input)
 end
 
 function M.normalize_path(path)
-    path = vim.fs and vim.fs.normalize(path) or vim.fn.fnamemodify(path, [[:p:gs?\?/?:gs?/\+?/?]])
+    path = vim.fs.normalize(path)
     return path
 end
 

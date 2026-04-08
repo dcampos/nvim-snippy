@@ -15,10 +15,6 @@ describe('Virtual markers', function()
     end)
 
     it('basic', function()
-        if eval('has("nvim-0.10")') == 0 then
-            pending('feature requires nvim >= 0.10')
-            return true
-        end
         command('set filetype=lua')
         exec_lua([[snippy.setup({
             virtual_markers ={
@@ -50,10 +46,6 @@ describe('Virtual markers', function()
     end)
 
     it('with stop numbers', function()
-        if eval('has("nvim-0.10")') == 0 then
-            pending('feature requires nvim >= 0.10')
-            return true
-        end
         exec_lua([[snippy.setup({
             virtual_markers = {
                 enabled = true,
@@ -84,10 +76,6 @@ describe('Virtual markers', function()
     end)
 
     it('with choice', function()
-        if eval('has("nvim-0.10")') == 0 then
-            pending('feature requires nvim >= 0.10')
-            return true
-        end
         exec_lua([[snippy.setup({
             virtual_markers = {
                 enabled = true,
@@ -109,10 +97,6 @@ describe('Virtual markers', function()
     end)
 
     it('show correct order with nested expansion', function()
-        if eval('has("nvim-0.10")') == 0 then
-            pending('feature requires nvim >= 0.10')
-            return true
-        end
         exec_lua([[snippy.setup({
             virtual_markers = {
                 enabled = true,

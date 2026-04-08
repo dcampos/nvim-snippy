@@ -2,8 +2,8 @@ if vim.g.loaded_snippy or vim.fn.has('nvim') ~= 1 then
     return
 end
 
-if vim.fn.has('nvim-0.7.0') == 0 then
-  vim.api.nvim_err_writeln('Snippy requires at least nvim-0.7.0')
+if vim.fn.has('nvim-0.10') == 0 then
+  vim.api.nvim_err_writeln('Snippy requires at least nvim-0.10')
   return
 end
 

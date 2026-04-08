@@ -22,7 +22,7 @@ local function escape(symbols)
 end
 
 --- Captures text into a table with escaped (clean) and raw versions
---- Note: this is kept for compatibility reasons with the legacy parser. It's not clear whether or not we
+--- Note: this is kept for compatibility reasons with the old parser. It's not clear whether or not we
 --- should ever use a 'raw' version of the text, as most of the time the clean version should be enough.
 ---@param delimiters string Characters to stop matching at
 ---@param escaped string? Characters to escape when capturing text (defaults to delimiters)
