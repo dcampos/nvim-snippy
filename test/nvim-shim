@@ -1,0 +1,12 @@
+#!/bin/sh
+
+NVIM_BIN="${NVIM_BIN:-nvim}"
+
+export XDG_CONFIG_HOME="$(pwd)/test/xdg/config/"
+export XDG_STATE_HOME="$(pwd)/test/xdg/local/state/"
+export XDG_DATA_HOME="$(pwd)/test/xdg/local/share/"
+
+mkdir -p "${XDG_DATA_HOME}/nvim/site/pack/testing/start"
+ln -sf "$(pwd)" "${XDG_DATA_HOME}/nvim/site/pack/testing/start/"
+
+exec "$NVIM_BIN" --cmd 'set loadplugins' -l "$@"

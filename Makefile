@@ -2,6 +2,7 @@ FILTER ?= .*
 
 NVIM_TEST_VERSION ?= v0.10.4
 NVIM_RUNNER_VERSION ?= v0.12.1
+NVIM_BIN ?= nvim
 
 nvim-test:
 	git clone --depth 1 https://github.com/lewis6991/nvim-test
@@ -28,7 +29,10 @@ functionaltest: nvim-test
 	-@stty sane
 
 unittest: vim-snippets
-	vusted --shuffle test/unit
+	eval "$$(luarocks --local --lua-version=5.1 path)" && \
+		NVIM_BIN=$(NVIM_BIN) busted \
+		--lua ./test/nvim-shim --output TAP \
+		--shuffle ./test/unit/
 
 test: functionaltest unittest
 

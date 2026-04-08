@@ -35,15 +35,13 @@ jobs:
       - name: Run functional tests
         env:
           NVIM_TEST_VERSION: ${{ matrix.version }}
-          NVIM_RUNNER_VERSION: v0.11.2
+          NVIM_RUNNER_VERSION: v0.12.1
         run: |
           make functionaltest
 
       - name: Run unit tests
-        env:
-          VUSTED_USE_LOCAL: 1
         run: |
-          export VUSTED_NVIM=$HOME/.data/nvim-test/nvim-test-${{ matrix.version }}/bin/nvim
+          export NVIM_BIN=$HOME/.data/nvim-test/nvim-test-${{ matrix.version }}/bin/nvim
           make unittest
 
       - name: Check formatting
