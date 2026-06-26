@@ -63,7 +63,7 @@ H.before_each = function()
     H.command('set rtp+=' .. snippy_src)
     H.command('runtime plugin/snippy.lua')
     H.command('lua snippy = require("snippy")')
-    H.exec_lua([[snippy.setup({ choice_delay = 0 })]])
+    H.exec_lua([[snippy.setup({ choice_delay = 10 })]])
 
     H.screen:attach()
 end
