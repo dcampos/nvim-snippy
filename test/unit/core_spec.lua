@@ -10,6 +10,26 @@ describe('Core', function()
         }, { priority = 1000 })
     end)
 
+    it('adds snippets without optional options', function()
+        main.add_snippets({ api = { hello = 'Hello, $1!' } })
+        vim.cmd('set filetype=api')
+        main.clear_cache()
+        local snippet = main.get_snippets('api').hello
+        assert.is_same('Hello, $1!', snippet.body)
+        assert.is_same(999, snippet.priority)
+        assert.is_same('snipmate', snippet.kind)
+    end)
+
+    it('adds table snippets with optional fields and an explicit kind', function()
+        main.add_snippets({ api_table = { hello = { body = 'Hello, $1!', kind = 'lsp' } } }, {})
+        vim.cmd('set filetype=api_table')
+        main.clear_cache()
+        local snippet = main.get_snippets('api_table').hello
+        assert.is_same('Hello, $1!', snippet.body)
+        assert.is_same('lsp', snippet.kind)
+        assert.is_same(999, snippet.priority)
+    end)
+
     it('get snippets', function()
         vim.cmd('set filetype=lua')
         local snippets = main.get_snippets()
