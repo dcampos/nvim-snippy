@@ -344,7 +344,7 @@ syntax. Some of those variables are the following:
       expanding the snippet.
     - `$CLIPBOARD`: the contents of the clipboard.
     - `$CURRENT_DATE`: current date.
-    - `$CURRENT_SECOND`: seconds since the Unix epoch.
+    - `$CURRENT_SECOND`: current second within the minute (00-59).
     - `$TM_FILENAME`: name of the current file.
     - `$TM_FILENAME_BASE`: name of the current file without extension.
 

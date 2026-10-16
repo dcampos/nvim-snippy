@@ -66,7 +66,7 @@ function M.validate(rules)
     -- Use vim.validade(table) if neovim >= 0.11, or the new form if not available
     if vim.fn.has('nvim-0.11') == 1 then
         for key, value in pairs(rules) do
-            vim.validate(key, value[1], value[2])
+            vim.validate(key, value[1], value[2], value[3])
         end
     else
         vim.validate(rules)
@@ -92,7 +92,7 @@ function M.normalize_snippets(snippets, opts)
             M.validate({
                 body = { snippet.body, { 'string', 'table' } },
                 priority = { snippet.priority, 'number', true },
-                kind = { snippet.kind, 'sring', true },
+                kind = { snippet.kind, 'string', true },
                 option = { snippet.option, 'table', true },
             })
         else
