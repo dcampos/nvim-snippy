@@ -66,6 +66,19 @@ H.before_each = function()
     H.exec_lua([[snippy.setup({ choice_delay = 10 })]])
 
     H.screen:attach()
+
+    -- Since Nvim 0.13 the cursor cell is part of the placeholder highlight:
+    -- '^v{3:ar}' -> '{3:^var}'
+    if H.exec_lua([[return vim.fn.has('nvim-0.13') == 1]]) then
+        local expect = H.screen.expect
+        H.screen.expect = function(self, expected, ...)
+            if type(expected) == 'table' and type(expected.grid) == 'string' then
+                expected.grid = expected.grid:gsub('%^(.){3:', '{3:^%1')
+                expected.grid = expected.grid:gsub('%^b = ', '{3:^b} = ')
+            end
+            return expect(self, expected, ...)
+        end
+    end
 end
 
 return H
